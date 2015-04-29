@@ -135,6 +135,16 @@ Fired after the `iron-overlay` closes.
       return this._backdrop;
     },
 
+    /**
+     * Returns the reason the overlay is closed. Override in your element if you need to provide
+     * more reasons.
+     */
+    get closingReason() {
+      return {
+        canceled: this.canceled
+      };
+    },
+
     get _focusNode() {
       return Polymer.dom(this).querySelector('[autofocus]') || this;
     },
@@ -321,9 +331,7 @@ Fired after the `iron-overlay` closes.
       // focus the next overlay, if there is one
       this._manager.focusOverlay();
 
-      this.fire('iron-overlay-closed', {
-        canceled: this.canceled
-      });
+      this.fire('iron-overlay-closed', this.closingReason);
     },
 
     _completeBackdrop: function() {
@@ -354,11 +362,7 @@ Fired after the `iron-overlay` closes.
         }
       } else {
         this._focusNode.blur();
-        if (this._manager.currentOverlay() == this) {
-          console.warn('Current iron-overlay is attempting to focus itself as next! (bug)');
-        } else {
-          this._manager.focusOverlay();
-        }
+        this._manager.focusOverlay();
       }
     },
 
@@ -369,7 +373,7 @@ Fired after the `iron-overlay` closes.
     // if a tap event is immediately heard on the target.
     // TODO(sorvell): This approach will not work with modal. For
     // this we need a scrim.
-    _onCaptureClick: function() {
+    _onCaptureClick: function(event) {
       if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this)) {
         this._cancelJob = this.async(function() {
           this.cancel();

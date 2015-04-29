@@ -45,6 +45,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="autofocus">
+      <template>
+        <test-overlay>
+          Autofocus
+          <button autofocus>button</button>
+        </test-overlay>
+      </template>
+    </test-fixture>
+
     <test-fixture id="multiple">
       <template>
         <test-overlay class="overlay-1">
@@ -141,6 +150,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             setTimeout(function() {
               done();
             }, 10);
+          });
+        });
+
+        test('node with autofocus is focused', function(done) {
+          overlay = fixture('autofocus');
+          runAfterOpen(overlay, function() {
+            assert.equal(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, '<button autofocus> is focused');
+            done();
           });
         });
 

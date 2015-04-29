@@ -119,6 +119,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         Hello world!
       </simple-overlay>
 
+      <button data-dialog="autofocus">autofocus</button>
+
+      <simple-overlay id="autofocus">
+        <p>Hello world!</p>
+        <button>cancel</button>
+        <button autofocus>autofocus</button>
+      </simple-overlay>
+
     </section>
 
     <script>
@@ -131,8 +139,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var id = e.target.getAttribute('data-dialog');
         var dialog = document.getElementById(id);
         if (dialog) {
-          dialog.toggle();
-          e.target.toggleAttribute && e.target.toggleAttribute('data-dialog-opened', dialog.opened);
+          dialog.open();
         }
       }
 

@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "iron-doc-viewer": "PolymerElements/iron-doc-viewer#^0.8.0",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^0.8.0",
     "iron-test-helpers": "PolymerElements/iron-test-helpers#^0.8.0",
     "test-fixture": "PolymerElements/test-fixture#^0.8.0",
     "web-component-tester": "*",

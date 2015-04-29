@@ -37,6 +37,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="opened">
+      <template>
+        <test-overlay opened>
+          Basic Overlay
+        </test-overlay>
+      </template>
+    </test-fixture>
+
     <test-fixture id="multiple">
       <template>
         <test-overlay class="overlay-1">
@@ -82,8 +90,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('overlay starts hidden', function() {
-          assert.isFalse(overlay.opened, false, 'overlay starts closed');
+          assert.isFalse(overlay.opened, 'overlay starts closed');
           assert.equal(getComputedStyle(overlay).display, 'none', 'overlay starts hidden');
+        });
+
+        test('overlay open by default', function() {
+          overlay = fixture('opened');
+          runAfterOpen(overlay, function() {
+            assert.isTrue(overlay.opened, 'overlay starts opened');
+            assert.notEqual(getComputedStyle(overlay).display, 'none', 'overlay starts showing');
+          });
         });
 
         test('overlay open/close events', function(done) {
@@ -229,7 +245,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('backdrop is opened when iron-overlay-open-completed fires', function(done) {
           runAfterOpen(overlays[0], function() {
-            assert.isTrue(overlays[0].backdropElement.classList.contains('iron-opened'), 'backdrop has iron-opened class');
+            assert.isTrue(overlays[0].backdropElement.opened, 'backdrop is opened');
             done();
           });
         });

@@ -15,95 +15,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-manager.html">
 
 <!--
-The `iron-overlay` element displays overlayed on top of other content. It starts
-out hidden and is displayed by setting its `opened` property to true.
-A `iron-overlay's` opened state can be toggled by calling the `toggle`
-method.
+`iron-overlay-behavior` displays an element on top of other content. It starts out hidden and is
+displayed by calling `open()` or setting the `opened` property to `true`. It may be closed by
+calling `close()` or `cancel()`, or by setting the `opened` property to `true`.
 
-The `iron-overlay` will, by default, show/hide itself when it's opened. The
-`target` property may be set to another element to cause that element to
-be shown when the overlay is opened.
-
-It's common to want a `iron-overlay` to animate to its opened
-position. The `iron-overlay` element uses a `core-transition` to handle
-animation. The default transition is `core-transition-fade` which
-causes the overlay to fade in when displayed. See
-<a href="../core-transition/">`core-transition`</a> for more
-information about customizing a `iron-overlay's` opening animation. The
-`backdrop` property can be set to true to show a backdrop behind the overlay
-that will darken the rest of the window.
-
-An element that should close the `iron-overlay` will automatically
-do so if it's given the `iron-overlay-toggle` attribute. This attribute
-can be customized with the `closeAttribute` property. You can also use
-`closeSelector` if more general matching is needed.
-
-By default  `iron-overlay` will close whenever the user taps outside it or
-presses the escape key. This behavior can be turned off via the
-`autoCloseDisabled` property.
-
-    <iron-overlay>
-      <h2>Dialog</h2>
-      <input placeholder="say something..." autofocus>
-      <div>I agree with this wholeheartedly.</div>
-      <button iron-overlay-toggle>OK</button>
-    </iron-overlay>
-
-`iron-overlay` will automatically size and position itself according to the
-following rules. The overlay's size is constrained such that it does not
-overflow the screen. This is done by setting maxHeight/maxWidth on the
-`sizingTarget`. If the `sizingTarget` already has a setting for one of these
-properties, it will not be overridden. The overlay should
-be positioned via css or imperatively using the `iron-overlay-position` event.
-If the overlay is not positioned vertically via setting `top` or `bottom`, it
-will be centered vertically. The same is true horizontally via a setting to
-`left` or `right`. In addition, css `margin` can be used to provide some space
-around the overlay. This can be used to ensure
-that, for example, a drop shadow is always visible around the overlay.
-
-@group Core Elements
-@element iron-overlay
-@mixins Polymer.CoreResizer https://github.com/polymer/core-resizable
-@homepage github.io
+The difference between `close()` and `cancel()` is user intent. `close()` generally implies that
+the user acknowledged the content of the overlay. By default, it will cancel whenever the user taps
+outside it or presses the escape key. This behavior can be turned off via the `no-cancel-on-esc-key`
+and the `no-cancel-on-outside-click` properties.
 -->
-<!--
-Fired when the `iron-overlay`'s `opened` property changes.
 
-@event iron-overlay-open
+<!--
+Fired after the `iron-overlay` opens.
+@event iron-overlay-opened
+-->
+
+<!--
+Fired after the `iron-overlay` closes.
+@event iron-overlay-closed
 @param {Object} detail
-@param {Object} detail.opened the opened state
--->
-<!--
-Fired when the `iron-overlay` has completely opened.
-
-@event iron-overlay-open-completed
--->
-<!--
-Fired when the `iron-overlay` has completely closed.
-
-@event iron-overlay-close-completed
--->
-<!--
-Fired when the `iron-overlay` needs to position itself. Optionally, implement
-in order to position an overlay via code. If the overlay was not otherwise
-positioned, it's important to indicate how the overlay has been positioned by
-setting the `dimensions.position` object. For example, if the overlay has been
-positioned via setting `right` and `top`, set dimensions.position to an
-object like this: `{v: 'top', h: 'right'}`.
-
-@event iron-overlay-position
-@param {Object} detail
-@param {Object} detail.target the overlay target
-@param {Object} detail.sizingTarget the overlay sizing target
-@param {Object} detail.opened the opened state
--->
-
-<!--
-Fired when the user cancels the `iron-overlay`.
-
-@event iron-overlay-cancel
-@param {Object} detail
-@param {Object} detail.target the overlay target
+@param {Object} detail.canceled True if the overlay was canceled
 -->
 
 <script>
@@ -213,7 +144,10 @@ Fired when the user cancels the `iron-overlay`.
     },
 
     ready: function() {
-      this._ensureTargetSetup();
+      this._ensureSetup();
+      if (this._callOpenedWhenReady) {
+        this._openedChanged();
+      }
     },
 
     detached: function() {
@@ -252,9 +186,7 @@ Fired when the user cancels the `iron-overlay`.
       this._setCanceled(true);
     },
 
-    // NOTE: wait to call this until we're as sure as possible that target
-    // is styled.
-    _ensureTargetSetup: function() {
+    _ensureSetup: function() {
       if (this._overlaySetup) {
         return;
       }
@@ -264,13 +196,17 @@ Fired when the user cancels the `iron-overlay`.
     },
 
     _openedChanged: function() {
+      // wait to call after ready
+      if (!this._overlaySetup) {
+        this._callOpenedWhenReady = true;
+        return;
+      }
       if (this._openChangedAsync) {
         this.cancelAsync(this._openChangedAsync);
       }
 
       this._transitioning = true;
 
-      this._ensureTargetSetup();
       this._toggleListeners();
 
       if (this.opened) {
@@ -302,7 +238,6 @@ Fired when the user cancels the `iron-overlay`.
     },
 
     _toggleListeners: function() {
-      // FIXME need this here or before?
       if (this._toggleListenersAsync) {
         this.cancelAsync(this._toggleListenersAsync);
       }
@@ -336,6 +271,7 @@ Fired when the user cancels the `iron-overlay`.
       if (this.withBackdrop) {
         this.backdropElement.open();
       }
+      // FIXME implement transitions
       // var transition = this.getTransition();
       // if (transition) {
       //   transition.go(this, {opened: this.opened});
@@ -382,13 +318,8 @@ Fired when the user cancels the `iron-overlay`.
       this._manager.removeOverlay(this);
 
       this._focusNode.blur();
-
-      // focus the next visible overlay if there is one
-      if (this._manager.currentOverlay() == this) {
-        console.warn('Current iron-overlay is attempting to focus itself as next! (bug)');
-      } else {
-        this._manager.focusOverlay();
-      }
+      // focus the next overlay, if there is one
+      this._manager.focusOverlay();
 
       this.fire('iron-overlay-closed', {
         canceled: this.canceled

@@ -38,13 +38,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       opacity: 0;
       transition: opacity 0.2s;
 
-      mixin(--iron-overlay-backdrop);
+      @apply(--iron-overlay-backdrop);
     }
 
     :host([opened]) {
       opacity: 0.6;
 
-      mixin(--iron-overlay-backdrop-opened);
+      @apply(--iron-overlay-backdrop-opened);
     }
 
   </style>
@@ -62,9 +62,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   Polymer({
 
     is: 'iron-overlay-backdrop',
-
-    enableCustomStyleProperties: true,
-
+    
     properties: {
 
       /**

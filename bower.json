@@ -5,7 +5,9 @@
   "main": [
     "iron-overlay-behavior.html"
   ],
-  "authors": "The Polymer Authors",
+  "authors": [
+    "The Polymer Authors"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/PolymerElements/iron-overlay-behavior.git"
@@ -15,7 +17,7 @@
     "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^0.9.0"
   },
   "devDependencies": {
-    "iron-doc-viewer": "PolymerElements/iron-doc-viewer#^0.9.0",
+    "iron-component-page": "PolymerElements/iron-component-page#^0.9.0",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^0.9.0",
     "iron-test-helpers": "PolymerElements/iron-test-helpers#^0.9.0",
     "test-fixture": "PolymerElements/test-fixture#^0.9.0",

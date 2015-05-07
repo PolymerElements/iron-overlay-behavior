@@ -12,14 +12,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="iron-overlay-manager.html">
 
-<style is="x-style">
-
-  * {
-    --iron-overlay-backdrop-background-color: #000;
-  }
-
-</style>
-
 <!--
 `iron-overlay-backdrop` is a backdrop used by `iron-overlay-behavior`. It should be a singleton.
 -->
@@ -34,7 +26,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: var(--iron-overlay-backdrop-background-color);
+      background-color: var(--iron-overlay-backdrop-background-color, #000);
       opacity: 0;
       transition: opacity 0.2s;
 
@@ -62,7 +54,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   Polymer({
 
     is: 'iron-overlay-backdrop',
-    
+
     properties: {
 
       /**

@@ -58,6 +58,7 @@ Fired after the `iron-overlay` closes.
        * True if the overlay was cancelled.
        */
       canceled: {
+        observer: '_canceledChanged',
         readOnly: true,
         type: Boolean,
         value: false
@@ -99,6 +100,15 @@ Fired after the `iron-overlay` closes.
         value: false
       },
 
+      /**
+       * Returns the reason this dialog was last closed.
+       */
+      closingReason: {
+        // was a getter before, but needs to be a property so other
+        // behaviors can override this.
+        type: Object
+      },
+
       _manager: {
         type: Object,
         value: Polymer.IronOverlayManager
@@ -135,16 +145,6 @@ Fired after the `iron-overlay` closes.
       return this._backdrop;
     },
 
-    /**
-     * Returns the reason the overlay is closed. Override in your element if you need to provide
-     * more reasons.
-     */
-    get closingReason() {
-      return {
-        canceled: this.canceled
-      };
-    },
-
     get _focusNode() {
       return Polymer.dom(this).querySelector('[autofocus]') || this;
     },
@@ -178,7 +178,7 @@ Fired after the `iron-overlay` closes.
      */
     open: function() {
       this.opened = true;
-      this._setCanceled(false);
+      this.closingReason = {canceled: false};
     },
 
     /**
@@ -186,6 +186,7 @@ Fired after the `iron-overlay` closes.
      */
     close: function() {
       this.opened = false;
+      this._setCanceled(false);
     },
 
     /**
@@ -237,6 +238,11 @@ Fired after the `iron-overlay` closes.
         this._openChangedAsync = null;
       });
 
+    },
+
+    _canceledChanged: function() {
+      this.closingReason = this.closingReason || {};
+      this.closingReason.canceled = this.canceled;
     },
 
     _toggleListener: function(enable, node, event, boundListener, capture) {

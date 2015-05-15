@@ -1,9 +1,16 @@
 {
   "name": "iron-overlay-behavior",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "main": [
     "iron-overlay-behavior.html"
+  ],
+  "keywords": [
+    "web-components",
+    "polymer",
+    "iron",
+    "behavior",
+    "overlay"
   ],
   "authors": [
     "The Polymer Authors"

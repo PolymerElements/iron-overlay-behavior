@@ -207,9 +207,9 @@ Fired after the `iron-overlay` closes.
     },
 
     _openedChanged: function() {
-      // wait to call after ready
+      // wait to call after ready only if we're initially open
       if (!this._overlaySetup) {
-        this._callOpenedWhenReady = true;
+        this._callOpenedWhenReady = this.opened;
         return;
       }
       if (this._openChangedAsync) {

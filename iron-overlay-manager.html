@@ -69,9 +69,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       //
       // NOTE: We make the assumption that any overlay that completes a transition
       // will call into focusOverlay to kick the process back off. Currently:
-      // transitionend -> applyFocus -> focusOverlay.
+      // transitionend -> _applyFocus -> focusOverlay.
       if (current && !current.transitioning) {
-        current.applyFocus();
+        current._applyFocus();
       }
     }
 

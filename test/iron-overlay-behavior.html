@@ -254,7 +254,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('backdrop is removed when the element is removed from DOM', function(done) {
           runAfterOpen(overlays[0], function() {
             var backdrop = overlays[0].backdropElement;
-            overlays[0].remove();
+            Polymer.dom(backdrop.parentNode).removeChild(backdrop);
+            Polymer.dom.flush();
             assert.isNull(backdrop.parentNode, 'backdrop is removed from DOM');
             done();
           });
@@ -293,6 +294,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
       });
+
+      suite('a11y', function() {
+
+        test('overlay has aria-hidden=true when opened', function() {
+          var overlay = fixture('basic');
+          assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
+          overlay.open();
+          assert.isFalse(overlay.hasAttribute('aria-hidden'), 'overlay does not have aria-hidden attribute');
+          overlay.close();
+          assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
+        });
+
+      })
 
     </script>
 

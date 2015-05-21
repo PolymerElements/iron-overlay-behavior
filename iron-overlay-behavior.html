@@ -323,6 +323,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.fire('iron-overlay-opened');
 
+      this._squelchNextResize = true;
       this.async(this.notifyResize);
     },
 
@@ -339,6 +340,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.fire('iron-overlay-closed', this.closingReason);
 
+      this._squelchNextResize = true;
       this.async(this.notifyResize);
     },
 
@@ -401,7 +403,13 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _onIronResize: function() {
-      this.refit();
+      if (this._squelchNextResize) {
+        this._squelchNextResize = false;
+        return;
+      }
+      if (this.opened) {
+        this.refit();
+      }
     }
 
   };

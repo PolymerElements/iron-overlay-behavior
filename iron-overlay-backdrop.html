@@ -9,11 +9,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-
 <link rel="import" href="iron-overlay-manager.html">
 
 <!--
-`iron-overlay-backdrop` is a backdrop used by `iron-overlay-behavior`. It should be a singleton.
+`iron-overlay-backdrop` is a backdrop used by `Polymer.IronOverlayBehavior`. It should be a
+singleton.
+
+### Styling
+
+The following custom properties and mixins are available for styling.
+
+Custom property | Description | Default
+-------------------------------------------|------------------------|---------
+`--iron-overlay-backdrop-background-color` | Backdrop background color                                     | #000
+`--iron-overlay-backdrop-opacity`          | Backdrop opacity                                              | 0.6
+`--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                      | {}
+`--iron-overlay-backdrop-opened`           | Mixin applied to `iron-overlay-backdrop` when it is displayed | {}
 -->
 
 <dom-module id="iron-overlay-backdrop">
@@ -34,7 +45,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
 
     :host([opened]) {
-      opacity: 0.6;
+      opacity: var(--iron-overlay-backdrop-opacity, 0.6);
 
       @apply(--iron-overlay-backdrop-opened);
     }
@@ -75,7 +86,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Appends the backdrop to document body and sets its z-index to be below the latest overlay.
+     * Appends the backdrop to document body and sets its `z-index` to be below the latest overlay.
      */
     prepare: function() {
       if (!this.parentNode) {

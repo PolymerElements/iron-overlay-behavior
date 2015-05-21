@@ -10,44 +10,52 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-fit-behavior/iron-fit-behavior.html">
-
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="iron-overlay-backdrop.html">
 <link rel="import" href="iron-overlay-manager.html">
 
-<!--
-`iron-overlay-behavior` displays an element on top of other content. It starts out hidden and is
-displayed by calling `open()` or setting the `opened` property to `true`. It may be closed by
-calling `close()` or `cancel()`, or by setting the `opened` property to `true`.
-
-The difference between `close()` and `cancel()` is user intent. `close()` generally implies that
-the user acknowledged the content of the overlay. By default, it will cancel whenever the user taps
-outside it or presses the escape key. This behavior can be turned off via the `no-cancel-on-esc-key`
-and the `no-cancel-on-outside-click` properties.
--->
-
-<!--
-Fired after the `iron-overlay` opens.
-@event iron-overlay-opened
--->
-
-<!--
-Fired after the `iron-overlay` closes.
-@event iron-overlay-closed
-@param {Object} detail
-@param {Object} detail.canceled True if the overlay was canceled
--->
-
 <script>
 
-  /** @polymerBehavior */
-  Polymer.IronOverlayBehavior = [Polymer.IronFitBehavior, {
+/*
+Use `Polymer.IronOverlayBehavior` to implement an element that can be hidden or shown, and displays
+on top of other content. It includes an optional backdrop, and can be used to implement a variety
+of UI controls including dialogs and drop downs. Multiple overlays may be displayed at once.
+
+### Closing and canceling
+
+A dialog may be hidden by closing or canceling. The difference between close and cancel is user
+intent. Closing generally implies that the user acknowledged the content on the overlay. By default,
+it will cancel whenever the user taps outside it or presses the escape key. This behavior is
+configurable with the `no-cancel-on-esc-key` and the `no-cancel-on-outside-click` properties.
+`close()` should be called explicitly by the implementer when the user interacts with a control
+in the overlay element.
+
+### Positioning
+
+By default the element is sized and positioned to fit and centered inside the window. You can
+position and size it manually using CSS. See `Polymer.IronFitBehavior`.
+
+### Backdrop
+
+Set the `with-backdrop` attribute to display a backdrop behind the overlay. The backdrop is
+appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
+options.
+
+### Limitations
+
+The element is styled to appear on top of other content by setting its `z-index` property. You
+must ensure no element has a stacking context with a higher `z-index` than its parent stacking
+context. You should place this element as a child of `<body>` whenever possible.
+
+@polymerBehavior Polymer.IronOverlayBehavior
+*/
+
+  Polymer.IronOverlayBehaviorImpl = {
 
     properties: {
 
       /**
-       * Set opened to true to show an overlay and to false to hide it.
-       * A `iron-overlay` may be made initially opened by setting its
-       * `opened` attribute.
+       * True if the overlay is currently displayed.
        */
       opened: {
         observer: '_openedChanged',
@@ -56,7 +64,7 @@ Fired after the `iron-overlay` closes.
       },
 
       /**
-       * True if the overlay was cancelled.
+       * True if the overlay was canceled when it was last closed.
        */
       canceled: {
         observer: '_canceledChanged',
@@ -66,10 +74,7 @@ Fired after the `iron-overlay` closes.
       },
 
       /**
-       * If true, the overlay has a backdrop darkening the rest of the screen.
-       * The backdrop element is attached to the document body and may be styled
-       * with the class `iron-overlay-backdrop`. When opened the `iron-opened`
-       * class is applied.
+       * Set to true to display a backdrop behind the overlay.
        */
       withBackdrop: {
         type: Boolean,
@@ -127,21 +132,19 @@ Fired after the `iron-overlay` closes.
         value: function() {
           return this._onCaptureKeydown.bind(this);
         }
-      },
-
-      _boundOnResize: {
-        type: Function,
-        value: function() {
-          return this._onResize.bind(this);
-        }
       }
 
     },
 
     listeners: {
-      'click': '_onClick'
+      'click': '_onClick',
+      'iron-resize': '_onIronResize'
     },
 
+    /**
+     * The backdrop element.
+     * @type Node
+     */
     get backdropElement() {
       return this._backdrop;
     },
@@ -208,6 +211,12 @@ Fired after the `iron-overlay` closes.
     },
 
     _openedChanged: function() {
+      if (this.opened) {
+        this.removeAttribute('aria-hidden');
+      } else {
+        this.setAttribute('aria-hidden', 'true');
+      }
+
       // wait to call after ready only if we're initially open
       if (!this._overlaySetup) {
         this._callOpenedWhenReady = this.opened;
@@ -216,8 +225,6 @@ Fired after the `iron-overlay` closes.
       if (this._openChangedAsync) {
         this.cancelAsync(this._openChangedAsync);
       }
-
-      this._transitioning = true;
 
       this._toggleListeners();
 
@@ -264,7 +271,6 @@ Fired after the `iron-overlay` closes.
         this._toggleListener(this.opened, document, 'keydown', this._boundOnCaptureKeydown, true);
         this._toggleListenersAsync = null;
       });
-      this._toggleListener(this.opened, window, 'resize', this._boundOnResize, false);
     },
 
     // tasks which must occur before opening; e.g. making the element visible
@@ -284,17 +290,9 @@ Fired after the `iron-overlay` closes.
     // tasks which cause the overlay to actually open; typically play an
     // animation
     _renderOpened: function() {
-      // this.notifyResize();
       if (this.withBackdrop) {
         this.backdropElement.open();
       }
-      // FIXME implement transitions
-      // var transition = this.getTransition();
-      // if (transition) {
-      //   transition.go(this, {opened: this.opened});
-      // } else {
-        // this.transitionend();
-      // }
       this._finishRenderOpened();
     },
 
@@ -310,7 +308,6 @@ Fired after the `iron-overlay` closes.
       if (event && event.target !== this) {
         return;
       }
-      this._transitioning = false;
       if (this.opened) {
         this._finishRenderOpened();
       } else {
@@ -325,6 +322,8 @@ Fired after the `iron-overlay` closes.
       }
 
       this.fire('iron-overlay-opened');
+
+      this.async(this.notifyResize);
     },
 
     _finishRenderClosed: function() {
@@ -339,6 +338,8 @@ Fired after the `iron-overlay` closes.
       this._manager.focusOverlay();
 
       this.fire('iron-overlay-closed', this.closingReason);
+
+      this.async(this.notifyResize);
     },
 
     _completeBackdrop: function() {
@@ -362,7 +363,7 @@ Fired after the `iron-overlay` closes.
       this.style.transition = this.style.webkitTransition = '';
     },
 
-    applyFocus: function() {
+    _applyFocus: function() {
       if (this.opened) {
         if (!this.noAutoFocus) {
           this._focusNode.focus();
@@ -373,14 +374,10 @@ Fired after the `iron-overlay` closes.
       }
     },
 
-    // We use the traditional approach of capturing events on document
-    // to to determine if the overlay needs to close. However, due to
-    // ShadowDOM event retargeting, the event target is not useful. Instead
-    // of using it, we attempt to close asynchronously and prevent the close
-    // if a tap event is immediately heard on the target.
-    // TODO(sorvell): This approach will not work with modal. For
-    // this we need a scrim.
     _onCaptureClick: function(event) {
+      // attempt to close asynchronously and prevent the close of a tap event is immediately heard
+      // on target. This is because in shadow dom due to event retargetting event.target is not
+      // useful.
       if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this)) {
         this._cancelJob = this.async(function() {
           this.cancel();
@@ -403,10 +400,24 @@ Fired after the `iron-overlay` closes.
       }
     },
 
-    _onResize: function() {
+    _onIronResize: function() {
       this.refit();
     }
 
-  }];
+  };
+
+  Polymer.IronOverlayBehavior = [Polymer.IronFitBehavior, Polymer.IronResizableBehavior, Polymer.IronOverlayBehaviorImpl];
+
+/*
+Fired after the `iron-overlay` opens.
+@event iron-overlay-opened
+*/
+
+/*
+Fired after the `iron-overlay` closes.
+@event iron-overlay-closed
+@param {Object} detail
+@param {Object} detail.canceled True if the overlay was canceled
+*/
 
 </script>

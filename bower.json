@@ -1,6 +1,6 @@
 {
   "name": "iron-overlay-behavior",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "http://polymer.github.io/LICENSE.txt",
   "description": "Provides a behavior for making an element an overlay",
   "private": true,
@@ -10,7 +10,6 @@
   "keywords": [
     "web-components",
     "polymer",
-    "iron",
     "behavior",
     "overlay"
   ],

@@ -1,6 +1,6 @@
 {
   "name": "iron-overlay-behavior",
-  "version": "0.9.5",
+  "version": "1.0.0",
   "license": "http://polymer.github.io/LICENSE.txt",
   "description": "Provides a behavior for making an element an overlay",
   "private": true,
@@ -22,15 +22,15 @@
     "url": "git://github.com/PolymerElements/iron-overlay-behavior.git"
   },
   "dependencies": {
-    "polymer": "Polymer/polymer#^0.9.0",
-    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^0.9.0",
-    "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^0.9.0"
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.0.0",
+    "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^1.0.0"
   },
   "devDependencies": {
-    "iron-component-page": "PolymerElements/iron-component-page#^0.9.0",
-    "iron-flex-layout": "PolymerElements/iron-flex-layout#^0.9.0",
-    "iron-test-helpers": "PolymerElements/iron-test-helpers#^0.9.0",
-    "test-fixture": "PolymerElements/test-fixture#^0.9.0",
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
+    "iron-test-helpers": "PolymerElements/iron-test-helpers#^1.0.0",
+    "test-fixture": "PolymerElements/test-fixture#^1.0.0",
     "web-component-tester": "*",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   }

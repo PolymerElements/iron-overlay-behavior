@@ -59,7 +59,6 @@ context. You should place this element as a child of `<body>` whenever possible.
        * True if the overlay is currently displayed.
        */
       opened: {
-        observer: '_openedChanged',
         type: Boolean,
         value: false,
         notify: true
@@ -117,6 +116,21 @@ context. You should place this element as a child of `<body>` whenever possible.
         type: Object
       },
 
+      overlayTarget: {
+        type: Object,
+        observer: '_overlayTargetChanged',
+        value: function() {
+          return this;
+        }
+      },
+
+      _overlayTargetOriginalStyles: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+
       _manager: {
         type: Object,
         value: Polymer.IronOverlayManager
@@ -154,6 +168,10 @@ context. You should place this element as a child of `<body>` whenever possible.
       'iron-resize': '_onIronResize'
     },
 
+    observers: [
+      '_openedChanged(opened, overlayTarget)'
+    ],
+
     /**
      * The backdrop element.
      * @type Node
@@ -170,8 +188,25 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._backdrop = document.createElement('iron-overlay-backdrop');
     },
 
+    _overlayTargetChanged: function(overlayTarget, oldOverlayTarget) {
+      if (oldOverlayTarget) {
+        oldOverlayTarget.style.outline = this._overlayTargetOriginalStyles.outline;
+        oldOverlayTarget.style.display = this._overlayTargetOriginalStyles.display;
+      }
+
+      this._overlayTargetOriginalStyles = {};
+
+      if (overlayTarget) {
+        this._overlayTargetOriginalStyles.outline = overlayTarget.style.outline;
+        this._overlayTargetOriginalStyles.display = overlayTarget.style.display;
+        overlayTarget.style.outline = 'none';
+        overlayTarget.style.display = 'none';
+
+        this._openedChanged();
+      }
+    },
+
     ready: function() {
-      this._ensureSetup();
       if (this._callOpenedWhenReady) {
         this._openedChanged();
       }
@@ -214,24 +249,15 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._setCanceled(true);
     },
 
-    _ensureSetup: function() {
-      if (this._overlaySetup) {
-        return;
-      }
-      this._overlaySetup = true;
-      this.style.outline = 'none';
-      this.style.display = 'none';
-    },
-
     _openedChanged: function() {
       if (this.opened) {
-        this.removeAttribute('aria-hidden');
+        this.overlayTarget.removeAttribute('aria-hidden');
       } else {
-        this.setAttribute('aria-hidden', 'true');
+        this.overlayTarget.setAttribute('aria-hidden', 'true');
       }
 
       // wait to call after ready only if we're initially open
-      if (!this._overlaySetup) {
+      if (!this._readied) {
         this._callOpenedWhenReady = this.opened;
         return;
       }
@@ -248,9 +274,9 @@ context. You should place this element as a child of `<body>` whenever possible.
       // async here to allow overlay layer to become visible.
       this._openChangedAsync = this.async(function() {
         // overlay becomes visible here
-        this.style.display = '';
+        this.overlayTarget.style.display = '';
         // force layout to ensure transitions will go
-        this.offsetWidth;
+        this.overlayTarget.offsetWidth;
         if (this.opened) {
           this._renderOpened();
         } else {
@@ -288,7 +314,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     // tasks which must occur before opening; e.g. making the element visible
     _prepareRenderOpened: function() {
-      this._manager.addOverlay(this);
+      this._manager.addOverlay(this.overlayTarget);
 
       if (this.withBackdrop) {
         this.backdropElement.prepare();
@@ -343,7 +369,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     _finishRenderClosed: function() {
       // hide the overlay and remove the backdrop
       this.resetFit();
-      this.style.display = 'none';
+      this.overlayTarget.style.display = 'none';
       this._completeBackdrop();
       this._manager.removeOverlay(this);
 
@@ -365,17 +391,17 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _preparePositioning: function() {
-      this.style.transition = this.style.webkitTransition = 'none';
-      this.style.transform = this.style.webkitTransform = 'none';
-      this.style.display = '';
+      this.overlayTarget.style.transition = this.overlayTarget.style.webkitTransition = 'none';
+      this.overlayTarget.style.transform = this.overlayTarget.style.webkitTransform = 'none';
+      this.overlayTarget.style.display = '';
     },
 
     _finishPositioning: function() {
-      this.style.display = 'none';
-      this.style.transform = this.style.webkitTransform = '';
+      this.overlayTarget.style.display = 'none';
+      this.overlayTarget.style.transform = this.overlayTarget.style.webkitTransform = '';
       // force layout to avoid application of transform
-      this.offsetWidth;
-      this.style.transition = this.style.webkitTransition = '';
+      this.overlayTarget.offsetWidth;
+      this.overlayTarget.style.transition = this.overlayTarget.style.webkitTransition = '';
     },
 
     _applyFocus: function() {
@@ -393,7 +419,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       // attempt to close asynchronously and prevent the close of a tap event is immediately heard
       // on target. This is because in shadow dom due to event retargetting event.target is not
       // useful.
-      if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this)) {
+      if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this.overlayTarget)) {
         this._cancelJob = this.async(function() {
           this.cancel();
         }, 10);

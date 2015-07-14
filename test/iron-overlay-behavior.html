@@ -297,13 +297,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       suite('a11y', function() {
 
-        test('overlay has aria-hidden=true when opened', function() {
+        test('overlay target has aria-hidden=true when opened', function() {
           var overlay = fixture('basic');
-          assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
+          assert.equal(overlay.overlayTarget.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
           overlay.open();
-          assert.isFalse(overlay.hasAttribute('aria-hidden'), 'overlay does not have aria-hidden attribute');
+          assert.isFalse(overlay.overlayTarget.hasAttribute('aria-hidden'), 'overlay does not have aria-hidden attribute');
           overlay.close();
-          assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
+          assert.equal(overlay.overlayTarget.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
         });
 
       })

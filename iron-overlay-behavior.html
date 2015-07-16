@@ -150,7 +150,6 @@ context. You should place this element as a child of `<body>` whenever possible.
  */
 
     listeners: {
-      'click': '_onClick',
       'iron-resize': '_onIronResize'
     },
 
@@ -390,20 +389,31 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _onCaptureClick: function(event) {
-      // attempt to close asynchronously and prevent the close of a tap event is immediately heard
-      // on target. This is because in shadow dom due to event retargetting event.target is not
-      // useful.
-      if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this)) {
-        this._cancelJob = this.async(function() {
-          this.cancel();
-        }, 10);
-      }
-    },
 
-    _onClick: function(event) {
-      if (this._cancelJob) {
-        this.cancelAsync(this._cancelJob);
-        this._cancelJob = null;
+      if (!this.noCancelOnOutsideClick && (this._manager.currentOverlay() == this)) {
+        var doCancel = true;
+        if (event.path) {
+          // use event.path if it exists to handle shadow DOM
+          for (var node, index = 0; node = event.path[index]; index++) {
+            if (node === this) {
+              doCancel = false;
+              break;
+            }
+          }
+        } else {
+          // otherwise walk up the tree
+          var node = event.target;
+          do {
+            if (node === this) {
+              doCancel = false;
+              break;
+            }
+          } while (node = node.parentNode);
+        }
+
+        if (doCancel) {
+          this.cancel();
+        }
       }
     },
 

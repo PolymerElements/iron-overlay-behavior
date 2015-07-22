@@ -202,16 +202,16 @@ context. You should place this element as a child of `<body>` whenever possible.
      * Close the overlay.
      */
     close: function() {
-      this.opened = false;
       this._setCanceled(false);
+      this.opened = false;
     },
 
     /**
      * Cancels the overlay.
      */
     cancel: function() {
-      this.opened = false,
       this._setCanceled(true);
+      this.opened = false;
     },
 
     _ensureSetup: function() {

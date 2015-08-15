@@ -421,6 +421,7 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
       if (this.opened) {
+        this.resetFit();
         this.refit();
       }
     }

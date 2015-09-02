@@ -269,6 +269,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
       // async so we don't auto-close immediately via a click.
       this._toggleListenersAsync = this.async(function() {
+        this._toggleListener(this.opened, document, 'touchstart', this._boundOnCaptureClick, true);
         this._toggleListener(this.opened, document, 'click', this._boundOnCaptureClick, true);
         this._toggleListener(this.opened, document, 'keydown', this._boundOnCaptureKeydown, true);
         this._toggleListenersAsync = null;

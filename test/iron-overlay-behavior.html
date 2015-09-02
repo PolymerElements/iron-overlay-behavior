@@ -25,6 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <link rel="import" href="../../test-fixture/test-fixture.html">
     <link rel="import" href="test-overlay.html">
+    <link rel="import" href="test-overlay-in-shadow.html">
 
   </head>
   <body>
@@ -79,6 +80,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <test-overlay with-backdrop class="overlay-3">
           Overlay 3 with backdrop
         </test-overlay>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="overlay-in-shadow">
+      <template>
+        <test-overlay-in-shadow></test-overlay-in-shadow>
       </template>
     </test-fixture>
 
@@ -160,12 +167,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('clicking an overlay does not close it', function(done) {
+          var closed = false;
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-closed should not fire');
+              closed = true;
             });
             overlay.fire('click');
             setTimeout(function() {
+              assert.notOk(false, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });
@@ -203,12 +212,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('no-cancel-on-outside-click property', function(done) {
           overlay.noCancelOnOutsideClick = true;
+          var closed = false;
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-closed should not fire');
+              closed = true;
             });
             Polymer.Base.fire.call(document, 'click');
             setTimeout(function() {
+              assert.notOk(closed, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });
@@ -216,14 +227,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('no-cancel-on-esc-key property', function(done) {
           overlay.noCancelOnEscKey = true;
+          var closed = false;
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-cancel should not fire');
+              closed = true;
             });
             fireEvent('keydown', {
               keyCode: 27
             }, document);
             setTimeout(function() {
+              assert.notOk(closed, 'iron-overlay-closed should not fire');
+              done();
+            }, 10);
+          });
+        });
+
+      });
+
+      suite('overlay in shadow DOM', function() {
+
+        test('cilcking overlay content does not close an overlay in local dom', function(done) {
+          var container = fixture('overlay-in-shadow');
+          var closed = false;
+          runAfterOpen(container.$.overlay, function() {
+            container.$.overlay.addEventListener('iron-overlay-closed', function() {
+              closed = true;
+            });
+            Polymer.Base.fire.call(container.$.button, 'click');
+            setTimeout(function() {
+              assert.notOk(closed, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });

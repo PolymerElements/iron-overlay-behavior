@@ -4,9 +4,7 @@
   "license": "http://polymer.github.io/LICENSE.txt",
   "description": "Provides a behavior for making an element an overlay",
   "private": true,
-  "main": [
-    "iron-overlay-behavior.html"
-  ],
+  "main": "iron-overlay-behavior.html",
   "keywords": [
     "web-components",
     "polymer",

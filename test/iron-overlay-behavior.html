@@ -287,6 +287,52 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      suite('z-ordering', function() {
+
+        var overlays;
+        var originalMinimumZ;
+
+        setup(function() {
+          overlays = fixture('multiple');
+          originalMinimumZ = Polymer.IronOverlayManager._minimumZ;
+        });
+
+        teardown(function() {
+          Polymer.IronOverlayManager._minimumZ = originalMinimumZ;
+        });
+
+        // for iframes
+        test('default z-index is greater than 100', function(done) {
+          runAfterOpen(overlays[0], function() {
+            var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
+            assert.isTrue(styleZ > 100, 'overlays[0] z-index is <= 100');
+            done();
+          });
+        });
+
+        test('ensureMinimumZ() effects z-index', function(done) {
+          Polymer.IronOverlayManager.ensureMinimumZ(1000);
+
+          runAfterOpen(overlays[0], function() {
+            var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
+            assert.isTrue(styleZ > 1000, 'overlays[0] z-index is <= 1000');
+            done();
+          });
+        });
+
+        test('ensureMinimumZ() never decreases the minimum z-index', function(done) {
+          Polymer.IronOverlayManager.ensureMinimumZ(1000);
+          Polymer.IronOverlayManager.ensureMinimumZ(500);
+
+          runAfterOpen(overlays[0], function() {
+            var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
+            assert.isTrue(styleZ > 1000, 'overlays[0] z-index is <= 1000');
+            done();
+          });
+        });
+
+      });
+
       suite('overlays with backdrop', function() {
         var overlays;
 

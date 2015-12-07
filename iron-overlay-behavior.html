@@ -162,6 +162,10 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     ready: function() {
       this._ensureSetup();
+    },
+
+    attached: function() {
+      // Call _openedChanged here so that position can be computed correctly.
       if (this._callOpenedWhenReady) {
         this._openedChanged();
       }

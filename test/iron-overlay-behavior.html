@@ -102,9 +102,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('overlay open by default', function(done) {
           overlay = fixture('opened');
-          runAfterOpen(overlay, function() {
+          overlay.addEventListener('iron-overlay-opened', function() {
             assert.isTrue(overlay.opened, 'overlay starts opened');
             assert.notEqual(getComputedStyle(overlay).display, 'none', 'overlay starts showing');
+            done();
+          });
+        });
+
+        test('overlay positioned & sized properly', function(done) {
+          overlay = fixture('opened');
+          overlay.addEventListener('iron-overlay-opened', function() {
+            var s = getComputedStyle(overlay);
+            assert.isTrue(parseFloat(s.left) === (window.innerWidth - overlay.offsetWidth)/2, 'centered horizontally');
+            assert.isTrue(parseFloat(s.top) === (window.innerHeight - overlay.offsetHeight)/2, 'centered vertically');
             done();
           });
         });

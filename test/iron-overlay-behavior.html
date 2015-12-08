@@ -293,6 +293,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             });
           });
         });
+
+        test('ESC closes only one opened overlay', function(done) {
+          runAfterOpen(overlays[0], function() {
+            runAfterOpen(overlays[1], function() {
+              // keydown is sync, keyup async (but no need to wait for it).
+              MockInteractions.pressAndReleaseKeyOn(document.body, 27);
+              // Ideally overlays[1] should be closed and overlays[0] still open,
+              // but in this test env overlays[0]._onCaptureKeydown gets called before
+              // overlays[1]._onCaptureKeydown.
+              // TODO investigate if this is because of CustomEvents in MockInteractions.
+              var opened0 = overlays[0].opened && !overlays[1].opened;
+              var opened1 = !overlays[0].opened && overlays[1].opened;
+              assert.isTrue(opened0 || opened1, 'only one overlay is still opened');
+              done();
+            });
+          });
+        });
       });
 
       suite('z-ordering', function() {

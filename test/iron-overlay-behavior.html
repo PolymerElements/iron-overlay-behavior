@@ -79,6 +79,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="backdrop-parent">
+      <template>
+        <test-overlay with-backdrop>
+          <test-overlay with-backdrop>
+            Overlay 2
+          </test-overlay>
+        </test-overlay>
+      </template>
+    </test-fixture>
+
     <script>
 
       function runAfterOpen(overlay, cb) {
@@ -411,92 +421,91 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('overlays with backdrop', function() {
-        var overlays;
+        var overlay;
 
         setup(function() {
-          overlays = fixture('backdrop-multiple');
+          overlay = fixture('backdrop-multiple')[0];
         });
 
-        test('backdrop appears behind the overlay', function(done) {
-          runAfterOpen(overlays[0], function() {
-            assert.isDefined(overlays[0].backdropElement, 'backdrop is defined');
-            assert.isDefined(overlays[0].backdropElement.parentNode, 'backdrop is inserted in the DOM');
-
-            styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
-            backdropStyleZ = parseInt(window.getComputedStyle(overlays[0].backdropElement).zIndex, 10);
-            assert.isTrue(styleZ > backdropStyleZ, 'overlay has higher z-index than backdrop');
+        test('backdrop class added to the parent', function(done) {
+          overlay.open();
+          // Immediately added
+          assert.isTrue(overlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop class added to parent');
+          setTimeout(function() {
+            assert.isTrue(overlay.parentNode.classList.contains('opened'), 'backdrop is opened');
             done();
-          });
+          }, 10);
+        });
+
+        test('backdrop class removed if toggling open/close', function(done) {
+          overlay.open();
+          overlay.close();
+          // Immediately added
+          assert.isFalse(overlay.parentNode.classList.contains('open'), 'backdrop is closed');
+          setTimeout(function() {
+            assert.isFalse(overlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop class removed from parent');
+            done();
+          }, 210);
         });
 
         test('backdrop is removed when the element is removed from DOM', function(done) {
-          runAfterOpen(overlays[0], function() {
-            var backdrop = overlays[0].backdropElement;
-            Polymer.dom(backdrop.parentNode).removeChild(backdrop);
-            Polymer.dom.flush();
-            assert.isNull(backdrop.parentNode, 'backdrop is removed from DOM');
-            done();
-          });
-        });
-
-        test('backdrop is opened when iron-overlay-open-completed fires', function(done) {
-          runAfterOpen(overlays[0], function() {
-            assert.isTrue(overlays[0].backdropElement.opened, 'backdrop is opened');
-            done();
-          });
-        });
-      });
-
-      suite('multiple overlays with backdrop', function() {
-        var overlays;
-
-        setup(function() {
-          overlays = fixture('backdrop-multiple');
-        });
-
-        test('multiple overlays share the same backdrop', function() {
-          assert.isTrue(overlays[0].backdropElement === overlays[1].backdropElement, 'overlays[0] has the same backdrop element as overlays[1]');
-        });
-
-        test('newest overlay appear on top', function(done) {
-          runAfterOpen(overlays[0], function() {
-            runAfterOpen(overlays[1], function() {
-              var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
-              var style1Z = parseInt(window.getComputedStyle(overlays[1]).zIndex, 10);
-              var bgStyleZ = parseInt(window.getComputedStyle(overlays[0].backdropElement).zIndex, 10);
-              assert.isTrue(style1Z > styleZ, 'overlays[1] has higher z-index than overlays[0]');
-              assert.isTrue(styleZ > bgStyleZ, 'overlays[0] has higher z-index than backdrop');
+          runAfterOpen(overlay, function() {
+            overlay.close();
+            // Immediately removed
+            assert.isFalse(overlay.parentNode.classList.contains('open'), 'backdrop is closed');
+            // wait for animation
+            setTimeout(function(){
+              assert.isFalse(overlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop class removed from parent');
               done();
-            });
+            }, 210);
           });
         });
 
         test('updating with-backdrop to false closes backdrop', function(done) {
-          runAfterOpen(overlays[0], function() {
-            overlays[0].withBackdrop = false;
-            // Don't wait for animations.
-            overlays[0].backdropElement.complete();
-            
-            assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
-            assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
-            done();
-          });
-        });
-
-        test('updating with-backdrop updates z-index', function(done) {
-          runAfterOpen(overlays[0], function() {
-            runAfterOpen(overlays[1], function() {
-              overlays[0].withBackdrop = false;
-              var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
-              var style1Z = parseInt(window.getComputedStyle(overlays[1]).zIndex, 10);
-              var bgStyleZ = parseInt(window.getComputedStyle(overlays[0].backdropElement).zIndex, 10);
-              assert.isTrue(style1Z > bgStyleZ, 'overlays[1] has higher z-index than backdrop');
-              assert.isTrue(styleZ < bgStyleZ, 'overlays[0] has lower z-index than backdrop');
+          runAfterOpen(overlay, function() {
+            overlay.withBackdrop = false;
+            // Immediately removed
+            assert.isFalse(overlay.parentNode.classList.contains('open'), 'backdrop is closed');
+            // wait for animation
+            setTimeout(function(){
+              assert.isFalse(overlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop class removed from parent');
               done();
-            });
+            }, 210);
           });
         });
+      });
 
+      suite('nested overlays with backdrop', function() {
+        var outerOverlay, innerOverlay;
+
+        setup(function() {
+          outerOverlay = fixture('backdrop-parent');
+          innerOverlay = outerOverlay.children[0];
+        });
+
+        test('innerOverlay and backdrop are siblings', function(done) {
+          // Open both overlays
+          outerOverlay.open();
+          innerOverlay.open();
+          setTimeout(function(){
+            assert.isTrue(innerOverlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop added to innerOverlay parent');
+            assert.isFalse(outerOverlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop removed from outerOverlay parent');
+            done();
+          }, 210);
+        });
+
+        test('backdrop gets moved to new parent after closing top overlay with backdrop', function(done) {
+          // Open both overlays
+          outerOverlay.open();
+          runAfterOpen(innerOverlay, function () {
+            innerOverlay.close();
+            setTimeout(function(){
+              assert.isTrue(outerOverlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop added to outerOverlay parent');
+              assert.isFalse(innerOverlay.parentNode.classList.contains('iron-overlay-backdrop'), 'backdrop removed from innerOverlay parent');
+              done();
+            }, 210);
+          });
+        });
       });
 
       suite('a11y', function() {

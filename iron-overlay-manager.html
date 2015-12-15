@@ -10,6 +10,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../polymer/polymer.html">
 
+<style is="custom-style">
+
+  :root .iron-overlay-backdrop::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--iron-overlay-backdrop-background-color, #000);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 200;
+
+    @apply(--iron-overlay-backdrop);
+  }
+
+  :root .iron-overlay-backdrop.opened::after {
+    opacity: var(--iron-overlay-backdrop-opacity, 0.6);
+    @apply(--iron-overlay-backdrop-opened);
+  }
+
+</style>
+
 <script>
 
   /**
@@ -24,12 +48,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @private {number}
      */
     this._minimumZ = 101;
+    // there is space for 99 overlays without backdrop...
+    this._minimumWithBackdropZ = 200;
 
     this._backdrops = [];
   }
 
   Polymer.IronOverlayManagerClass.prototype._applyOverlayZ = function(overlay, aboveZ) {
-    this._setZ(overlay, aboveZ + 2);
+    this._setZ(overlay, aboveZ + 1);
   };
 
   Polymer.IronOverlayManagerClass.prototype._setZ = function(element, z) {
@@ -40,9 +66,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * track overlays for z-index and focus managemant
    */
   Polymer.IronOverlayManagerClass.prototype.addOverlay = function(overlay) {
-    var minimumZ = Math.max(this.currentOverlayZ(), this._minimumZ);
+    var currentZ = this.currentOverlayZ();
     this._overlays.push(overlay);
     var newZ = this.currentOverlayZ();
+    var minimumZ = Math.max(currentZ, (overlay.withBackdrop ? this._minimumWithBackdropZ : this._minimumZ));
     if (newZ <= minimumZ) {
       this._applyOverlayZ(overlay, minimumZ);
     }
@@ -94,8 +121,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   Polymer.IronOverlayManagerClass.prototype.trackBackdrop = function(element) {
-    // backdrops contains the overlays with a backdrop that are currently
-    // visible
+    // backdrops contains the overlays with a backdrop that are currently visible
+
+    var oldParent = this._getBackdropParent();
+
     var index = this._backdrops.indexOf(element);
     if (element.opened && element.withBackdrop) {
       // no duplicates
@@ -105,35 +134,51 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     } else if (index >= 0) {
       this._backdrops.splice(index, 1);
     }
+
+    var newParent = this._getBackdropParent();
+    // if parent changed, update classes.
+    if (newParent !== oldParent) {
+      if (oldParent) {
+        oldParent.classList.remove('opened');
+        // wait for animations
+        clearTimeout(oldParent._overlayTimeout);
+        oldParent._overlayTimeout = setTimeout(function () {
+          oldParent._overlayTimeout = null;
+          oldParent.classList.remove('iron-overlay-backdrop');
+        }, 200);
+      }
+      if (newParent) {
+        newParent.classList.add('iron-overlay-backdrop');
+        // wait a bit to trigger animations
+        clearTimeout(newParent._overlayTimeout);
+        newParent._overlayTimeout = setTimeout(function () {
+          newParent._overlayTimeout = null;
+          newParent.classList.add('opened');
+        }, 1);
+      }
+    }
   };
 
   Polymer.IronOverlayManagerClass.prototype.getBackdrops = function() {
     return this._backdrops;
   };
 
-  /**
-   * Returns the z-index for the backdrop.
-   */
-  Polymer.IronOverlayManagerClass.prototype.backdropZ = function() {
-    return this._getOverlayZ(this._overlayWithBackdrop()) - 1;
-  };
-
-  /**
-   * Returns the first opened overlay that has a backdrop.
-   */
-  Polymer.IronOverlayManagerClass.prototype._overlayWithBackdrop = function() {
-    for (var i = 0; i < this._overlays.length; i++) {
-      if (this._overlays[i].opened && this._overlays[i].withBackdrop) {
-        return this._overlays[i];
-      }
+  Polymer.IronOverlayManagerClass.prototype._getBackdropParent = function() {
+    var element = this._backdrops[this._backdrops.length-1];
+    var parent = element ? Polymer.dom(element).parentNode : null;
+    // if parent is document fragments, it won't have classList defined
+    // this can happen when element is not attached yet to the main document
+    if (parent && !parent.classList) {
+      parent = null;
     }
+    return parent;
   };
 
   /**
    * Calculates the minimum z-index for the overlay.
    */
   Polymer.IronOverlayManagerClass.prototype._getOverlayZ = function(overlay) {
-    var z = this._minimumZ;
+    var z = overlay && overlay.withBackdrop ? this._minimumWithBackdropZ : this._minimumZ;
     if (overlay) {
       var z1 = Number(window.getComputedStyle(overlay).zIndex);
       // Check if is a number

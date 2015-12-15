@@ -297,7 +297,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._manager.addOverlay(this);
 
       if (this.withBackdrop) {
-        this.backdropElement.prepare();
+        this.backdropElement.prepare(this);
         this._manager.trackBackdrop(this);
       }
 
@@ -357,6 +357,11 @@ context. You should place this element as a child of `<body>` whenever possible.
       // focus the next overlay, if there is one
       this._manager.focusOverlay();
 
+      var curOverlay = this._manager.currentOverlay();
+      // Must move backdropElement to be siblings with this
+      if (curOverlay && curOverlay.opened && this.withBackdrop && curOverlay.withBackdrop) {
+        curOverlay.backdropElement.prepare(curOverlay);
+      }
       this.fire('iron-overlay-closed', this.closingReason);
 
       this._squelchNextResize = true;

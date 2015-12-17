@@ -79,6 +79,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="backdrop-parent">
+      <template>
+        <test-overlay with-backdrop>
+          <test-overlay with-backdrop>
+            Overlay 2
+          </test-overlay>
+        </test-overlay>
+      </template>
+    </test-fixture>
+
     <script>
 
       function runAfterOpen(overlay, cb) {
@@ -419,6 +429,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
+      });
+
+      suite('overlay with backdrop not in <body>', function() {
+        var outerOverlay, innerOverlay;
+
+        setup(function() {
+          outerOverlay = fixture('backdrop-parent');
+          innerOverlay = outerOverlay.children[0];
+        });
+
+        test('innerOverlay and backdrop are siblings', function(done) {
+          innerOverlay.addEventListener('iron-overlay-opened', function() {
+            assert.isTrue(innerOverlay.backdropElement.parentNode === Polymer.dom(innerOverlay).parentNode, 'backdrop and innerOverlay have the same parent');
+            done();
+          });
+          // Open both overlays
+          outerOverlay.open();
+          innerOverlay.open();
+        });
+
+        test('backdrop gets moved to new parent after closing top overlay with backdrop', function(done) {
+          innerOverlay.addEventListener('iron-overlay-opened', function() {
+            innerOverlay.close();
+          });
+          innerOverlay.addEventListener('iron-overlay-closed', function() {
+            assert.isTrue(outerOverlay.backdropElement.parentNode === Polymer.dom(outerOverlay).parentNode, 'backdrop parent got updated');
+            done();
+          });
+          // Open both overlays
+          outerOverlay.open();
+          innerOverlay.open();
+        });
       });
 
       suite('a11y', function() {

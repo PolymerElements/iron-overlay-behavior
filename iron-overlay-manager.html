@@ -20,8 +20,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // that.
     _minimumZ: 101,
 
-    _backdrops: [],
-
     _applyOverlayZ: function(overlay, aboveZ) {
       this._setZ(overlay, aboveZ + 2);
     },
@@ -92,23 +90,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         current._applyFocus();
       }
     },
-
-    trackBackdrop: function(element) {
-      // backdrops contains the overlays with a backdrop that are currently
-      // visible
-      if (element.opened) {
-        this._backdrops.push(element);
-      } else {
-        var index = this._backdrops.indexOf(element);
-        if (index >= 0) {
-          this._backdrops.splice(index, 1);
-        }
-      }
-    },
-
-    getBackdrops: function() {
-      return this._backdrops;
-    }
 
   };
 

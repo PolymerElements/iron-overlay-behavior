@@ -81,7 +81,15 @@ Custom property | Description | Default
       _manager: {
         type: Object,
         value: Polymer.IronOverlayManager
-      }
+      },
+
+      /**
+       * Manages the active overlays using this backdrop
+       */
+      _activeOverlays: {
+        type: Array,
+        value: []
+      },
 
     },
 
@@ -99,31 +107,33 @@ Custom property | Description | Default
      * Shows the backdrop if needed.
      */
     open: function() {
-      // only need to make the backdrop visible if this is called by the first overlay with a backdrop
-      if (this._manager.getBackdrops().length < 2) {
-        this._setOpened(true);
-      }
+      this._setOpened(true);
     },
 
     /**
      * Hides the backdrop if needed.
      */
     close: function() {
-      // only need to make the backdrop invisible if this is called by the last overlay with a backdrop
-      if (this._manager.getBackdrops().length < 2) {
-        this._setOpened(false);
-      }
+      this._setOpened(false);
     },
 
     /**
      * Removes the backdrop from document body if needed.
      */
     complete: function() {
-      // only remove the backdrop if there are no more overlays with backdrops
-      if (this._manager.getBackdrops().length === 0 && this.parentNode) {
-        Polymer.dom(this.parentNode).removeChild(this);
+      Polymer.dom(this.parentNode).removeChild(this);
+    },
+
+    addOverlay: function(overlay) {
+      this._activeOverlays.push(overlay);
+    },
+
+    removeOverlay: function(overlay) {
+      var i = this._activeOverlays.indexOf(overlay);
+      if (i >= 0) {
+        this._activeOverlays.splice(i, 1);
       }
-    }
+    },
 
   });
 

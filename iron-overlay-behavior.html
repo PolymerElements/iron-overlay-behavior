@@ -174,6 +174,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.opened = false;
       this._completeBackdrop();
       this._manager.removeOverlay(this);
+      this._backdrop.removeOverlay(this);
     },
 
     /**
@@ -298,7 +299,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       if (this.withBackdrop) {
         this.backdropElement.prepare();
-        this._manager.trackBackdrop(this);
+        this._backdrop.addOverlay(this);
       }
 
       this._preparePositioning();
@@ -352,6 +353,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.style.display = 'none';
       this._completeBackdrop();
       this._manager.removeOverlay(this);
+      this._backdrop.removeOverlay(this);
 
       this._focusNode.blur();
       // focus the next overlay, if there is one
@@ -365,7 +367,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     _completeBackdrop: function() {
       if (this.withBackdrop) {
-        this._manager.trackBackdrop(this);
+        this._backdrop.removeOverlay(this);
         this.backdropElement.complete();
       }
     },

@@ -121,10 +121,7 @@ Custom property | Description | Default
      * Removes the backdrop from document body if needed.
      */
     complete: function() {
-      // only remove the backdrop if there are no more overlays with backdrops
-      if (this._activeOverlays.length === 0 && this.parentNode) {
-        Polymer.dom(this.parentNode).removeChild(this);
-      }
+      Polymer.dom(this.parentNode).removeChild(this);
     },
 
     addOverlay: function(overlay) {

@@ -447,6 +447,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('multiple overlays close the corrent backdrop', function(done) {
           runAfterOpen(overlays[0], function () {
             assert.isTrue(overlays[0].backdropElement._activeOverlays.length == 1, 'the backdrop of first overlay is managing 1 overlay');
+            assert.isTrue(document.getElementsByTagName('iron-overlay-backdrop').length === 0, 'there is one backdrop');
 
             // After second overlay is closed, both backdrops should be hidden
             overlays[1].addEventListener('iron-overlay-closed', function() {
@@ -455,6 +456,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 assert.isTrue(overlays[1].backdropElement._activeOverlays.length == 0, 'second overlay backdrop is not managing any overlays');
                 assert.isTrue(overlays[1].backdropElement.opened == false, 'second overlay backdrop is closed');
                 assert.isTrue(overlays[0].backdropElement.opened == false, 'first overlay backdrop is closed');
+                assert.isTrue(document.getElementsByTagName('iron-overlay-backdrop').length === 0, 'the backdrop element is removed from the DOM');
                 done();
               }, 1);
             });

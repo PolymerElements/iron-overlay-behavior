@@ -440,17 +440,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlays = fixture('backdrop-different-elements');
         });
 
-        test('multiple overlays share the same backdrop', function() {
-          assert.isTrue(overlays[0].backdropElement === overlays[1].backdropElement, 'overlays[0] has the same backdrop element as overlays[1]');
+        test('multiple overlays do not share the same backdrop', function() {
+          assert.isTrue(overlays[0].backdropElement !== overlays[1].backdropElement, 'overlays[0] does not have same backdrop element as overlays[1]');
         });
 
         test('multiple overlays close the corrent backdrop', function(done) {
           runAfterOpen(overlays[0], function () {
-            // Immediately close first overlay
-            overlays[0].close();
+            assert.isTrue(overlays[0].backdropElement._activeOverlays.length == 1, 'the backdrop of first overlay is managing 1 overlay');
+
             // After second overlay is closed, both backdrops should be hidden
             overlays[1].addEventListener('iron-overlay-closed', function() {
               Polymer.Base.async(function () {
+                assert.isTrue(overlays[0].backdropElement._activeOverlays.length == 0, 'first overlay backdrop is not managing any overlays');
+                assert.isTrue(overlays[1].backdropElement._activeOverlays.length == 0, 'second overlay backdrop is not managing any overlays');
                 assert.isTrue(overlays[1].backdropElement.opened == false, 'second overlay backdrop is closed');
                 assert.isTrue(overlays[0].backdropElement.opened == false, 'first overlay backdrop is closed');
                 done();
@@ -459,9 +461,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             // After second overlay is opened, immediately close it
             overlays[1].addEventListener('iron-overlay-opened', function() {
               Polymer.Base.async(function () {
+                assert.isTrue(overlays[1].backdropElement._activeOverlays.length == 1, 'the backdrop of second overlay is managing 1 overlay');
                 overlays[1].close();
               }, 1);
             });
+
+            // Immediately close first overlay and open the other one
+            overlays[0].close();
             overlays[1].open();
           });
         });

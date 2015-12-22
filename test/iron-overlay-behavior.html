@@ -471,6 +471,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
+        test('updating with-backdrop to false closes backdrop', function(done) {
+          runAfterOpen(overlays[0], function() {
+            overlays[0].withBackdrop = false;
+            // Don't wait for animations.
+            overlays[0].backdropElement.complete();
+            
+            assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
+            assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
+            done();
+          });
+        });
+
+        test('updating with-backdrop updates z-index', function(done) {
+          runAfterOpen(overlays[0], function() {
+            runAfterOpen(overlays[1], function() {
+              overlays[0].withBackdrop = false;
+              var styleZ = parseInt(window.getComputedStyle(overlays[0]).zIndex, 10);
+              var style1Z = parseInt(window.getComputedStyle(overlays[1]).zIndex, 10);
+              var bgStyleZ = parseInt(window.getComputedStyle(overlays[0].backdropElement).zIndex, 10);
+              assert.isTrue(style1Z > bgStyleZ, 'overlays[1] has higher z-index than backdrop');
+              assert.isTrue(styleZ < bgStyleZ, 'overlays[0] has lower z-index than backdrop');
+              done();
+            });
+          });
+        });
+
       });
 
       suite('a11y', function() {

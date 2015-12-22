@@ -107,6 +107,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
   };
 
+  Object.defineProperty(Polymer.IronOverlayManagerClass.prototype, "backdropElement", {
+    get: function() {
+      if (!this._backdropElement) {
+        this._backdropElement = document.createElement('iron-overlay-backdrop');
+      }
+      return this._backdropElement;
+    }
+  });
+
   Polymer.IronOverlayManagerClass.prototype.getBackdrops = function() {
     return this._backdrops;
   };

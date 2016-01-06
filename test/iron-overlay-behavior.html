@@ -113,8 +113,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay = fixture('opened');
           overlay.addEventListener('iron-overlay-opened', function() {
             var s = getComputedStyle(overlay);
-            assert.isTrue(parseFloat(s.left) === (window.innerWidth - overlay.offsetWidth)/2, 'centered horizontally');
-            assert.isTrue(parseFloat(s.top) === (window.innerHeight - overlay.offsetHeight)/2, 'centered vertically');
+            assert.equal(parseFloat(s.left), (window.innerWidth - overlay.offsetWidth)/2, 'centered horizontally');
+            assert.equal(parseFloat(s.top), (window.innerHeight - overlay.offsetHeight)/2, 'centered vertically');
             done();
           });
         });
@@ -150,41 +150,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('open() triggers iron-resize', function(done) {
-          // Skip potential `iron-resize` from window resizing
-          setTimeout(function () {
-            var spy = sinon.stub();
-            overlay.addEventListener('iron-resize', spy);
-            runAfterOpen(overlay, function () {
-              assert.isTrue(spy.calledOnce, 'iron-resize should be called once');
-              done();
-            });
+          // Ignore iron-resize triggered by window resize.
+          var callCount = 0;
+          window.addEventListener('resize', function() { callCount--; }, true);
+          overlay.addEventListener('iron-resize', function () { callCount++; });
+          runAfterOpen(overlay, function () {
+            assert.equal(callCount, 1, 'iron-resize should be called once');
+            done();
           });
         });
 
         test('closed overlay does not trigger iron-resize when its content changes', function(done) {
-          // Skip potential `iron-resize` from window resizing
-          setTimeout(function () {
-            var spy = sinon.stub();
-            overlay.addEventListener('iron-resize', spy);
-            var child = document.createElement('div');
-            child.innerHTML = 'hi';
-            Polymer.dom(overlay).appendChild(child);
-            overlay.async(function () {
-              assert.isFalse(spy.called, 'iron-resize should not be called');
-              done();
-            }, 10);
-          });
+          // Ignore iron-resize triggered by window resize.
+          var callCount = 0;
+          window.addEventListener('resize', function() { callCount--; }, true);
+          overlay.addEventListener('iron-resize', function () { callCount++; });
+          var child = document.createElement('div');
+          child.innerHTML = 'hi';
+          Polymer.dom(overlay).appendChild(child);
+          overlay.async(function () {
+            assert.equal(callCount, 0, 'iron-resize should not be called');
+            done();
+          }, 10);
         });
 
         test('open overlay triggers iron-resize when its content changes', function(done) {
           runAfterOpen(overlay, function () {
-            var spy = sinon.stub();
-            overlay.addEventListener('iron-resize', spy);
+            // Ignore iron-resize triggered by window resize.
+            var callCount = 0;
+            window.addEventListener('resize', function() { callCount--; }, true);
+            overlay.addEventListener('iron-resize', function () { callCount++; });
             var child = document.createElement('div');
             child.innerHTML = 'hi';
             Polymer.dom(overlay).appendChild(child);
             overlay.async(function () {
-              assert.isTrue(spy.calledOnce, 'iron-resize should be called once');
+              assert.equal(callCount, 1, 'iron-resize should be called once');
               done();
             }, 10);
           });
@@ -476,7 +476,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlays[0].withBackdrop = false;
             // Don't wait for animations.
             overlays[0].backdropElement.complete();
-            
+
             assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
             assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
             done();

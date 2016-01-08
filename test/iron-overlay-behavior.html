@@ -136,6 +136,60 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.opened = true;
         });
 
+        test('open overlay refits on iron-resize', function() {
+          var overlay = fixture('opened');
+          var spy = sinon.spy(overlay, 'refit');
+          overlay.fire('iron-resize');
+          assert.isTrue(spy.called, 'overlay should refit');
+        });
+
+        test('closed overlay does not refit on iron-resize', function() {
+          var spy = sinon.spy(overlay, 'refit');
+          overlay.fire('iron-resize');
+          assert.isFalse(spy.called, 'overlay should not refit');
+        });
+
+        test('open() triggers iron-resize', function(done) {
+          // Skip potential `iron-resize` from window resizing
+          setTimeout(function () {
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-resize', spy);
+            runAfterOpen(overlay, function () {
+              assert.isTrue(spy.calledOnce, 'iron-resize should be called once');
+              done();
+            });
+          });
+        });
+
+        test('closed overlay does not trigger iron-resize when its content changes', function(done) {
+          // Skip potential `iron-resize` from window resizing
+          setTimeout(function () {
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-resize', spy);
+            var child = document.createElement('div');
+            child.innerHTML = 'hi';
+            Polymer.dom(overlay).appendChild(child);
+            overlay.async(function () {
+              assert.isFalse(spy.called, 'iron-resize should not be called');
+              done();
+            }, 10);
+          });
+        });
+
+        test('open overlay triggers iron-resize when its content changes', function(done) {
+          runAfterOpen(overlay, function () {
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-resize', spy);
+            var child = document.createElement('div');
+            child.innerHTML = 'hi';
+            Polymer.dom(overlay).appendChild(child);
+            overlay.async(function () {
+              assert.isTrue(spy.calledOnce, 'iron-resize should be called once');
+              done();
+            }, 10);
+          });
+        });
+
         test('close an overlay quickly after open', function(done) {
           // first, open the overlay
           overlay.open();
@@ -169,11 +223,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('clicking an overlay does not close it', function(done) {
           runAfterOpen(overlay, function() {
-            overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-closed should not fire');
-            });
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-overlay-closed', spy);
             overlay.fire('click');
             setTimeout(function() {
+              assert.isFalse(spy.called, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });
@@ -211,13 +265,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.addEventListener('iron-overlay-canceled', function(event) {
               event.preventDefault();
             });
-            var closedListener = function(event) {
-              throw new Error('iron-overlay-closed should not fire');
-            };
-            overlay.addEventListener('iron-overlay-closed', closedListener);
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-overlay-closed', spy);
             MockInteractions.tap(document.body);
             setTimeout(function() {
-              overlay.removeEventListener('iron-overlay-closed', closedListener);
+              assert.isFalse(spy.called, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });
@@ -249,11 +301,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('no-cancel-on-outside-click property', function(done) {
           overlay.noCancelOnOutsideClick = true;
           runAfterOpen(overlay, function() {
-            overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-closed should not fire');
-            });
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-overlay-closed', spy);
             MockInteractions.tap(document.body);
             setTimeout(function() {
+              assert.isFalse(spy.called, 'iron-overlay-closed should not fire');
               done();
             }, 10);
           });
@@ -262,13 +314,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('no-cancel-on-esc-key property', function(done) {
           overlay.noCancelOnEscKey = true;
           runAfterOpen(overlay, function() {
-            overlay.addEventListener('iron-overlay-closed', function() {
-              assert('iron-overlay-cancel should not fire');
-            });
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-overlay-closed', spy);
             fireEvent('keydown', {
               keyCode: 27
             }, document);
             setTimeout(function() {
+              assert.isFalse(spy.called, 'iron-overlay-cancel should not fire');
               done();
             }, 10);
           });

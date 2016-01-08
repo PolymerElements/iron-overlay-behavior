@@ -80,8 +80,8 @@ context. You should place this element as a child of `<body>` whenever possible.
        * Set to true to display a backdrop behind the overlay.
        */
       withBackdrop: {
-        type: Boolean,
-        value: false
+        observer: '_withBackdropChanged',
+        type: Boolean
       },
 
       /**
@@ -172,7 +172,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     detached: function() {
       this.opened = false;
-      this._completeBackdrop();
+      this._manager.trackBackdrop(this);
       this._manager.removeOverlay(this);
     },
 
@@ -266,6 +266,22 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.closingReason.canceled = this.canceled;
     },
 
+    _withBackdropChanged: function() {
+      if (this.opened) {
+        if (this.withBackdrop) {
+          this._manager.trackBackdrop(this);
+          this.backdropElement.prepare();
+          // Give time to be added to document.
+          this.async(function(){
+            this.backdropElement.open();
+          }, 1);
+        } else {
+          this.backdropElement.close();
+          this._manager.trackBackdrop(this);
+        }
+      }
+    },
+
     _toggleListener: function(enable, node, event, boundListener, capture) {
       if (enable) {
         // enable document-wide tap recognizer
@@ -298,14 +314,14 @@ context. You should place this element as a child of `<body>` whenever possible.
     _prepareRenderOpened: function() {
       this._manager.addOverlay(this);
 
-      if (this.withBackdrop) {
-        this.backdropElement.prepare();
-        this._manager.trackBackdrop(this);
-      }
-
       this._preparePositioning();
       this.fit();
       this._finishPositioning();
+
+      this._manager.trackBackdrop(this);
+      if (this.withBackdrop) {
+        this.backdropElement.prepare();
+      }
     },
 
     // tasks which cause the overlay to actually open; typically play an
@@ -338,7 +354,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       // hide the overlay and remove the backdrop
       this.resetFit();
       this.style.display = 'none';
-      this._completeBackdrop();
+      this._manager.trackBackdrop(this);
       this._manager.removeOverlay(this);
 
       this._focusNode.blur();
@@ -347,13 +363,6 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.notifyResize();
       this.fire('iron-overlay-closed', this.closingReason);
-    },
-
-    _completeBackdrop: function() {
-      if (this.withBackdrop) {
-        this._manager.trackBackdrop(this);
-        this.backdropElement.complete();
-      }
     },
 
     _preparePositioning: function() {

@@ -28,10 +28,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     this._backdrops = [];
   }
 
-  Polymer.IronOverlayManagerClass.prototype._applyOverlayZ =
-      function(overlay, aboveZ) {
-        this._setZ(overlay, aboveZ + 2);
-      };
+  Polymer.IronOverlayManagerClass.prototype._applyOverlayZ = function(overlay, aboveZ) {
+    this._setZ(overlay, aboveZ + 2);
+  };
 
   Polymer.IronOverlayManagerClass.prototype._setZ = function(element, z) {
     element.style.zIndex = z;
@@ -47,7 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     if (newZ <= minimumZ) {
       this._applyOverlayZ(overlay, minimumZ);
     }
-  },
+  };
 
   Polymer.IronOverlayManagerClass.prototype.removeOverlay = function(overlay) {
     var i = this._overlays.indexOf(overlay);
@@ -66,15 +65,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   Polymer.IronOverlayManagerClass.prototype.currentOverlayZ = function() {
-    var z = this._minimumZ;
-    var current = this.currentOverlay();
-    if (current) {
-      var z1 = window.getComputedStyle(current).zIndex;
-      if (!isNaN(z1)) {
-        z = Number(z1);
-      }
-    }
-    return z;
+    return this._getOverlayZ(this.currentOverlay());
   };
 
   /**
@@ -105,19 +96,54 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   Polymer.IronOverlayManagerClass.prototype.trackBackdrop = function(element) {
     // backdrops contains the overlays with a backdrop that are currently
     // visible
-    if (element.opened) {
-      this._backdrops.push(element);
-    } else {
-      var index = this._backdrops.indexOf(element);
-      if (index >= 0) {
-        this._backdrops.splice(index, 1);
+    var index = this._backdrops.indexOf(element);
+    if (element.opened && element.withBackdrop) {
+      // no duplicates
+      if (index === -1) {
+        this._backdrops.push(element);
       }
+    } else if (index >= 0) {
+      this._backdrops.splice(index, 1);
     }
   };
 
   Polymer.IronOverlayManagerClass.prototype.getBackdrops = function() {
     return this._backdrops;
-  }
+  };
+
+  /**
+   * Returns the z-index for the backdrop.
+   */
+  Polymer.IronOverlayManagerClass.prototype.backdropZ = function() {
+    return this._getOverlayZ(this._overlayWithBackdrop()) - 1;
+  };
+
+  /**
+   * Returns the first opened overlay that has a backdrop.
+   */
+  Polymer.IronOverlayManagerClass.prototype._overlayWithBackdrop = function() {
+    for (var i = 0; i < this._overlays.length; i++) {
+      if (this._overlays[i].opened && this._overlays[i].withBackdrop) {
+        return this._overlays[i];
+      }
+    }
+  };
+
+  /**
+   * Calculates the minimum z-index for the overlay.
+   */
+  Polymer.IronOverlayManagerClass.prototype._getOverlayZ = function(overlay) {
+    var z = this._minimumZ;
+    if (overlay) {
+      var z1 = Number(window.getComputedStyle(overlay).zIndex);
+      // Check if is a number
+      // Number.isNaN not supported in IE 10+
+      if (z1 === z1) {
+        z = z1;
+      }
+    }
+    return z;
+  };
 
   Polymer.IronOverlayManager = new Polymer.IronOverlayManagerClass();
 

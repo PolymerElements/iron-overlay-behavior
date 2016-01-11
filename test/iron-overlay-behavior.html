@@ -445,6 +445,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             done();
           });
         });
+
+        test('manager backdrops immediately updated on opened changes', function() {
+          overlays[0].opened = true;
+          assert.equal(overlays[0]._manager.getBackdrops().length, 1, 'overlay added to manager backdrops');
+          overlays[0].opened = false;
+          assert.equal(overlays[0]._manager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
+        });
       });
 
       suite('multiple overlays with backdrop', function() {
@@ -476,7 +483,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlays[0].withBackdrop = false;
             // Don't wait for animations.
             overlays[0].backdropElement.complete();
-            
+
             assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
             assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
             done();

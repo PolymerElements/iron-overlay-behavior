@@ -116,8 +116,8 @@ Custom property | Description | Default
     close: function() {
       // Always update z-index
       this.style.zIndex = this._manager.backdropZ();
-      // only need to make the backdrop invisible if this is called by the last overlay with a backdrop
-      if (this._manager.getBackdrops().length < 2) {
+      // close only if no element with backdrop is left
+      if (this._manager.getBackdrops().length === 0) {
         this._setOpened(false);
         // complete() will be called after the transition is done.
         // If animations are disabled via custom-styles, user is expected to call

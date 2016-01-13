@@ -11,7 +11,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-fit-behavior/iron-fit-behavior.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
-<link rel="import" href="iron-overlay-backdrop.html">
 <link rel="import" href="iron-overlay-manager.html">
 
 <script>
@@ -38,9 +37,17 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
 
 ### Backdrop
 
-Set the `with-backdrop` attribute to display a backdrop behind the overlay. The backdrop is
-appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
-options.
+Set the `with-backdrop` attribute to display a backdrop behind the overlay. The `iron-overlay-backdrop`
+class will be added to the overlay's parent.
+
+The following custom properties and mixins are available for styling.
+
+Custom property | Description | Default
+-------------------------------------------|------------------------|---------
+`--iron-overlay-backdrop-background-color` | Backdrop background color                                     | #000
+`--iron-overlay-backdrop-opacity`          | Backdrop opacity                                              | 0.6
+`--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                      | {}
+`--iron-overlay-backdrop-opened`           | Mixin applied to `iron-overlay-backdrop` when it is displayed | {}
 
 ### Limitations
 
@@ -143,20 +150,8 @@ context. You should place this element as a child of `<body>` whenever possible.
       'iron-resize': '_onIronResize'
     },
 
-    /**
-     * The backdrop element.
-     * @type Node
-     */
-    get backdropElement() {
-      return this._backdrop;
-    },
-
     get _focusNode() {
       return Polymer.dom(this).querySelector('[autofocus]') || this;
-    },
-
-    registered: function() {
-      this._backdrop = document.createElement('iron-overlay-backdrop');
     },
 
     ready: function() {
@@ -244,6 +239,8 @@ context. You should place this element as a child of `<body>` whenever possible.
         this._prepareRenderOpened();
       }
 
+      this._manager.trackBackdrop(this);
+
       // async here to allow overlay layer to become visible.
       this._openChangedAsync = this.async(function() {
         // overlay becomes visible here
@@ -267,19 +264,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _withBackdropChanged: function() {
-      if (this.opened) {
-        if (this.withBackdrop) {
-          this._manager.trackBackdrop(this);
-          this.backdropElement.prepare();
-          // Give time to be added to document.
-          this.async(function(){
-            this.backdropElement.open();
-          }, 1);
-        } else {
-          this.backdropElement.close();
-          this._manager.trackBackdrop(this);
-        }
-      }
+      this._manager.trackBackdrop(this);
     },
 
     _toggleListener: function(enable, node, event, boundListener, capture) {
@@ -317,26 +302,15 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._preparePositioning();
       this.fit();
       this._finishPositioning();
-
-      this._manager.trackBackdrop(this);
-      if (this.withBackdrop) {
-        this.backdropElement.prepare();
-      }
     },
 
     // tasks which cause the overlay to actually open; typically play an
     // animation
     _renderOpened: function() {
-      if (this.withBackdrop) {
-        this.backdropElement.open();
-      }
       this._finishRenderOpened();
     },
 
     _renderClosed: function() {
-      if (this.withBackdrop) {
-        this.backdropElement.close();
-      }
       this._finishRenderClosed();
     },
 
@@ -351,10 +325,9 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _finishRenderClosed: function() {
-      // hide the overlay and remove the backdrop
+      // hide the overlay
       this.resetFit();
       this.style.display = 'none';
-      this._manager.trackBackdrop(this);
       this._manager.removeOverlay(this);
 
       this._focusNode.blur();

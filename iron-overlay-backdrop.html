@@ -32,14 +32,15 @@ Custom property | Description | Default
   <style>
 
     :host {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: var(--iron-overlay-backdrop-background-color, #000);
+      bottom: 0;
+      right: 0;
+      outline: 9999px solid var(--iron-overlay-backdrop-background-color, #000);
       opacity: 0;
       transition: opacity 0.2s;
+      z-index: -1;
 
       @apply(--iron-overlay-backdrop);
     }
@@ -48,6 +49,15 @@ Custom property | Description | Default
       opacity: var(--iron-overlay-backdrop-opacity, 0.6);
 
       @apply(--iron-overlay-backdrop-opened);
+    }
+
+    :host([opened]::before) {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
     }
 
   </style>
@@ -93,10 +103,10 @@ Custom property | Description | Default
      * Appends the backdrop to document body and sets its `z-index` to be below the latest overlay.
      */
     prepare: function() {
-      // Always update z-index
-      this.style.zIndex = this._manager.backdropZ();
-      if (!this.parentNode) {
-        Polymer.dom(document.body).appendChild(this);
+      var backdrops = this._manager.getBackdrops();
+      var newParent = backdrops[backdrops.length - 1];
+      if (this.parentNode !== newParent) {
+        Polymer.dom(newParent).appendChild(this);
       }
     },
 
@@ -114,14 +124,14 @@ Custom property | Description | Default
      * Hides the backdrop if needed.
      */
     close: function() {
-      // Always update z-index
-      this.style.zIndex = this._manager.backdropZ();
       // only need to make the backdrop invisible if this is called by the last overlay with a backdrop
-      if (this._manager.getBackdrops().length < 2) {
+      if (this._manager.getBackdrops().length < 1) {
         this._setOpened(false);
         // complete() will be called after the transition is done.
         // If animations are disabled via custom-styles, user is expected to call
         // complete() after close()
+      } else {
+        this.prepare();
       }
     },
 

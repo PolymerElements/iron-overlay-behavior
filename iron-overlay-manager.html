@@ -112,24 +112,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   /**
-   * Returns the z-index for the backdrop.
-   */
-  Polymer.IronOverlayManagerClass.prototype.backdropZ = function() {
-    return this._getOverlayZ(this._overlayWithBackdrop()) - 1;
-  };
-
-  /**
-   * Returns the first opened overlay that has a backdrop.
-   */
-  Polymer.IronOverlayManagerClass.prototype._overlayWithBackdrop = function() {
-    for (var i = 0; i < this._overlays.length; i++) {
-      if (this._overlays[i].opened && this._overlays[i].withBackdrop) {
-        return this._overlays[i];
-      }
-    }
-  };
-
-  /**
    * Calculates the minimum z-index for the overlay.
    */
   Polymer.IronOverlayManagerClass.prototype._getOverlayZ = function(overlay) {

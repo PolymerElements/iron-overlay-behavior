@@ -393,7 +393,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     _onCaptureClick: function(event) {
       if (!this.noCancelOnOutsideClick &&
           this._manager.currentOverlay() === this &&
-          Polymer.dom(event).path.indexOf(this) === -1) {
+          Array.prototype.indexOf.apply(Polymer.dom(event).path, [this]) === -1) {
         this.cancel();
       }
     },

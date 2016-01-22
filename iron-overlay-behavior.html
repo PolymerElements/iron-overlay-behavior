@@ -148,15 +148,11 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @type Node
      */
     get backdropElement() {
-      return this._backdrop;
+      return this._manager.backdropElement;
     },
 
     get _focusNode() {
       return Polymer.dom(this).querySelector('[autofocus]') || this;
-    },
-
-    registered: function() {
-      this._backdrop = document.createElement('iron-overlay-backdrop');
     },
 
     ready: function() {

@@ -176,6 +176,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * Toggle the opened state of the overlay.
      */
     toggle: function() {
+      this._setCanceled(false);
       this.opened = !this.opened;
     },
 
@@ -183,16 +184,16 @@ context. You should place this element as a child of `<body>` whenever possible.
      * Open the overlay.
      */
     open: function() {
+      this._setCanceled(false);
       this.opened = true;
-      this.closingReason = {canceled: false};
     },
 
     /**
      * Close the overlay.
      */
     close: function() {
-      this.opened = false;
       this._setCanceled(false);
+      this.opened = false;
     },
 
     /**
@@ -204,8 +205,8 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
 
-      this.opened = false;
       this._setCanceled(true);
+      this.opened = false;
     },
 
     _ensureSetup: function() {
@@ -230,17 +231,16 @@ context. You should place this element as a child of `<body>` whenever possible.
         this._callOpenedWhenReady = this.opened;
         return;
       }
-      if (this._openChangedAsync) {
-        this.cancelAsync(this._openChangedAsync);
-      }
-
-      this._toggleListeners();
 
       if (this.opened) {
         this._prepareRenderOpened();
       }
 
-      // async here to allow overlay layer to become visible.
+      if (this._openChangedAsync) {
+        this.cancelAsync(this._openChangedAsync);
+      }
+      // Async here to allow overlay layer to become visible, and to avoid
+      // listeners to immediately close via a click.
       this._openChangedAsync = this.async(function() {
         // overlay becomes visible here
         this.style.display = '';
@@ -252,9 +252,9 @@ context. You should place this element as a child of `<body>` whenever possible.
         } else {
           this._renderClosed();
         }
+        this._toggleListeners();
         this._openChangedAsync = null;
-      });
-
+      }, 1);
     },
 
     _canceledChanged: function() {
@@ -294,16 +294,9 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
     },
 
-    _toggleListeners: function() {
-      if (this._toggleListenersAsync) {
-        this.cancelAsync(this._toggleListenersAsync);
-      }
-      // async so we don't auto-close immediately via a click.
-      this._toggleListenersAsync = this.async(function() {
-        this._toggleListener(this.opened, document, 'tap', this._boundOnCaptureClick, true);
-        this._toggleListener(this.opened, document, 'keydown', this._boundOnCaptureKeydown, true);
-        this._toggleListenersAsync = null;
-      }, 1);
+    _toggleListeners: function () {
+      this._toggleListener(this.opened, document, 'tap', this._boundOnCaptureClick, true);
+      this._toggleListener(this.opened, document, 'keydown', this._boundOnCaptureKeydown, true);
     },
 
     // tasks which must occur before opening; e.g. making the element visible
@@ -338,9 +331,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     _finishRenderOpened: function() {
       // focus the child node with [autofocus]
-      if (!this.noAutoFocus) {
-        this._focusNode.focus();
-      }
+      this._applyFocus();
 
       this._observer = Polymer.dom(this).observeNodes(this.notifyResize);
       this.fire('iron-overlay-opened');
@@ -353,9 +344,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._manager.trackBackdrop(this);
       this._manager.removeOverlay(this);
 
-      this._focusNode.blur();
-      // focus the next overlay, if there is one
-      this._manager.focusOverlay();
+      this._applyFocus();
 
       this.notifyResize();
       this.fire('iron-overlay-closed', this.closingReason);
@@ -387,8 +376,8 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _onCaptureClick: function(event) {
-      if (!this.noCancelOnOutsideClick &&
-          this._manager.currentOverlay() === this &&
+      if (this._manager.currentOverlay() === this &&
+          !this.noCancelOnOutsideClick &&
           Polymer.dom(event).path.indexOf(this) === -1) {
         this.cancel();
       }
@@ -396,10 +385,10 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     _onCaptureKeydown: function(event) {
       var ESC = 27;
-      if (!this.noCancelOnEscKey && (event.keyCode === ESC)) {
+      if (this._manager.currentOverlay() === this &&
+          !this.noCancelOnEscKey &&
+          event.keyCode === ESC) {
         this.cancel();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
       }
     },
 

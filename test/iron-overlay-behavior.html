@@ -458,6 +458,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             done();
           });
         });
+
+        test('manager backdrops immediately updated on opened changes', function() {
+          overlays[0].opened = true;
+          assert.equal(overlays[0]._manager.getBackdrops().length, 1, 'overlay added to manager backdrops');
+          overlays[0].opened = false;
+          assert.equal(overlays[0]._manager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
+        });
       });
 
       suite('multiple overlays with backdrop', function() {

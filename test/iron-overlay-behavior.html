@@ -492,10 +492,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('updating with-backdrop to false closes backdrop', function(done) {
+          // no waiting for animations
+          overlays[0].backdropElement.style.transitionDuration = '0s';
+
           runAfterOpen(overlays[0], function() {
             overlays[0].withBackdrop = false;
-            // Don't wait for animations.
-            overlays[0].backdropElement.complete();
 
             assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
             assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');

@@ -340,6 +340,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
+        test('no-auto-focus will not focus node with autofocus', function(done) {
+          overlay.noAutoFocus = true;
+          runAfterOpen(overlay, function() {
+            assert.notEqual(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, '<button autofocus> not focused after opened');
+            done();
+          });
+          // In Safari the element with autofocus will immediately receive focus when displayed for the first time http://jsbin.com/woroci/2/
+          // Ensure this is not the case for overlay.
+          assert.notEqual(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, '<button autofocus> not immediately focused');
+        });
+
         test('no-cancel-on-outside-click property; focus stays on overlay when click outside', function(done) {
           overlay.noCancelOnOutsideClick = true;
           runAfterOpen(overlay, function() {

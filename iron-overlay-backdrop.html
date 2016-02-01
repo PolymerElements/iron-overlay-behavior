@@ -118,9 +118,12 @@ Custom property | Description | Default
       this.style.zIndex = this._manager.backdropZ();
       // close only if no element with backdrop is left
       if (this._manager.getBackdrops().length === 0) {
+        // Read style before setting opened.
+        var cs = getComputedStyle(this);
+        var noAnimation = (cs.transitionDuration === '0s' || cs.opacity == 0);
         this._setOpened(false);
         // In case of no animations, complete
-        if (getComputedStyle(this).transitionDuration === '0s') {
+        if (noAnimation) {
           this.complete();
         }
       }

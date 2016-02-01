@@ -465,6 +465,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlays[0].opened = false;
           assert.equal(overlays[0]._manager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
         });
+
       });
 
       suite('multiple overlays with backdrop', function() {
@@ -500,8 +501,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
             assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
+            overlays[0].backdropElement.style.transitionDuration = '';
             done();
           });
+        });
+
+        test('backdrop is removed when toggling overlay opened', function(done) {
+          overlays[0].open();
+          assert.isObject(overlays[0].backdropElement.parentNode, 'backdrop is immediately inserted in the document');
+          overlays[0].close();
+          // Wait a tick (overlay will call backdropElement.close in the _openChangedAsync)
+          setTimeout(function() {
+            assert.isFalse(overlays[0].backdropElement.opened, 'backdrop is closed');
+            assert.isNotObject(overlays[0].backdropElement.parentNode, 'backdrop is removed from document');
+            done();
+          }, 1);
         });
 
         test('updating with-backdrop updates z-index', function(done) {

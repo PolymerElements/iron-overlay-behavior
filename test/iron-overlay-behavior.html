@@ -87,9 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script>
       function runAfterOpen(overlay, callback) {
-        overlay.addEventListener('iron-overlay-opened', function() {
-          Polymer.Base.async(callback, 1);
-        });
+        overlay.addEventListener('iron-overlay-opened', callback);
         overlay.open();
       }
 
@@ -153,18 +151,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.async(function() {
             assert.equal(callCount, 0, 'iron-resize should not be called');
             done();
-          }, 10);
+          }, 100);
         });
 
         test('open overlay triggers iron-resize when its content changes', function(done) {
           runAfterOpen(overlay, function() {
-            // Ignore iron-resize triggered by window resize.
-            var callCount = 0;
-            window.addEventListener('resize', function() { callCount--; }, true);
-            overlay.addEventListener('iron-resize', function() { callCount++; });
+            var spy = sinon.stub();
+            overlay.addEventListener('iron-resize', spy);
             Polymer.dom(overlay).appendChild(document.createElement('div'));
             overlay.async(function() {
-              assert.equal(callCount, 1, 'iron-resize should be called once');
+              assert.equal(spy.callCount, 1, 'iron-resize should be called once');
               done();
             }, 10);
           });
@@ -318,10 +314,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('open overlay refits on iron-resize', function() {
+        test('open overlay refits on iron-resize', function(done) {
           var spy = sinon.spy(overlay, 'refit');
           overlay.fire('iron-resize');
-          assert.isTrue(spy.called, 'overlay should refit');
+          // Wait for requestAnimationFrame
+          Polymer.Base.async(function() {
+            assert.isTrue(spy.called, 'overlay should refit');
+            done();
+          }, 100);
         });
 
       });

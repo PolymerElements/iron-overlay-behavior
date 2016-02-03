@@ -152,7 +152,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     listeners: {
-      'iron-resize': '_onIronResize'
+      'iron-resize': '__boundOnIronResize'
     },
 
     /**
@@ -171,6 +171,14 @@ context. You should place this element as a child of `<body>` whenever possible.
       // with-backdrop need tabindex to be set in order to trap the focus.
       // If it is not set, IronOverlayBehavior will set it, and remove it if with-backdrop = false.
       this.__shouldRemoveTabIndex = false;
+      // Used for requestAnimationFrame when opened changes.
+      this.__openChangedAsync = null;
+      // Used for toggling listeners.
+      this.__toggleListenersAsync = null;
+      // Used for requestAnimationFrame when iron-resize is fired.
+      this.__onIronResizeAsync = null;
+      // Used to postpone the firing of iron-overlay-opened after iron-resize.
+      this.__notifyOpenedOnIronResize = false;
       this._ensureSetup();
     },
 
@@ -212,7 +220,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     /**
-     * Cancels the overlay. 
+     * Cancels the overlay.
      * @param {?Event} event The original event
      */
     cancel: function(event) {
@@ -249,30 +257,56 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
 
       this._manager.trackBackdrop(this);
-
       if (this.opened) {
-        this._prepareRenderOpened();
+        this._manager.addOverlay(this);
+        if (this.withBackdrop) {
+          this.backdropElement.prepare();
+        }
       }
 
-      if (this._openChangedAsync) {
-        this.cancelAsync(this._openChangedAsync);
+      // requestAnimationFrame for non-block rendering
+      if (this.__openChangedAsync) {
+        cancelAnimationFrame(this.__openChangedAsync);
       }
-      // Async here to allow overlay layer to become visible, and to avoid
-      // listeners to immediately close via a click.
-      this._openChangedAsync = this.async(function() {
-        // overlay becomes visible here
-        this.style.display = '';
-        // Force layout to ensure transition will go. Set offsetWidth to itself
-        // so that compilers won't remove it.
-        this.offsetWidth = this.offsetWidth;
+      this.__openChangedAsync = requestAnimationFrame(function() {
         if (this.opened) {
-          this._renderOpened();
+          this._prepareRenderOpened();
+          // Allow overlay layer to become visible
+          this.__openChangedAsync = requestAnimationFrame(function () {
+            this.__ensureDisplay();
+            this._renderOpened();
+            this.__openChangedAsync = null;
+          }.bind(this));
         } else {
+          this.__ensureDisplay();
           this._renderClosed();
+          this.__openChangedAsync = null;
         }
+      }.bind(this));
+
+      // Toggle listeners.
+      if (this.__toggleListenersAsync) {
+        this.cancelAsync(this.__toggleListenersAsync);
+        this.__toggleListenersAsync = null;
+      }
+      if (this.opened) {
+        // async to avoid listeners to immediately close via a click.
+        this.__toggleListenersAsync = this.async(function() {
+          this._toggleListeners();
+          this.__toggleListenersAsync = null;
+        }, 1);
+      } else {
+        // Immediately remove listeners
         this._toggleListeners();
-        this._openChangedAsync = null;
-      }, 1);
+      }
+    },
+
+    __ensureDisplay: function () {
+      // overlay becomes visible here
+      this.style.display = '';
+      // Force layout to ensure transition will go. Set offsetWidth to itself
+      // so that compilers won't remove it.
+      this.offsetWidth = this.offsetWidth;
     },
 
     _canceledChanged: function() {
@@ -327,16 +361,9 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     // tasks which must occur before opening; e.g. making the element visible
     _prepareRenderOpened: function() {
-
-      this._manager.addOverlay(this);
-
       this._preparePositioning();
       this.fit();
       this._finishPositioning();
-
-      if (this.withBackdrop) {
-        this.backdropElement.prepare();
-      }
 
       // Safari will apply the focus to the autofocus element when displayed for the first time,
       // so we blur it. Later, _applyFocus will set the focus if necessary.
@@ -365,8 +392,8 @@ context. You should place this element as a child of `<body>` whenever possible.
       // focus the child node with [autofocus]
       this._applyFocus();
 
+      this.__notifyOpenedOnIronResize = true;
       this._observer = Polymer.dom(this).observeNodes(this.notifyResize);
-      this.fire('iron-overlay-opened');
     },
 
     _finishRenderClosed: function() {
@@ -391,8 +418,9 @@ context. You should place this element as a child of `<body>` whenever possible.
     _finishPositioning: function() {
       this.style.display = 'none';
       this.style.transform = this.style.webkitTransform = '';
-      // force layout to avoid application of transform
-      /** @suppress {suspiciousCode} */ this.offsetWidth;
+      // Force layout to ensure transition will go. Set offsetWidth to itself
+      // so that compilers won't remove it.
+      this.offsetWidth = this.offsetWidth;
       this.style.transition = this.style.webkitTransition = '';
     },
 
@@ -437,6 +465,24 @@ context. You should place this element as a child of `<body>` whenever possible.
         } else {
           this._focusedChild = path[0];
         }
+      }
+    },
+
+    __boundOnIronResize: function () {
+      if (this.__onIronResizeAsync) {
+        cancelAnimationFrame(this.__onIronResizeAsync);
+        this.__onIronResizeAsync = null;
+      }
+      if (this.opened) {
+        this.__onIronResizeAsync = requestAnimationFrame(function() {
+          this._onIronResize();
+          this.__onIronResizeAsync = null;
+          if (this.__notifyOpenedOnIronResize) {
+            this.fire('iron-overlay-opened');
+            this.__notifyOpenedOnIronResize = false;
+          }
+
+        }.bind(this));
       }
     },
 

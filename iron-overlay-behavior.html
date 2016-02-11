@@ -128,6 +128,14 @@ context. You should place this element as a child of `<body>` whenever possible.
         value: document
       },
 
+      /**
+       * Set to true to enable restoring of focus when overlay is closed.
+       */
+      restoreFocusOnClose: {
+        type: Boolean,
+        value: false
+      },
+
       _manager: {
         type: Object,
         value: Polymer.IronOverlayManager
@@ -235,7 +243,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     ready: function() {
-      // with-backdrop need tabindex to be set in order to trap the focus.
+      // with-backdrop needs tabindex to be set in order to trap the focus.
       // If it is not set, IronOverlayBehavior will set it, and remove it if with-backdrop = false.
       this.__shouldRemoveTabIndex = false;
       // Used for wrapping the focus on TAB / Shift+TAB.
@@ -245,7 +253,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     attached: function() {
       // Call _openedChanged here so that position can be computed correctly.
-      if (this._callOpenedWhenReady) {
+      if (this.opened) {
         this._openedChanged();
       }
       this._observer = Polymer.dom(this).observeNodes(this._onNodesChange);
@@ -315,7 +323,6 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       // wait to call after ready only if we're initially open
       if (!this._overlaySetup) {
-        this._callOpenedWhenReady = this.opened;
         return;
       }
 

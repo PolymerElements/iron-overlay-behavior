@@ -327,6 +327,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     // tasks which must occur before opening; e.g. making the element visible
     _prepareRenderOpened: function() {
+
       this._manager.addOverlay(this);
 
       this._preparePositioning();
@@ -335,6 +336,12 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       if (this.withBackdrop) {
         this.backdropElement.prepare();
+      }
+
+      // Safari will apply the focus to the autofocus element when displayed for the first time,
+      // so we blur it. Later, _applyFocus will set the focus if necessary.
+      if (this.noAutoFocus && document.activeElement === this._focusNode) {
+        this._focusNode.blur();
       }
     },
 

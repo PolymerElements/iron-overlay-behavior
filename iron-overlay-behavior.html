@@ -552,28 +552,29 @@ context. You should place this element as a child of `<body>` whenever possible.
         this._focusedChild = nodeToSet;
       }
     }
-
-/**
- * Fired after the `iron-overlay` opens.
- * @event iron-overlay-opened
- */
-
-/**
- * Fired when the `iron-overlay` is canceled, but before it is closed.
- * Cancel the event to prevent the `iron-overlay` from closing.
- * @event iron-overlay-canceled
- * @param {?Event} event The event in case the user pressed ESC or clicked outside the overlay
- */
-
-/**
- * Fired after the `iron-overlay` closes.
- * @event iron-overlay-closed
- * @param {{canceled: (boolean|undefined)}} set to the `closingReason` attribute
- */
   };
 
   /** @polymerBehavior */
   Polymer.IronOverlayBehavior = [Polymer.IronA11yKeysBehavior, Polymer.IronFitBehavior, Polymer.IronResizableBehavior, Polymer.IronOverlayBehaviorImpl];
 
+  /**
+  * Fired after the `iron-overlay` opens.
+  * @event iron-overlay-opened
+  */
+
+  /**
+  * Fired when the `iron-overlay` is canceled, but before it is closed.
+  * Cancel the event to prevent the `iron-overlay` from closing.
+  * @event iron-overlay-canceled
+  * @param {Event} event The closing of the `iron-overlay` can be prevented
+  * by calling `event.preventDefault()`. The `event.detail` is the original event that originated
+  * the canceling (e.g. ESC keyboard event or click event outside the `iron-overlay`).
+  */
+
+  /**
+  * Fired after the `iron-overlay` closes.
+  * @event iron-overlay-closed
+  * @param {{canceled: (boolean|undefined)}} closingReason Contains `canceled` (whether the overlay was canceled).
+  */
 
 </script>

@@ -453,13 +453,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(focusableNodes[5], Polymer.dom(overlayWithTabIndex).querySelector('.focusable6'));
         });
 
-        test('first focusable is focused if no [autofocus] node is present', function(done) {
-          runAfterOpen(overlay, function() {
-            assert.equal(Polymer.dom(overlay).querySelector('.focusable1'), document.activeElement, 'focusable1 is focused');
-            done();
-          });
-        });
-
         test('with-backdrop: TAB & Shift+TAB wrap focus', function(done) {
           overlay.withBackdrop = true;
           var focusableNodes = overlay._focusableNodes;

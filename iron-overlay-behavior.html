@@ -288,7 +288,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @param {?Event} event The original event
      */
     cancel: function(event) {
-      var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true});
+      var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true, bubbles: false});
       if (cancelEvent.defaultPrevented) {
         return;
       }
@@ -440,7 +440,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       // Focus the child node with [autofocus]
       this._applyFocus();
 
-      this.fire('iron-overlay-opened');
+      this.fire('iron-overlay-opened', null, {bubbles: false});
     },
 
     _finishRenderClosed: function() {
@@ -452,7 +452,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._applyFocus();
       this.notifyResize();
 
-      this.fire('iron-overlay-closed', this.closingReason);
+      this.fire('iron-overlay-closed', this.closingReason, {bubbles: false});
     },
 
     _preparePositioning: function() {
@@ -558,12 +558,12 @@ context. You should place this element as a child of `<body>` whenever possible.
   Polymer.IronOverlayBehavior = [Polymer.IronA11yKeysBehavior, Polymer.IronFitBehavior, Polymer.IronResizableBehavior, Polymer.IronOverlayBehaviorImpl];
 
   /**
-  * Fired after the `iron-overlay` opens.
+  * Fired after the `iron-overlay` opens. Does not bubble.
   * @event iron-overlay-opened
   */
 
   /**
-  * Fired when the `iron-overlay` is canceled, but before it is closed.
+  * Fired when the `iron-overlay` is canceled, but before it is closed. Does not bubble.
   * Cancel the event to prevent the `iron-overlay` from closing.
   * @event iron-overlay-canceled
   * @param {Event} event The closing of the `iron-overlay` can be prevented
@@ -572,7 +572,7 @@ context. You should place this element as a child of `<body>` whenever possible.
   */
 
   /**
-  * Fired after the `iron-overlay` closes.
+  * Fired after the `iron-overlay` closes. Does not bubble.
   * @event iron-overlay-closed
   * @param {{canceled: (boolean|undefined)}} closingReason Contains `canceled` (whether the overlay was canceled).
   */

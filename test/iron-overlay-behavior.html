@@ -236,6 +236,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-canceled', function(event) {
               assert.equal(event.detail.target, document.body, 'detail contains original click event');
+              assert.isFalse(event.bubbles, 'event does not bubble up to the DOM');
               done();
             });
             MockInteractions.tap(document.body);
@@ -246,6 +247,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-closed', function(event) {
               assert.isTrue(event.detail.canceled, 'overlay is canceled');
+              assert.isFalse(event.bubbles, 'event does not bubble up to the DOM');
               done();
             });
             MockInteractions.tap(document.body);
@@ -339,8 +341,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('overlay open by default', function(done) {
-          overlay.addEventListener('iron-overlay-opened', function() {
+          overlay.addEventListener('iron-overlay-opened', function(event) {
             assert.isTrue(overlay.opened, 'overlay starts opened');
+            assert.isFalse(event.bubbles, 'event does not bubble up to the DOM');
             assert.notEqual(getComputedStyle(overlay).display, 'none', 'overlay starts showing');
             done();
           });

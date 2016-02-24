@@ -353,8 +353,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('overlay positioned & sized properly', function(done) {
           overlay.addEventListener('iron-overlay-opened', function() {
             var s = getComputedStyle(overlay);
-            assert.equal(parseFloat(s.left), (window.innerWidth - overlay.offsetWidth) / 2, 'centered horizontally');
-            assert.equal(parseFloat(s.top), (window.innerHeight - overlay.offsetHeight) / 2, 'centered vertically');
+            assert.closeTo(parseFloat(s.left), (window.innerWidth - overlay.offsetWidth) / 2, 1, 'centered horizontally');
+            assert.closeTo(parseFloat(s.top), (window.innerHeight - overlay.offsetHeight) / 2, 1, 'centered vertically');
             done();
           });
         });

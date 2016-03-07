@@ -161,7 +161,12 @@ context. You should place this element as a child of `<body>` whenever possible.
        */
       _focusedChild: {
         type: Object
-      }
+      },
+      /**
+       * Cancel auto refitting when overlay was resized
+       * @type Boolean 
+       */
+      cancelAutoRefit: Boolean
 
     },
 
@@ -514,6 +519,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     _onIronResize: function() {
       if (this.opened) {
+        if(this.cancelAutoRefit) return;
         this.refit();
       }
     },

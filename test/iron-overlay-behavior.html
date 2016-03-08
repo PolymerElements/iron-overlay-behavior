@@ -669,10 +669,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('backdrop is removed when toggling overlay opened', function(done) {
           overlay.open();
-          assert.isObject(overlay.backdropElement.parentNode, 'backdrop is immediately inserted in the document');
+          assert.isOk(overlay.backdropElement.parentNode, 'backdrop is immediately inserted in the document');
           runAfterClose(overlay, function() {
             assert.isFalse(overlay.backdropElement.opened, 'backdrop is closed');
-            assert.isNotObject(overlay.backdropElement.parentNode, 'backdrop is removed from document');
+            assert.isNotOk(overlay.backdropElement.parentNode, 'backdrop is removed from document');
             done();
           });
         });

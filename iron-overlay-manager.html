@@ -176,7 +176,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * Returns the z-index for the backdrop.
    */
   Polymer.IronOverlayManagerClass.prototype.backdropZ = function() {
-    return this._getOverlayZ(this._overlayWithBackdrop()) - 1;
+    return this.currentOverlayZ() - 1;
   };
 
   /**

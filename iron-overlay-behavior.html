@@ -270,8 +270,10 @@ context. You should place this element as a child of `<body>` whenever possible.
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
       this.opened = false;
-      this._manager.trackBackdrop(this);
-      this._manager.removeOverlay(this);
+      if (this.withBackdrop) {
+        // Allow user interactions right away.
+        this.backdropElement.close();
+      }
     },
 
     /**

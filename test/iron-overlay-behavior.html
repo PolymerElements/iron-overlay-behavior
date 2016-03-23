@@ -158,54 +158,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.opened = true;
         });
 
-        test('closed overlay does not refit on iron-resize', function() {
-          var spy = sinon.spy(overlay, 'refit');
-          overlay.fire('iron-resize');
-          assert.isFalse(spy.called, 'overlay should not refit');
-        });
-
-        test('open() triggers iron-resize', function(done) {
-          var callCount = 0;
-          // Ignore iron-resize triggered by window resize.
-          window.addEventListener('resize', function() { callCount--; }, true);
-          overlay.addEventListener('iron-resize', function() { callCount++; });
-          runAfterOpen(overlay, function() {
-            assert.equal(callCount, 1, 'iron-resize called once before iron-overlay-opened');
-            done();
-          });
-        });
-
-        test('close() triggers iron-resize', function(done) {
-          runAfterOpen(overlay, function() {
-            var spy = sinon.stub();
-            overlay.addEventListener('iron-resize', spy);
-            runAfterClose(overlay, function() {
-              assert.equal(spy.callCount, 1, 'iron-resize called once before iron-overlay-closed');
-              done();
-            });
-          });
-        });
-
-        test('closed overlay does not trigger iron-resize when its content changes', function() {
-          // Ignore iron-resize triggered by window resize.
-          var callCount = 0;
-          window.addEventListener('resize', function() { callCount--; }, true);
-          overlay.addEventListener('iron-resize', function() { callCount++; });
-          Polymer.dom(overlay).appendChild(document.createElement('div'));
-          Polymer.dom.flush();
-          assert.equal(callCount, 0, 'iron-resize should not be called');
-        });
-
-        test('open overlay triggers iron-resize when its content changes', function() {
-          runAfterOpen(overlay, function() {
-            var spy = sinon.stub();
-            overlay.addEventListener('iron-resize', spy);
-            Polymer.dom(overlay).appendChild(document.createElement('div'));
-            Polymer.dom.flush();
-            assert.equal(spy.callCount, 1, 'iron-resize should be called once');
-          });
-        });
-
         test('close an overlay quickly after open', function(done) {
           // first, open the overlay
           overlay.open();
@@ -330,6 +282,78 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       });
 
+      suite('iron-resize event', function() {
+        var overlay;
+        var callCount;
+
+        var decreaseCount = function() { callCount--; };
+        var increaseCount = function () { callCount++; };
+
+        setup(function() {
+          overlay = fixture('basic');
+          callCount = 0;
+          // Ignore iron-resize triggered by window resize.
+          window.addEventListener('resize', decreaseCount, true);
+        });
+
+        teardown(function() {
+          window.removeEventListener('resize', decreaseCount, true);
+        });
+
+        test('open() triggers iron-resize', function(done) {
+          overlay.addEventListener('iron-resize', increaseCount);
+          runAfterOpen(overlay, function() {
+            assert.equal(callCount, 1, 'iron-resize called once before iron-overlay-opened');
+            done();
+          });
+        });
+
+        test('close() triggers iron-resize', function(done) {
+          runAfterOpen(overlay, function() {
+            overlay.addEventListener('iron-resize', increaseCount);
+            runAfterClose(overlay, function() {
+              assert.equal(callCount, 1, 'iron-resize called once before iron-overlay-closed');
+              done();
+            });
+          });
+        });
+
+        test('closed overlay does not trigger iron-resize when its content changes', function() {
+          overlay.addEventListener('iron-resize', increaseCount);
+          Polymer.dom(overlay).appendChild(document.createElement('div'));
+          Polymer.dom.flush();
+          assert.equal(callCount, 0, 'iron-resize should not be called');
+        });
+
+        test('open overlay triggers iron-resize when its content changes', function() {
+          runAfterOpen(overlay, function() {
+            overlay.addEventListener('iron-resize', increaseCount);
+            Polymer.dom(overlay).appendChild(document.createElement('div'));
+            Polymer.dom.flush();
+            assert.equal(callCount, 1, 'iron-resize should be called once');
+          });
+        });
+
+        test('closed overlay does not refit on iron-resize', function() {
+          var spy = sinon.spy(overlay, 'refit');
+          overlay.fire('iron-resize');
+          assert.isFalse(spy.called, 'overlay should not refit');
+        });
+
+        test('open overlay refits on iron-resize', function(done) {
+          overlay = fixture('opened');
+          // At this point, overlay is still opening.
+          var spy = sinon.spy(overlay, 'refit');
+          overlay.fire('iron-resize');
+          assert.isFalse(spy.called, 'overlay did not refit while animating');
+          overlay.addEventListener('iron-overlay-opened', function() {
+            overlay.fire('iron-resize');
+            assert.isTrue(spy.called, 'overlay did refit');
+            done();
+          });
+        });
+      });
+
       suite('keyboard event listener', function() {
         var overlay;
 
@@ -386,17 +410,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('open overlay refits on iron-resize', function(done) {
-          var spy = sinon.spy(overlay, 'refit');
-          // At this point, overlay is still opening.
-          overlay.fire('iron-resize');
-          assert.isFalse(spy.called, 'overlay did not refit while animating');
-          overlay.addEventListener('iron-overlay-opened', function() {
-            overlay.fire('iron-resize');
-            assert.isTrue(spy.called, 'overlay did refit');
-            done();
-          });
-        });
       });
 
       suite('focus handling', function() {

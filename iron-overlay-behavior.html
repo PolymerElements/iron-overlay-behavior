@@ -453,14 +453,14 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
-      if (this.opened) {
-        if (!this.noAutoFocus) {
+      if (!this.noAutoFocus) {
+        if (this.opened) {
           this._focusNode.focus();
+        } else {
+          this._focusNode.blur();
+          this._focusedChild = null;
+          this._manager.focusOverlay();
         }
-      } else {
-        this._focusNode.blur();
-        this._focusedChild = null;
-        this._manager.focusOverlay();
       }
     },
 

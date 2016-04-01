@@ -127,6 +127,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <input id="focusInput" placeholder="focus input">
 
     <script>
+
+      HTMLImports.whenReady(function() {
+        // Enable document-wide tap recognizer.
+        Polymer.Gestures.add(document, 'tap', null);
+      });
+      
       function runAfterOpen(overlay, callback) {
         overlay.addEventListener('iron-overlay-opened', function() {
           Polymer.Base.async(callback, 1);
@@ -240,6 +246,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               done();
             }, 10);
           });
+        });
+
+        test('open overlay on mousedown does not close it', function(done) {
+          var btn = document.createElement('button');
+          btn.addEventListener('mousedown', overlay.open.bind(overlay));
+          document.body.appendChild(btn);
+          // It triggers mousedown, mouseup, and click.
+          MockInteractions.tap(btn);
+          document.body.removeChild(btn);
+
+          assert.isTrue(overlay.opened, 'overlay opened');
+          overlay.async(function() {
+            assert.isTrue(overlay.opened, 'overlay is still open');
+            done();
+          }, 10);
         });
 
         test('clicking outside fires iron-overlay-canceled', function(done) {
@@ -950,7 +971,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }, 1);
           });
         });
-        
+
       });
 
       suite('always-on-top', function() {

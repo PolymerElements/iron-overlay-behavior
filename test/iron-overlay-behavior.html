@@ -128,9 +128,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script>
       function runAfterOpen(overlay, callback) {
-        overlay.addEventListener('iron-overlay-opened', function() {
-          Polymer.Base.async(callback, 1);
-        });
+        overlay.addEventListener('iron-overlay-opened', callback);
         overlay.open();
       }
 
@@ -168,10 +166,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.opened = true;
         });
 
-        test('closed overlay does not refit on iron-resize', function() {
+        test('open() refits overlay only once', function(done) {
+          var spy = sinon.spy(overlay, 'refit');
+          runAfterOpen(overlay, function() {
+            assert.equal(spy.callCount, 1, 'overlay did refit only once');
+            done();
+          });
+        });
+
+        test('open overlay refits on iron-resize', function(done) {
+          runAfterOpen(overlay, function() {
+            var spy = sinon.spy(overlay, 'refit');
+            overlay.fire('iron-resize');
+            Polymer.dom.flush();
+            requestAnimationFrame(function() {
+              assert.isTrue(spy.called, 'overlay did refit');
+              done();
+            });
+          });
+        });
+
+        test('closed overlay does not refit on iron-resize', function(done) {
           var spy = sinon.spy(overlay, 'refit');
           overlay.fire('iron-resize');
-          assert.isFalse(spy.called, 'overlay should not refit');
+          Polymer.dom.flush();
+          requestAnimationFrame(function() {
+            assert.isFalse(spy.called, 'overlay should not refit');
+            done();
+          });
         });
 
         test('open() triggers iron-resize', function(done) {
@@ -396,18 +418,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             done();
           });
         });
-
-        test('open overlay refits on iron-resize', function(done) {
-          var spy = sinon.spy(overlay, 'refit');
-          // At this point, overlay is still opening.
-          overlay.fire('iron-resize');
-          assert.isFalse(spy.called, 'overlay did not refit while animating');
-          overlay.addEventListener('iron-overlay-opened', function() {
-            overlay.fire('iron-resize');
-            assert.isTrue(spy.called, 'overlay did refit');
-            done();
-          });
-        });
       });
 
       suite('focus handling', function() {
@@ -504,17 +514,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.withBackdrop = true;
           var focusableNodes = overlay._focusableNodes;
           runAfterOpen(overlay, function() {
-            // Go to last element.
-            MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
-            // Simulate TAB & focus out of overlay.
-            MockInteractions.pressAndReleaseKeyOn(document, 9);
-            MockInteractions.focus(document.body);
-            assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
-            // Simulate Shift+TAB & focus out of overlay.
-            MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-            MockInteractions.focus(document.body);
-            assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
-            done();
+            Polymer.Base.async(function() {
+              // Go to last element.
+              MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
+              // Simulate TAB & focus out of overlay.
+              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.focus(document.body);
+
+              assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
+              // Simulate Shift+TAB & focus out of overlay.
+              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.focus(document.body);
+              assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              done();
+            }, 1);
           });
         });
 
@@ -522,17 +535,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlayWithTabIndex.withBackdrop = true;
           var focusableNodes = overlayWithTabIndex._focusableNodes;
           runAfterOpen(overlayWithTabIndex, function() {
-            // Go to last element.
-            MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
-            // Simulate TAB & focus out of overlay.
-            MockInteractions.pressAndReleaseKeyOn(document, 9);
-            MockInteractions.focus(document.body);
-            assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
-            // Simulate Shift+TAB & focus out of overlay.
-            MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-            MockInteractions.focus(document.body);
-            assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
-            done();
+            Polymer.Base.async(function() {
+              // Go to last element.
+              MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
+              // Simulate TAB & focus out of overlay.
+              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.focus(document.body);
+              assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
+              // Simulate Shift+TAB & focus out of overlay.
+              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.focus(document.body);
+              assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              done();
+            }, 1);
           });
         });
 
@@ -890,7 +905,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           Polymer.Base.async(function() {
             assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 0, 'backdrop element removed from the DOM');
             done();
-          }, 1);
+          }, 100);
         });
 
         test('newest overlay appear on top', function(done) {

@@ -15,6 +15,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-manager.html">
 
 <script>
+// IIFE to help scripts concatenation.
+(function() {
+'use strict';
 
 /**
 Use `Polymer.IronOverlayBehavior` to implement an element that can be hidden or shown, and displays
@@ -321,22 +324,22 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.__isAnimating = true;
 
-      if (this.opened) {
-        this._prepareRenderOpened();
-      }
-
       // requestAnimationFrame for non-blocking rendering
       if (this.__openChangedAsync) {
         cancelAnimationFrame(this.__openChangedAsync);
       }
-      this.__openChangedAsync = requestAnimationFrame(function() {
-        this.__openChangedAsync = null;
-        if (this.opened) {
-          this._renderOpened();
-        } else {
-          this._renderClosed();
+      if (this.opened) {
+        if (this.withBackdrop) {
+          this.backdropElement.prepare();
         }
-      }.bind(this));
+        this.__openChangedAsync = requestAnimationFrame(function() {
+          this.__openChangedAsync = null;
+          this._prepareRenderOpened();
+          this._renderOpened();
+        }.bind(this));
+      } else {
+        this._renderClosed();
+      }
     },
 
     _canceledChanged: function() {
@@ -378,10 +381,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._preparePositioning();
       this.refit();
       this._finishPositioning();
-
-      if (this.withBackdrop) {
-        this.backdropElement.prepare();
-      }
 
       // Safari will apply the focus to the autofocus element when displayed for the first time,
       // so we blur it. Later, _applyFocus will set the focus if necessary.
@@ -449,8 +448,18 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     _finishPositioning: function() {
+      // First, make it invisible & reactivate animations.
+      this.style.display = 'none';
+      // Force reflow before re-enabling animations so that they don't start.
+      // Set scrollTop to itself so that Closure Compiler doesn't remove this.
+      this.scrollTop = this.scrollTop;
       this.style.transition = this.style.webkitTransition = '';
       this.style.transform = this.style.webkitTransform = '';
+      // Now that animations are enabled, make it visible again
+      this.style.display = '';
+      // Force reflow, so that following animations are properly started.
+      // Set scrollTop to itself so that Closure Compiler doesn't remove this.
+      this.scrollTop = this.scrollTop;
     },
 
     /**
@@ -584,4 +593,5 @@ context. You should place this element as a child of `<body>` whenever possible.
   * @param {{canceled: (boolean|undefined)}} closingReason Contains `canceled` (whether the overlay was canceled).
   */
 
+})();
 </script>

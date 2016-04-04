@@ -132,7 +132,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // Enable document-wide tap recognizer.
         Polymer.Gestures.add(document, 'tap', null);
       });
-      
+
       function runAfterOpen(overlay, callback) {
         overlay.addEventListener('iron-overlay-opened', callback);
         overlay.open();
@@ -1034,6 +1034,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               assert.equal(Polymer.IronOverlayManager.currentOverlay(), overlay2, 'currentOverlay ok');
               done();
             });
+          });
+        });
+
+      });
+
+      suite('animations', function() {
+
+        test('overlay animations correctly triggered', function(done) {
+          var overlay = fixture('basic');
+          overlay.animated = true;
+          overlay.open();
+          overlay.addEventListener('simple-overlay-open-animation-start', function() {
+            // Since animated overlay will transition center + 300px to center,
+            // we should not find the element at the center when the open animation starts.
+            var centerElement = document.elementFromPoint(window.innerWidth/2, window.innerHeight/2);
+            assert.notEqual(centerElement, overlay, 'overlay should not be centered already');
+            done();
           });
         });
 

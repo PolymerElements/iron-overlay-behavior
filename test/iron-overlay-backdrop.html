@@ -1,4 +1,3 @@
-@@ -0,0 +1,89 @@
 <!doctype html>
 <!--
 @license
@@ -11,7 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 <html>
 
-  <head>
+<head>
 
     <title>iron-overlay-backdrop tests</title>
 
@@ -20,70 +19,76 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
     <script src="../../web-component-tester/browser.js"></script>
     <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html">
     <link rel="import" href="test-overlay.html">
-  	<style>
-  		html,
-  	    body {
-  		  margin: 0;
-  		  width: 100%;
-  		  height: 100%;
-  		  min-width: 0;
-  		}
-  		.sizer {
-  			width: 4000px;
-  			height: 5000px;
-  		}
-  	</style>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+        }
+        .sizer {
+            width: 4000px;
+            height: 5000px;
+        }
+    </style>
+
     <style is="custom-style">
-      iron-overlay-backdrop {
+        iron-overlay-backdrop {
         /* For quicker tests */
         --iron-overlay-backdrop: {
-          transition: none;
+             transition: none;
+         }
         }
-      }
     </style>
-  </head>
 
-  <body>
-	  <div class="sizer"></div>
-    <test-fixture id="backdrop">
-      <template>
-        <test-overlay with-backdrop>
-          Overlay with backdrop
+</head>
+
+<body>
+
+<div class="sizer"></div>
+
+<test-fixture id="basic">
+    <template>
+        <test-overlay>
+            Basic Overlay
         </test-overlay>
-      </template>
-    </test-fixture>
+    </template>
+</test-fixture>
 
-    <script>
-      function runAfterOpen(overlay, callback) {
+<script>
+    function runAfterOpen(overlay, callback) {
         overlay.addEventListener('iron-overlay-opened', callback);
         overlay.open();
-      }
+    }
 
-      suite('overlay with backdrop', function() {
+    suite('overlay with backdrop', function() {
         var overlay;
-		
+
         setup(function() {
-          overlay = fixture('backdrop');
+            overlay = fixture('backdrop');
         });
 
         test('backdrop size matches parent size', function(done) {
-          runAfterOpen(overlay, function() {
-            Polymer.Base.async(function() {
-      			  var backdrop = overlay.backdropElement;
-      			  var parent = backdrop.parentElement;
-      			  assert.strictEqual(backdrop.offsetWidth, parent.clientWidth, 'backdrop width matches parent width');
-      			  assert.strictEqual(backdrop.offsetHeight, parent.clientHeight, 'backdrop height matches parent height');
-              done();
-            }, 1);
-          });
+            runAfterOpen(overlay, function() {
+                Polymer.Base.async(function() {
+                    var backdrop = overlay.backdropElement;
+                    var parent = backdrop.parentElement;
+                    assert.strictEqual(backdrop.offsetWidth, parent.clientWidth, 'backdrop width matches parent width');
+                    assert.strictEqual(backdrop.offsetHeight, parent.clientHeight, 'backdrop height matches parent height');
+                    done();
+                }, 1);
+            });
         });
-		
-      });
-    </script>
 
-  </body>
+    });
+</script>
+
+</body>
 
 </html>

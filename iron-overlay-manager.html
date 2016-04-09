@@ -257,6 +257,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
+     * Returns if a node is an overlay.
+     * @param {Element=} node
+     * @return {boolean}
+     */
+    isOverlay: function(node) {
+      return (node && node._manager === this);
+    },
+
+    /**
      * Returns the first opened overlay that has a backdrop.
      * @return {Element|undefined}
      * @private
@@ -315,7 +324,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _overlayParent: function(node) {
       while (node && node !== document.body) {
         // Check if it is an overlay.
-        if (node._manager === this) {
+        if (this.isOverlay(node)) {
           return node;
         }
         // Use logical parentNode, or native ShadowRoot host.
@@ -332,7 +341,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _overlayInPath: function(path) {
       path = path || [];
       for (var i = 0; i < path.length; i++) {
-        if (path[i]._manager === this) {
+        if (this.isOverlay(path[i])) {
           return path[i];
         }
       }

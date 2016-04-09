@@ -1,0 +1,126 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-overlay-manager.html">
+
+<!--
+`iron-overlay-container` contains overlays. It moves overlays to `document.body`
+in order to avoid any stacking context issue that would cause clipping or rendering behind the backdrop.
+Style overlays without relying on their container (since they will be re-parented).
+Overlays re-parenting won't happen if `iron-overlay-container` parent is `document.body`.
+
+Example:
+
+    <iron-overlay-container>
+      <paper-dialog>
+        dialog content...
+      </paper-dialog>
+      <paper-toast text="You're offline!"></paper-toast>
+    </iron-overlay-container>
+
+-->
+
+<dom-module id="iron-overlay-container">
+
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+    <content id="content"></content>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+
+    is: 'iron-overlay-container',
+
+    /**
+     * The overlay.
+     * @type {Node}
+     */
+    get overlay() {
+      if (this._overlays.length) {
+        return this.overlays[0];
+      }
+      var children = Polymer.dom(this).queryDistributedElements('*');
+      for (var i = 0; i < children.length; i++) {
+        if (Polymer.IronOverlayManager.isOverlay(children[i])) {
+          return children[i];
+        }
+      }
+    },
+
+    /**
+     * List of overlays.
+     * @type {Array<Node>}
+     */
+    get overlays() {
+      return this._overlays;
+    },
+
+    ready: function() {
+      this._overlays = [];
+    },
+
+    attached: function() {
+      // Make this visible if its parent is body
+      this.style.display = (Polymer.dom(this).parentNode !== document.body) ? '' : 'inline';
+      var children = Polymer.dom(this).queryDistributedElements('*');
+      for (var i = children.length - 1; i >= 0; i--) {
+        if (!Polymer.IronOverlayManager.isOverlay(children[i])) {
+          children.splice(i, 1);
+        }
+      }
+      this._overlays = children;
+      this._observer = Polymer.dom(this.$.content).observeNodes(this._onNodesChange.bind(this));
+    },
+
+    detached: function() {
+      this.style.display = '';
+      Polymer.dom(this.$.content).unobserveNodes(this._observer);
+      this._observer = null;
+      // Bring back overlays to this
+      for (var i = 0; i < this._overlays.length; i++) {
+        this._moveOverlayTo(this._overlays[i], this);
+      }
+      this._overlays = [];
+    },
+
+    _onNodesChange: function(info) {
+      var shouldMove = (Polymer.dom(this).parentNode !== document.body);
+      for (var i = 0; i < info.addedNodes.length; i++) {
+        var child = info.addedNodes[i];
+        if (Polymer.IronOverlayManager.isOverlay(child)) {
+          this._overlays.push(child);
+          shouldMove && this._moveOverlayTo(child, document.body);
+        }
+      }
+    },
+
+    _moveOverlayTo: function(overlay, destination) {
+      var $overlay = Polymer.dom(overlay);
+      if ($overlay.parentNode === destination) {
+        return;
+      }
+      var children = $overlay.queryDistributedElements('*');
+      Polymer.dom(destination).appendChild(overlay);
+      // Move children back to overlay.
+      for (var i = 0; i < children.length; i++) {
+        $overlay.appendChild(children[i]);
+      }
+    }
+
+  });
+</script>

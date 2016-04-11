@@ -1,0 +1,177 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+
+<head>
+
+  <title>iron-overlay-container demo</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="simple-overlay.html">
+  <link rel="import" href="simple-menu-button.html">
+  <link rel="import" href="../iron-overlay-container.html">
+  <link rel="import" href="../../iron-dropdown/iron-dropdown.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+
+  <style is="custom-style" include="demo-pages-shared-styles">
+    demo-snippet {
+      --demo-snippet-code: {
+        max-height: 250px;
+      }
+    }
+
+    .dropdown-content {
+      background-color: white;
+      padding: 20px;
+      border: 1px solid black;
+    }
+  </style>
+
+</head>
+
+<body unresolved class="centered">
+
+  <h3><code>IronOverlayContainer</code> stamps overlays into body.</h3>
+  <demo-snippet>
+    <template>
+      <style>
+        .stacking-context {
+          /* This will create a new stacking context */
+          transform: translateZ(0);
+        }
+
+        .myOverlay {
+          background-color: #cec;
+        }
+      </style>
+      <div class="stacking-context">
+        <p><code>Trapped</code> will be hidden behind the backdrop element.</p>
+
+        <paper-button raised onclick="trapped.toggle()">Trapped</paper-button>
+        <simple-overlay id="trapped" with-backdrop class="myOverlay">
+          <p>My awesome overlay</p>
+        </simple-overlay>
+
+        <iron-overlay-container id="c0">
+          <paper-button raised onclick="c0.overlay.toggle()">Free</paper-button>
+          <template overlay>
+            <simple-overlay with-backdrop class="myOverlay">
+              <p>My awesome overlay</p>
+            </simple-overlay>
+          </template>
+        </iron-overlay-container>
+      </div>
+    </template>
+  </demo-snippet>
+
+  <h3><code>IronOverlayContainer</code> overcomes stacking context issues.</h3>
+  <demo-snippet>
+    <template>
+      <style>
+        .upside-down {
+          /* This will create a new stacking context */
+          transform: rotateZ(180deg);
+        }
+      </style>
+      <p>This block is upside down on purpose!</p>
+      <div class="upside-down">
+        <paper-button raised onclick="dd.toggle()">Trapped</paper-button>
+        <iron-dropdown id="dd">
+          <div class="dropdown-content">
+            <div>one</div>
+            <div>two</div>
+            <div>three</div>
+            <div>four</div>
+          </div>
+        </iron-dropdown>
+
+        <iron-overlay-container id="c1">
+          <paper-button raised onclick="c1.overlay.toggle()">Free</paper-button>
+          <template overlay>
+            <iron-dropdown>
+              <div class="dropdown-content">
+                <div>one</div>
+                <div>two</div>
+                <div>three</div>
+                <div>four</div>
+              </div>
+            </iron-dropdown>
+          </template>
+        </iron-overlay-container>
+      </div>
+      <script>
+        c1.overlay.positionTarget = c1;
+      </script>
+    </template>
+  </demo-snippet>
+
+  <h3><code>IronOverlayContainer</code> redistributes content.</h3>
+  <demo-snippet>
+    <template>
+      <simple-menu-button>
+        <paper-button raised>Open</paper-button>
+        <div class="dropdown-content">
+          <div>one</div>
+          <div>two</div>
+          <div>three</div>
+          <div>four</div>
+        </div>
+      </simple-menu-button>
+    </template>
+  </demo-snippet>
+
+  <h3><code>IronOverlayContainer</code> and binding.</h3>
+  <demo-snippet>
+    <template>
+      <template id="t" is="dom-bind">
+        <iron-overlay-container id="c2">
+          <paper-button raised onclick="c2.overlay.toggle()">overlay</paper-button>
+          <template overlay>
+            <simple-overlay with-backdrop>
+              <h2>{{title}}</h2>
+              <template is="dom-repeat" items="{{data}}">
+                <p>{{item}}</p>
+              </template>
+              <paper-button onclick="addData()">Add Data</paper-button>
+            </simple-overlay>
+          </template>
+        </iron-overlay-container>
+        <simple-menu-button>
+          <paper-button raised>menu</paper-button>
+          <div class="dropdown-content">
+            <template is="dom-repeat" items="{{data}}">
+              <div>{{item}}</div>
+            </template>
+          </div>
+        </simple-menu-button>
+      </template>
+      <script>
+        var t = document.querySelector('#t');
+        // auto-binding template is ready.
+        t.data = ['one', 'two', 'three', 'four'];
+        t.title = 'hello world';
+
+        function addData(){
+          t.data = t.data.concat(['data']);
+        }
+      </script>
+    </template>
+  </demo-snippet>
+</body>
+
+</html>

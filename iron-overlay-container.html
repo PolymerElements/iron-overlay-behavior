@@ -12,115 +12,128 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-manager.html">
 
 <!--
-`iron-overlay-container` contains overlays. It moves overlays to `document.body`
-in order to avoid any stacking context issue that would cause clipping or rendering behind the backdrop.
-Style overlays without relying on their container (since they will be re-parented).
-Overlays re-parenting won't happen if `iron-overlay-container` parent is `document.body`.
+`iron-overlay-container` stamps overlays to `document.body` in order to avoid
+any stacking context issue that would cause clipping or rendering behind the backdrop element.
+The rest of the content is distributed within `iron-overlay-container`.
+Mark the template containing the overlay with the attribute `overlay`.
 
 Example:
 
     <iron-overlay-container>
-      <paper-dialog>
-        dialog content...
-      </paper-dialog>
-      <paper-toast text="You're offline!"></paper-toast>
+      <template overlay>
+        <overlay-impl>
+          dialog content...
+        </overlay-impl>
+      </template>
     </iron-overlay-container>
 
 -->
 
 <dom-module id="iron-overlay-container">
 
-  <template strip-whitespace>
+  <template>
     <style>
       :host {
-        display: none;
+        display: inline-block;
       }
     </style>
-    <content id="content"></content>
+    <content></content>
   </template>
 
+  <script>
+    Polymer({
+
+      is: 'iron-overlay-container',
+
+      behaviors: [Polymer.Templatizer],
+
+      properties: {
+        /**
+         * True to skip the stamping of the overlay on attached.
+         * Delegates the call of `stampOverlay` to the user.
+         */
+        noAutoStamp: Boolean,
+
+        /*
+         * The overlay instance.
+         * @type {Node}
+         */
+        overlay: {
+          type: Object,
+          readOnly: true,
+          notify: true
+        }
+      },
+
+      ready: function() {
+        // Used for delaying the append into body.
+        this.__instance = null;
+        var template = this.queryEffectiveChildren('template[overlay]');
+        if (!template) return;
+        this.templatize(template);
+        // Must stamp so overlay gets registered, and we can check if it is
+        // an overlay or not!
+        var inst = this.stamp(null);
+        var overlay = this._getOverlay(inst.root.children);
+        if (!overlay) {
+          console.error('must use only with overlays!');
+        } else {
+          this.__instance = inst;
+          this._setOverlay(overlay);
+        }
+      },
+
+      attached: function() {
+        if (!this.noAutoStamp) {
+          this.stampOverlay();
+        }
+      },
+
+      detached: function() {
+        if (!this.overlay) {
+          return;
+        }
+        var parentNode = Polymer.dom(this.overlay).parentNode;
+        if (parentNode) {
+          Polymer.dom(parentNode).removeChild(this.overlay);
+        }
+      },
+
+      /**
+       * Stamps the overlay to `document.body`.
+       */
+      stampOverlay: function() {
+        if (!this.overlay) {
+          return;
+        }
+        if (Polymer.dom(this.overlay).parentNode !== document.body) {
+          Polymer.dom(document.body).appendChild(this.__instance.root);
+        }
+      },
+
+      /**
+       * Returns the first overlay of a list of elements.
+       * @param {Array<Node>} elements
+       * @returns {Node|undefined}
+       */
+      _getOverlay: function(elements) {
+        for (var i = 0; i < elements.length; i++) {
+          if (Polymer.IronOverlayManager.isOverlay(elements[i])) {
+            return elements[i];
+          }
+        }
+      },
+
+      /**
+       * Implements extension point from Templatizer.
+       * Forward values to overlay instance.
+       */
+      _forwardParentProp: function(prop, value) {
+        if (this.overlay) {
+          this.overlay._templateInstance[prop] = value;
+        }
+      },
+    });
+  </script>
+
 </dom-module>
-
-<script>
-  Polymer({
-
-    is: 'iron-overlay-container',
-
-    /**
-     * The overlay.
-     * @type {Node}
-     */
-    get overlay() {
-      if (this._overlays.length) {
-        return this.overlays[0];
-      }
-      var children = Polymer.dom(this).queryDistributedElements('*');
-      for (var i = 0; i < children.length; i++) {
-        if (Polymer.IronOverlayManager.isOverlay(children[i])) {
-          return children[i];
-        }
-      }
-    },
-
-    /**
-     * List of overlays.
-     * @type {Array<Node>}
-     */
-    get overlays() {
-      return this._overlays;
-    },
-
-    ready: function() {
-      this._overlays = [];
-    },
-
-    attached: function() {
-      // Make this visible if its parent is body
-      this.style.display = (Polymer.dom(this).parentNode !== document.body) ? '' : 'inline';
-      var children = Polymer.dom(this).queryDistributedElements('*');
-      for (var i = children.length - 1; i >= 0; i--) {
-        if (!Polymer.IronOverlayManager.isOverlay(children[i])) {
-          children.splice(i, 1);
-        }
-      }
-      this._overlays = children;
-      this._observer = Polymer.dom(this.$.content).observeNodes(this._onNodesChange.bind(this));
-    },
-
-    detached: function() {
-      this.style.display = '';
-      Polymer.dom(this.$.content).unobserveNodes(this._observer);
-      this._observer = null;
-      // Bring back overlays to this
-      for (var i = 0; i < this._overlays.length; i++) {
-        this._moveOverlayTo(this._overlays[i], this);
-      }
-      this._overlays = [];
-    },
-
-    _onNodesChange: function(info) {
-      var shouldMove = (Polymer.dom(this).parentNode !== document.body);
-      for (var i = 0; i < info.addedNodes.length; i++) {
-        var child = info.addedNodes[i];
-        if (Polymer.IronOverlayManager.isOverlay(child)) {
-          this._overlays.push(child);
-          shouldMove && this._moveOverlayTo(child, document.body);
-        }
-      }
-    },
-
-    _moveOverlayTo: function(overlay, destination) {
-      var $overlay = Polymer.dom(overlay);
-      if ($overlay.parentNode === destination) {
-        return;
-      }
-      var children = $overlay.queryDistributedElements('*');
-      Polymer.dom(destination).appendChild(overlay);
-      // Move children back to overlay.
-      for (var i = 0; i < children.length; i++) {
-        $overlay.appendChild(children[i]);
-      }
-    }
-
-  });
-</script>

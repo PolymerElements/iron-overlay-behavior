@@ -35,34 +35,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    (function() {
+    Polymer({
 
-      Polymer({
+      is: 'simple-menu-button',
 
-        is: 'simple-menu-button',
+      get overlay() {
+        return this.$.container.overlay;
+      },
 
-        get overlay() {
-          return this.$.container.overlay;
-        },
-
-        ready: function() {
-          this.overlay.positionTarget = this;
-          var content = this.queryAllEffectiveChildren('.dropdown-content');
-          for (var i = 0; i < content.length; i++) {
-            Polymer.dom(this.overlay).appendChild(content[i]);
-          }
-        },
-
-        attached: function() {
-          this.$.container.stampOverlay();
-        },
-
-        open: function() {
-          this.overlay.open();
+      ready: function() {
+        this.overlay.positionTarget = this;
+        var content = this.queryAllEffectiveChildren('.dropdown-content');
+        for (var i = 0; i < content.length; i++) {
+          Polymer.dom(this.overlay).appendChild(content[i]);
         }
+      },
 
-      });
+      attached: function() {
+        this.$.container.stampOverlay();
+      },
 
-    })();
+      open: function() {
+        this.overlay.open();
+      }
+
+    });
   </script>
 </dom-module>

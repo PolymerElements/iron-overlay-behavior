@@ -148,6 +148,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <p>{{item}}</p>
               </template>
               <paper-button onclick="addData()">Add Data</paper-button>
+              <paper-button onclick="resetData()">Reset Data</paper-button>
             </simple-overlay>
           </template>
         </iron-overlay-container>
@@ -162,12 +163,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
       <script>
         var t = document.querySelector('#t');
-        // auto-binding template is ready.
         t.data = ['one', 'two', 'three', 'four'];
         t.title = 'hello world';
 
         function addData(){
           t.data = t.data.concat(['data']);
+        }
+        function resetData() {
+          t.data = ['one', 'two', 'three', 'four'];
         }
       </script>
     </template>

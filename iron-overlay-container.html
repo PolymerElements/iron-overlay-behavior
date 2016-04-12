@@ -12,18 +12,92 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-manager.html">
 
 <!--
-`iron-overlay-container` stamps overlays to `document.body` in order to avoid
+`iron-overlay-container` adds an overlay to `document.body` in order to avoid
 any stacking context issue that would cause clipping or rendering behind the backdrop element.
-The rest of the content is distributed within `iron-overlay-container`.
-Mark the template containing the overlay with the attribute `overlay`.
+The overlay should be contained in a `template` with class `overlay`,
+the rest of the content is distributed within `iron-overlay-container`.
 
-Example:
+`<template class="overlay">` must contain an element that implements `iron-overlay-behavior`.
 
-    <iron-overlay-container>
-      <template overlay>
-        <overlay-impl>
+    <iron-overlay-container id="container">
+      <paper-button raised on-tap="open">Open</paper-button>
+      <template class="overlay">
+        <overlay-behavior-impl>
+          content...
+        </overlay-behavior-impl>
+      </template>
+    </iron-overlay-container>
+
+    ...
+
+    open: function() {
+      this.$.container.overlay.open();
+    }
+
+If you wanted to add a `paper-dialog` to your page, you could use:
+
+    <iron-overlay-container id="dialogContainer">
+      <paper-button raised on-tap="openDialog">Open</paper-button>
+      <template class="overlay">
+        <paper-dialog modal>
           dialog content...
-        </overlay-impl>
+        </paper-dialog>
+      </template>
+    </iron-overlay-container>
+
+    ...
+
+    get dialog() {
+      return this.$.dialogContainer.overlay;
+    },
+    openDialog: function() {
+      this.dialog.open();
+    }
+
+If you wanted to add a `iron-dropdown` to your page, you could use:
+
+    <iron-overlay-container id="dropdownContainer">
+      <paper-button raised on-tap="openDropdown">Open</paper-button>
+      <template class="overlay">
+        <iron-dropdown>
+          dropdown content...
+        </iron-dropdown>
+      </template>
+    </iron-overlay-container>
+
+    ...
+
+    get dropdown() {
+      return this.$.dropdownContainer.overlay;
+    },
+    ready: function() {
+      this.dropdown.positionTarget = this.$.dropdownContainer;
+    },
+    openDropdown: function() {
+      this.dropdown.open();
+    }
+
+### Styling
+
+The following custom properties and mixins are available for styling.
+
+Custom property | Description | Default
+---|---|---
+`--iron-overlay-container` | Mixin applied to `iron-overlay-container`. | {}
+
+Since the overlay will be added to `document.body`, do not rely on the parent hierarchy to style it,
+instead add a class to your overlay and style it relying on that class.
+
+    <style>
+      .myDialog {
+        background-color: #cec;
+      }
+    </style>
+    <iron-overlay-container>
+      <template class="overlay">
+        <paper-dialog class="myDialog" modal>
+          dialog content...
+        </paper-dialog>
       </template>
     </iron-overlay-container>
 
@@ -35,6 +109,7 @@ Example:
     <style>
       :host {
         display: inline-block;
+        @apply(--iron-overlay-container);
       }
     </style>
     <content></content>
@@ -68,7 +143,7 @@ Example:
       ready: function() {
         // Used for delaying the append into body.
         this.__instance = null;
-        var template = this.queryEffectiveChildren('template[overlay]');
+        var template = this.queryEffectiveChildren('template.overlay');
         if (!template) return;
         this.templatize(template);
         // Must stamp so overlay gets registered, and we can check if it is
@@ -100,7 +175,7 @@ Example:
       },
 
       /**
-       * Stamps the overlay to `document.body`.
+       * Adds the overlay to `document.body`.
        */
       stampOverlay: function() {
         if (!this.overlay) {

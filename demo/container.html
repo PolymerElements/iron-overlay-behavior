@@ -46,7 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <body unresolved class="centered">
 
-  <h3><code>IronOverlayContainer</code> stamps overlays into body.</h3>
+  <h3><code>IronOverlayContainer</code> stamps overlays into body</h3>
   <demo-snippet>
     <template>
       <style>
@@ -69,7 +69,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <iron-overlay-container id="c0">
           <paper-button raised onclick="c0.overlay.toggle()">Free</paper-button>
-          <template overlay>
+          <template class="overlay">
             <simple-overlay with-backdrop class="myOverlay">
               <p>My awesome overlay</p>
             </simple-overlay>
@@ -79,7 +79,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> overcomes stacking context issues.</h3>
+  <h3><code>IronOverlayContainer</code> overcomes stacking context issues</h3>
   <demo-snippet>
     <template>
       <style>
@@ -102,7 +102,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <iron-overlay-container id="c1">
           <paper-button raised onclick="c1.overlay.toggle()">Free</paper-button>
-          <template overlay>
+          <template class="overlay">
             <iron-dropdown>
               <div class="dropdown-content">
                 <div>one</div>
@@ -120,7 +120,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> redistributes content.</h3>
+  <h3><code>IronOverlayContainer</code> redistributes content</h3>
   <demo-snippet>
     <template>
       <simple-menu-button>
@@ -135,13 +135,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> and binding.</h3>
+  <h3><code>IronOverlayContainer</code> and binding</h3>
   <demo-snippet>
     <template>
       <template id="t" is="dom-bind">
         <iron-overlay-container id="c2">
           <paper-button raised onclick="c2.overlay.toggle()">overlay</paper-button>
-          <template overlay>
+          <template class="overlay">
             <simple-overlay with-backdrop>
               <h2>{{title}}</h2>
               <template is="dom-repeat" items="{{data}}">

@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="iron-overlay-manager.html">
+<link rel="import" href="iron-overlay-behavior.html">
 
 <!--
 `iron-overlay-container` adds an overlay to `document.body` in order to avoid
@@ -194,7 +194,7 @@ instead add a class to your overlay and style it relying on that class.
        */
       _getOverlay: function(elements) {
         for (var i = 0; i < elements.length; i++) {
-          if (Polymer.IronOverlayManager.isOverlay(elements[i])) {
+          if (elements[i].isOverlay) {
             return elements[i];
           }
         }

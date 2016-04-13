@@ -10,7 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../../iron-dropdown/iron-dropdown.html">
-<link rel="import" href="../iron-overlay-container.html">
+<link rel="import" href="simple-overlay-factory.html">
 
 <dom-module id="simple-menu-button">
   <template>
@@ -20,14 +20,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    <iron-overlay-container id="container" no-auto-stamp>
+    <simple-overlay-factory id="container">
       <span on-tap="open">
-        <content select=":not(.dropdown-content)"></content>
+        <content select=".dropdown-trigger"></content>
       </span>
       <template class="overlay">
         <iron-dropdown></iron-dropdown>
       </template>
-    </iron-overlay-container>
+      <content></content>
+    </simple-overlay-factory>
   </template>
 
   <script>
@@ -41,14 +42,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       ready: function() {
         this.overlay.positionTarget = this;
+        // Will cause detached/attached for each child.
         var content = this.queryAllEffectiveChildren('.dropdown-content');
         for (var i = 0; i < content.length; i++) {
           Polymer.dom(this.overlay).appendChild(content[i]);
         }
-      },
-
-      attached: function() {
-        this.$.container.stampOverlay();
       },
 
       open: function() {

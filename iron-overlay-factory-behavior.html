@@ -12,13 +12,86 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-behavior.html">
 
 <script>
+// IIFE to help scripts concatenation.
+(function() {
+'use strict';
+
+/**
+Use `Polymer.IronOverlayFactoryBehavior` to implement an element that creates and adds an overlay
+to `document.body` in order to avoid any stacking context issue that would cause clipping
+or rendering behind the backdrop element.
+
+The overlay should be contained in a `<template class="overlay">`.
+
+    <paper-button onclick="f.overlay.open()">Open</paper-button>
+    <iron-overlay-factory-impl id="f">
+     <template class="overlay">
+       <paper-dialog>
+         content...
+       </paper-dialog>
+     </template>
+    </iron-overlay-factory-impl>
+
+You can also set `_overlayTemplate` to force a specific overlay.
+Content can be passed through a `<template class="overlay-content">`.
+
+    <paper-button onclick="f.overlay.open()">Open</paper-button>
+    <my-dialog-factory id="f">
+      <template class="overlay-content">
+        dialog content...
+      </template>
+    </my-dialog-factory>
+
+    <!-- my-dialog-factory implementation -->
+    <template>
+      <template id="myTemplate">
+        <paper-dialog></paper-dialog>
+      </template>
+      <content></content>
+    </template>
+
+    ...
+
+    behaviors: [Polymer.IronOverlayFactoryBehavior],
+    properties: {
+      _overlayTemplate: {
+        type: Object,
+        readOnly: true,
+        value: function() {
+          return this.$.myTemplate;
+        }
+      }
+    }
+
+### Limitations
+
+The overlay will be created and added to `document.body`. As a consequence, overlay
+styles should be applied to the root DOM.
+
+    <!-- This style will be applied, as is on document root DOM. -->
+    <style>
+      .myDialog { background-color: orange; }
+    </style>
+
+    <!-- my-dialog-factory implementation -->
+    <template>
+      <!-- This style won't be applied, as is on my-dialog-factory root DOM -->
+      <style>
+        .myDialog { background-color: yellow; }
+      </style>
+      <template id="myTemplate">
+        <paper-dialog class="myDialog"></paper-dialog>
+      </template>
+      <content></content>
+    </template>
+
+@demo demo/factory.html
+@polymerBehavior Polymer.IronOverlayFactoryBehavior
+*/
+
+
   Polymer.IronOverlayFactoryBehaviorImpl = {
     properties: {
-      /**
-       * Which kind of overlay should be created.
-       */
-      overlayName: String,
-
       /*
        * The overlay instance.
        * @type {Node}
@@ -29,39 +102,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         notify: true
       },
 
+      overlayParent: {
+        type: Object,
+        value: document.body
+      },
+
       /*
-       * A class to be set to the overlay. Use this to style the overlay.
+       * The overlay template. Override this if you have the overlay templates
+       * in your element's shadow DOM.
+       * @type {Node}
        */
-      overlayClass: {
-        type: String,
-        observer: '_overlayClassChanged'
-      }
+      _overlayTemplate: Object
     },
 
     ready: function() {
-      var overlay = document.createElement(this.overlayName);
-      if (!overlay.isOverlay) {
-        console.error(this.overlayName + ' is not an overlay');
-      } else {
-        var content = this.queryEffectiveChildren('template.overlay-content');
-        if (content) {
-          this.templatize(content);
-          var inst = this.stamp(null);
-          Polymer.dom(overlay).appendChild(inst.root);
-        }
-        this._setOverlay(overlay);
-        this.overlayClass && this._overlayClassChanged(this.overlayClass);
+      // Used for delaying the append into body.
+      this.__instance = null;
+      this._overlayContent = [];
+      var template = this._overlayTemplate || this.queryEffectiveChildren('template.overlay');
+      if (!template) return;
+
+      // Using templatizer to stamp both content and overlay..
+      // TODO(valdrin) make this better!
+      var content = this.queryEffectiveChildren('template.overlay-content');
+      var contentInst = null;
+      if (content) {
+        this.templatize(content);
+        contentInst = this.stamp(null);
       }
+
+      this.templatize(template);
+      // Must stamp so overlay gets registered, and we can check if it is
+      // an overlay or not!
+      var inst = this.stamp(null);
+      var overlay = inst.root.firstElementChild;
+      if (!overlay || !overlay.isOverlay) {
+        this.__instance = null;
+        throw Error('<template class="overlay"> does not contain an overlay.');
+      }
+      if (contentInst) {
+        this._overlayContent = contentInst.root.querySelectorAll('*');
+        Polymer.dom(overlay).appendChild(contentInst.root);
+      }
+      this.__instance = inst;
+      this._setOverlay(overlay);
     },
 
     attached: function() {
       if (!this.overlay) {
         return;
       }
-      var parentNode = Polymer.dom(this.overlay).parentNode;
-      if (!parentNode) {
-        Polymer.dom(document.body).appendChild(this.overlay);
-      }
+      var node = this.__instance ? this.__instance.root : this.overlay;
+      Polymer.dom(this.overlayParent).appendChild(node);
+      this.__instance = null;
     },
 
     detached: function() {
@@ -74,18 +167,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     },
 
-    _overlayClassChanged: function(newVal, oldVal) {
-      if (!this.overlay) {
-        return;
+    /**
+     * Implements extension point from Templatizer.
+     * Forward values to overlay instance.
+     */
+    _forwardParentProp: function(prop, value) {
+      if (this.overlay) {
+        // Ugly try/catch because of a TypeError: Illegal invocation.
+        // Most likely caused by the double `templatize` call..
+        // TODO(valdrin) find a better way!
+        try {
+          for (var i = 0; i < this._overlayContent.length; i++) {
+            this._overlayContent[i]._templateInstance[prop] = value;
+          }
+          this.overlay._templateInstance[prop] = value;
+        } catch (e) {
+
+        }
       }
-      if (oldVal) {
-        this.overlay.classList.remove(oldVal);
-      }
-      if (newVal) {
-        this.overlay.classList.add(newVal);
-      }
-    }
+    },
   };
   /** @polymerBehavior */
   Polymer.IronOverlayFactoryBehavior = [Polymer.Templatizer, Polymer.IronOverlayFactoryBehaviorImpl];
+
+})();
 </script>

@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <head>
 
-  <title>iron-overlay-container demo</title>
+  <title>simple-overlay-factory demo</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -21,8 +21,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
   <link rel="import" href="simple-overlay.html">
+  <link rel="import" href="simple-overlay-factory.html">
   <link rel="import" href="simple-menu-button.html">
-  <link rel="import" href="../iron-overlay-container.html">
+  <link rel="import" href="simple-menu-button-factory.html">
   <link rel="import" href="../../iron-dropdown/iron-dropdown.html">
   <link rel="import" href="../../paper-button/paper-button.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
@@ -46,7 +47,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <body unresolved class="centered">
 
-  <h3><code>IronOverlayContainer</code> stamps overlays into body</h3>
+  <h3>Elements implementing <code>IronOverlayFactoryBehavior</code> stamp overlays into body</h3>
   <demo-snippet>
     <template>
       <style>
@@ -67,19 +68,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <p>My awesome overlay</p>
         </simple-overlay>
 
-        <iron-overlay-container id="c0">
+        <simple-overlay-factory id="c0">
           <paper-button raised onclick="c0.overlay.toggle()">Free</paper-button>
           <template class="overlay">
             <simple-overlay with-backdrop class="myOverlay">
               <p>My awesome overlay</p>
             </simple-overlay>
           </template>
-        </iron-overlay-container>
+        </simple-overlay-factory>
       </div>
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> overcomes stacking context issues</h3>
+  <h3><code>IronOverlayFactoryBehavior</code> overcomes stacking context issues</h3>
   <demo-snippet>
     <template>
       <style>
@@ -100,7 +101,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
         </iron-dropdown>
 
-        <iron-overlay-container id="c1">
+        <simple-overlay-factory id="c1">
           <paper-button raised onclick="c1.overlay.toggle()">Free</paper-button>
           <template class="overlay">
             <iron-dropdown>
@@ -112,7 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               </div>
             </iron-dropdown>
           </template>
-        </iron-overlay-container>
+        </simple-overlay-factory>
       </div>
       <script>
         c1.overlay.positionTarget = c1;
@@ -120,26 +121,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> redistributes content</h3>
+  <h3>Override <code>_overlayTemplate</code> to force a specific overlay</h3>
   <demo-snippet>
     <template>
-      <simple-menu-button>
-        <paper-button raised>Open</paper-button>
-        <div class="dropdown-content">
-          <div>one</div>
-          <div>two</div>
-          <div>three</div>
-          <div>four</div>
-        </div>
-      </simple-menu-button>
+      <simple-menu-button-factory>
+        <paper-button raised class="dropdown-trigger">Open</paper-button>
+        <template class="overlay-content">
+          <div class="dropdown-content">
+            <div>one</div>
+            <div>two</div>
+            <div>three</div>
+            <div>four</div>
+          </div>
+        </template>
+      </simple-menu-button-factory>
     </template>
   </demo-snippet>
 
-  <h3><code>IronOverlayContainer</code> and binding</h3>
+  <h3><code>IronOverlayFactoryBehavior</code> and binding</h3>
   <demo-snippet>
     <template>
-      <template id="t" is="dom-bind">
-        <iron-overlay-container id="c2">
+      <template is="dom-bind">
+        <simple-overlay-factory id="c2">
           <paper-button raised onclick="c2.overlay.toggle()">overlay</paper-button>
           <template class="overlay">
             <simple-overlay with-backdrop>
@@ -147,30 +150,49 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <template is="dom-repeat" items="{{data}}">
                 <p>{{item}}</p>
               </template>
-              <paper-button onclick="addData()">Add Data</paper-button>
-              <paper-button onclick="resetData()">Reset Data</paper-button>
             </simple-overlay>
           </template>
-        </iron-overlay-container>
+        </simple-overlay-factory>
+
         <simple-menu-button>
-          <paper-button raised>menu</paper-button>
+          <paper-button raised class="dropdown-trigger">simple-menu</paper-button>
           <div class="dropdown-content">
             <template is="dom-repeat" items="{{data}}">
               <div>{{item}}</div>
             </template>
           </div>
         </simple-menu-button>
+
+        <simple-menu-button-factory>
+          <paper-button raised class="dropdown-trigger">menu-factory</paper-button>
+          <template class="overlay-content">
+            <div class="dropdown-content">
+              <template is="dom-repeat" items="{{data}}">
+                <div>{{item}}</div>
+              </template>
+            </div>
+          </template>
+        </simple-menu-button-factory>
+
+        <p>-
+          <template is="dom-repeat" items="{{data}}">
+            <span>{{item}} -</span>
+          </template>
+        </p>
+        <paper-button raised onclick="addData()">Add</paper-button>
+        <paper-button raised onclick="resetData()">Reset</paper-button>
       </template>
       <script>
-        var t = document.querySelector('#t');
-        t.data = ['one', 'two', 'three', 'four'];
+        var t = document.querySelector('template[is="dom-bind"]');
         t.title = 'hello world';
+        resetData();
 
-        function addData(){
-          t.data = t.data.concat(['data']);
+        function addData() {
+          t.data = t.data.concat(['item' + t.data.length]);
         }
+
         function resetData() {
-          t.data = ['one', 'two', 'three', 'four'];
+          t.data = ['item0', 'item1', 'item2'];
         }
       </script>
     </template>

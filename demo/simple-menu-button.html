@@ -18,16 +18,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host {
         display: inline-block;
       }
-
-      #trigger {
-        display: inline-block;
-      }
     </style>
 
     <iron-overlay-container id="container" no-auto-stamp>
-      <div on-tap="open" id="trigger">
+      <span on-tap="open">
         <content select=":not(.dropdown-content)"></content>
-      </div>
+      </span>
       <template class="overlay">
         <iron-dropdown></iron-dropdown>
       </template>

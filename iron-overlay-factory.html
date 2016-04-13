@@ -49,6 +49,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Object,
           readOnly: true,
           notify: true
+        },
+
+        /*
+         * A class to be set to the overlay. Use this to style the overlay.
+         */
+        overlayClass: {
+          type: String,
+          observer: '_overlayClassChanged'
         }
       },
 
@@ -64,6 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.dom(overlay).appendChild(inst.root);
           }
           this._setOverlay(overlay);
+          this._overlayClassChanged(this.overlayClass);
           Polymer.dom(document.body).appendChild(overlay);
         }
       },
@@ -77,6 +86,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           Polymer.dom(parentNode).removeChild(this.overlay);
         }
       },
+
+      _overlayClassChanged: function(newVal, oldVal) {
+        if (!this.overlay) {
+          return;
+        }
+        if (oldVal) {
+          this.overlay.classList.remove(oldVal);
+        }
+        if (newVal) {
+          this.overlay.classList.add(newVal);
+        }
+      }
     });
   </script>
 

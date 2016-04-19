@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="iron-overlay-behavior.html">
+<link rel="import" href="iron-overlay-manager.html">
 
 <script>
 // IIFE to help scripts concatenation.
@@ -136,7 +136,7 @@ styles should be applied to the root DOM.
       // an overlay or not!
       var inst = this.stamp(null);
       var overlay = inst.root.firstElementChild;
-      if (!overlay || !overlay.isOverlay) {
+      if (!Polymer.IronOverlayManager.isOverlay(overlay)) {
         this.__instance = null;
         throw Error('<template class="overlay"> does not contain an overlay.');
       }

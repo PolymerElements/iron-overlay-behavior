@@ -31,6 +31,9 @@
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
     "iron-test-helpers": "PolymerElements/iron-test-helpers#^1.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.0",
+    "paper-menu-button": "PolymerElements/paper-menu-button#^1.0.0",
+    "paper-listbox": "PolymerElements/paper-listbox#^1.0.0",
+    "paper-item": "PolymerElements/paper-item#^1.0.0",
     "paper-styles": "PolymerElements/paper-styles#^1.0.2",
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"

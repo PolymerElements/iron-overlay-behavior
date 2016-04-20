@@ -30,7 +30,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
 
-  <link rel="import" href="../iron-overlay-factory-behavior.html">
+  <link rel="import" href="../iron-overlay-template.html">
+  <link rel="import" href="../iron-overlay-content-template.html">
+  <link rel="import" href="../iron-overlay-container-behavior.html">
 
   <style is="custom-style" include="demo-pages-shared-styles">
     .myDropdown .dropdown-content {
@@ -49,7 +51,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <p>Overlays contained in elements that create a new stacking context are trapped within it.
     <br> E.g. Click on <code>trapped</code> and notice how the overlay renders behind the backdrop and scrolls together with the rest of the content.</p>
-  <p>An element implementing <code>iron-overlay-factory-behavior</code> solves this issue while still providing a reference to the overlay at the spot where it is created.</p>
+  <p><code>iron-overlay-template</code> solves this issue while still providing a reference to the overlay at the spot where it is created.</p>
   <demo-snippet>
     <template>
       <style is="custom-style">
@@ -73,17 +75,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </paper-dialog>
         <paper-button raised onclick="dialog.open()">trapped</paper-button>
 
-        <x-overlay-factory id="c0">
-          <template class="overlay">
-            <paper-dialog class="myDialog" with-backdrop>
-              <h2>Dialog</h2>
-              <div class="buttons">
-                <paper-button dialog-dismiss>close</paper-button>
-              </div>
-            </paper-dialog>
-          </template>
-          <paper-button raised onclick="c0.overlay.open()">free</paper-button>
-        </x-overlay-factory>
+        <template is="overlay-template" id="c0">
+          <paper-dialog class="myDialog" with-backdrop>
+            <h2>Dialog</h2>
+            <div class="buttons">
+              <paper-button dialog-dismiss>close</paper-button>
+            </div>
+          </paper-dialog>
+        </template>
+        <paper-button raised onclick="c0.overlay.open()">free</paper-button>
       </div>
     </template>
   </demo-snippet>
@@ -95,9 +95,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <demo-snippet>
     <template>
-      <x-overlay-factory id="c1">
+      <div>
         <paper-button raised onclick="c1.overlay.open()">open dropdown</paper-button>
-        <template class="overlay">
+        <template is="overlay-template" id="c1">
           <iron-dropdown vertical-align="bottom" class="myDropdown">
             <paper-listbox class="dropdown-content">
               <paper-item>Share</paper-item>
@@ -106,9 +106,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </paper-listbox>
           </iron-dropdown>
         </template>
-      </x-overlay-factory>
+      </div>
       <script>
-        c1.overlay.positionTarget = c1;
+        c1.overlay.positionTarget = c1.parentNode;
       </script>
     </template>
   </demo-snippet>
@@ -117,7 +117,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <p>Elements that need an <code>iron-dropdown</code> in their shadowDOM (e.g. <code>paper-menu-button</code>) usually distribute partial content in it.</p>
   <p>Keeping the same markup would require a <code>detach &amp;  attach</code> of all the content distributed in the dropdown.</p>
-  <p>To avoid this, the overlay content can be passed through a template.</p>
+  <p>To avoid this, use <code>iron-overlay-content-template</code> to stamp overlay content; <code>x-menu-button</code> (which implements <code>iron-overlay-container-behavior</code>) will ensure the content is added to the dropdown.</p>
 
   <demo-snippet>
     <template>
@@ -132,7 +132,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <x-menu-button horizontal-align="right" dropdown-class="myDropdown2">
         <paper-button raised class="dropdown-trigger">x-menu-button</paper-button>
-        <template class="overlay-content">
+        <template is="overlay-content">
           <paper-listbox class="dropdown-content">
             <paper-item>Share</paper-item>
             <paper-item>Settings</paper-item>
@@ -160,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <x-menu-button horizontal-align="right">
           <paper-button raised class="dropdown-trigger">x-menu-button</paper-button>
-          <template class="overlay-content">
+          <template is="overlay-content">
             <paper-listbox class="dropdown-content">
               <template is="dom-repeat" items="{{data}}">
                 <paper-item>{{item}}</paper-item>
@@ -195,26 +195,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </demo-snippet>
 
 
-  <dom-module id="x-overlay-factory">
-    <style>
-      :host {
-        display: inline-block;
-      }
-    </style>
-    <template>
-      <content></content>
-    </template>
-    <script>
-      HTMLImports.whenReady(function() {
-        Polymer({
-          is: 'x-overlay-factory',
-          behaviors: [Polymer.IronOverlayFactoryBehavior]
-        });
-      });
-    </script>
-  </dom-module>
-
-
   <dom-module id="x-menu-button">
     <template>
       <style>
@@ -222,41 +202,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           display: inline-block;
         }
       </style>
-      <template id="dd">
-        <iron-dropdown horizontal-align="{{horizontalAlign}}" class$="{{dropdownClass}}">
-        </iron-dropdown>
-      </template>
       <span on-tap="open">
         <content select=".dropdown-trigger"></content>
       </span>
-      <content select=":not(.dropdown-trigger)"></content>
+      <template is="overlay-template" id="overlayTemplate">
+        <iron-dropdown horizontal-align="{{horizontalAlign}}" class$="{{dropdownClass}}"></iron-dropdown>
+      </template>
+      <content></content>
     </template>
 
     <script>
-      Polymer({
-        is: 'x-menu-button',
-        behaviors: [Polymer.IronOverlayFactoryBehavior],
-        properties: {
-          options: Array,
-          horizontalAlign: String,
-          dropdownClass: String,
-          _overlayTemplate: {
-            type: Object,
-            value: function() {
-              return this.$.dd;
-            },
-            readOnly: true
+      HTMLImports.whenReady(function() {
+        Polymer({
+          is: 'x-menu-button',
+          properties: {
+            horizontalAlign: String,
+            dropdownClass: String
+          },
+          behaviors: [Polymer.IronOverlayContainerBehavior],
+          get overlay() {
+            return this.$.overlayTemplate.overlay;
+          },
+          ready: function() {
+            this.overlay.positionTarget = this;
           }
-        },
-        ready: function() {
-          this.overlay.positionTarget = this;
-        },
-        open: function() {
-          this.overlay.open();
-        }
+        });
+
       });
     </script>
   </dom-module>
+
 
 
   <dom-module id="x-menu-button-bound">
@@ -266,7 +241,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           display: inline-block;
         }
       </style>
-      <template id="dd">
+      <span on-tap="open">
+        <content select=".dropdown-trigger"></content>
+      </span>
+      <template is="overlay-template" id="overlayTemplate">
         <iron-dropdown horizontal-align="{{horizontalAlign}}" class$="{{dropdownClass}}">
           <paper-listbox class="dropdown-content">
             <template is="dom-repeat" items="{{options}}">
@@ -275,33 +253,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-listbox>
         </iron-dropdown>
       </template>
-      <span on-tap="open">
-        <content select=".dropdown-trigger"></content>
-      </span>
     </template>
 
     <script>
-      Polymer({
-        is: 'x-menu-button-bound',
-        behaviors: [Polymer.IronOverlayFactoryBehavior],
-        properties: {
-          options: Array,
-          horizontalAlign: String,
-          dropdownClass: String,
-          _overlayTemplate: {
-            type: Object,
-            value: function() {
-              return this.$.dd;
-            },
-            readOnly: true
+      HTMLImports.whenReady(function() {
+        Polymer({
+          is: 'x-menu-button-bound',
+          behaviors: [Polymer.IronOverlayFactoryBehavior],
+          properties: {
+            options: Array,
+            horizontalAlign: String,
+            dropdownClass: String
+          },
+          behaviors: [Polymer.IronOverlayContainerBehavior],
+          get overlay() {
+            return this.$.overlayTemplate.overlay;
+          },
+          ready: function() {
+            this.overlay.positionTarget = this;
           }
-        },
-        ready: function() {
-          this.overlay.positionTarget = this;
-        },
-        open: function() {
-          this.overlay.open();
-        }
+        });
       });
     </script>
   </dom-module>

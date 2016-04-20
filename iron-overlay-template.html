@@ -1,0 +1,70 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-overlay-manager.html">
+
+<script>
+  Polymer({
+    is: 'overlay-template',
+    extends: 'template',
+    behaviors: [Polymer.Templatizer],
+    properties: {
+      overlay: {
+        type: Node,
+        readOnly: true,
+        notify: true
+      },
+      overlayParent: {
+        type: Node,
+        value: document.body
+      }
+    },
+    ready: function() {
+      this.__instance = null;
+      // Must stamp so overlay gets registered, and we can check if it is
+      // an overlay or not!
+      this.templatize(this);
+      var inst = this.stamp();
+      var overlay = inst.root.firstElementChild;
+      if (!Polymer.IronOverlayManager.isOverlay(overlay)) {
+        throw Error('does not contain an overlay.');
+      }
+      this.__instance = inst;
+      this._setOverlay(overlay);
+    },
+    attached: function() {
+      if (!this.overlay) {
+        return;
+      }
+      var node = this.__instance ? this.__instance.root : this.overlay;
+      Polymer.dom(this.overlayParent).appendChild(node);
+      this.__instance = null;
+    },
+    detached: function() {
+      if (!this.overlay) {
+        return;
+      }
+      var parentNode = Polymer.dom(this.overlay).parentNode;
+      if (parentNode) {
+        Polymer.dom(parentNode).removeChild(this.overlay);
+      }
+    },
+    /**
+     * Implements extension point from Templatizer.
+     * Forward values to overlay instance.
+     */
+    _forwardParentProp: function(prop, value) {
+      if (this.overlay) {
+        this.overlay._templateInstance[prop] = value;
+      }
+    }
+  });
+</script>

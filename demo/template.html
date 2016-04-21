@@ -141,6 +141,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-listbox>
         </template>
       </x-menu-button>
+
+      <x-select horizontal-align="right" dropdown-class="myDropdown2">
+        <paper-button raised class="dropdown-trigger">x-select</paper-button>
+        <template is="overlay-content">
+          <paper-item>Share</paper-item>
+          <paper-item>Settings</paper-item>
+          <paper-item>Help</paper-item>
+        </template>
+      </x-select>
     </template>
   </demo-snippet>
 
@@ -173,6 +182,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <x-menu-button-bound horizontal-align="right" options="{{data}}">
           <paper-button raised class="dropdown-trigger">x-menu-button-bound</paper-button>
         </x-menu-button-bound>
+
+        <x-select horizontal-align="right" dropdown-class="myDropdown2">
+          <paper-button raised class="dropdown-trigger">x-select</paper-button>
+          <template is="overlay-content">
+            <template is="dom-repeat" items="{{data}}">
+              <paper-item>{{item}}</paper-item>
+            </template>
+          </template>
+        </x-select>
 
         <p>-
           <template is="dom-repeat" items="{{data}}">
@@ -229,7 +247,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.overlay.positionTarget = this;
           }
         });
-
       });
     </script>
   </dom-module>
@@ -266,6 +283,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             options: Array,
             horizontalAlign: String,
             dropdownClass: String
+          },
+          behaviors: [Polymer.IronOverlayContainerBehavior],
+          get overlay() {
+            return this.$.overlayTemplate.overlay;
+          },
+          ready: function() {
+            this.overlay.positionTarget = this;
+          }
+        });
+      });
+    </script>
+  </dom-module>
+
+  <dom-module id="x-select">
+    <template>
+      <style>
+        :host {
+          display: inline-block;
+        }
+      </style>
+      <span on-tap="open">
+        <content select=".dropdown-trigger"></content>
+      </span>
+      <template is="overlay-template" id="overlayTemplate">
+        <iron-dropdown horizontal-align="{{horizontalAlign}}">
+          <paper-listbox class="dropdown-content" overlay-content-parent></paper-listbox>
+        </iron-dropdown>
+      </template>
+      <content></content>
+    </template>
+
+    <script>
+      HTMLImports.whenReady(function() {
+        Polymer({
+          is: 'x-select',
+          properties: {
+            horizontalAlign: String
           },
           behaviors: [Polymer.IronOverlayContainerBehavior],
           get overlay() {

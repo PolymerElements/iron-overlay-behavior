@@ -13,37 +13,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <script>
   /** @demo demo/template.html */
-  
+
   Polymer({
     is: 'overlay-content',
     extends: 'template',
     behaviors: [Polymer.Templatizer],
     properties: {
-      overlay: {
+      contentParent: {
         type: Node,
-        observer: '_overlayChanged'
+        observer: '_contentParentChanged'
       }
     },
     created: function() {
       this._physicalItems = [];
     },
     attached: function() {
-      this._overlayChanged();
+      if (this.contentParent) {
+        this._contentParentChanged(this.contentParent);
+      }
     },
 
-    _ensureInstance: function() {
-      if (!this.__instance) {
-        this.templatize(this);
-        this.__instance = this.stamp();
-        this._physicalItems = this.__instance.root.querySelectorAll(':not(template)');
-      }
-    },
-    _overlayChanged: function() {
-      if (!this.isAttached || !Polymer.IronOverlayManager.isOverlay(this.overlay)) {
+    _contentParentChanged: function() {
+      if (!this.isAttached || this.__instance) {
         return;
       }
-      this._ensureInstance();
-      Polymer.dom(this.overlay).appendChild(this.__instance.root);
+      this.templatize(this);
+      this.__instance = this.stamp();
+      this._physicalItems = this.__instance.root.querySelectorAll('*');
+      Polymer.dom(this.contentParent).appendChild(this.__instance.root);
     },
     /**
      * Implements extension point from Templatizer.
@@ -51,7 +48,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     _forwardParentProp: function(prop, value) {
       for (var i = 0; i < this._physicalItems.length; i++) {
-        this._physicalItems[i]._templateInstance[prop] = value;
+        var inst = this._physicalItems[i]._templateInstance;
+        // Might be undefined (e.g. for template elements)
+        if (inst) {
+          inst[prop] = value;
+        }
       }
     },
   });

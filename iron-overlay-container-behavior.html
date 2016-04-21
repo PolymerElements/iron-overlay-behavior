@@ -31,7 +31,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       var content = this.queryEffectiveChildren('template[is="overlay-content"]');
       if (content) {
-        content.overlay = overlay;
+        // Stamp in an insertion point or the overlay itself
+        content.contentParent = Polymer.dom(overlay).querySelector('[overlay-content-parent]') || overlay;
       }
     },
     open: function() {

@@ -77,6 +77,11 @@ Custom property | Description | Default
 
     },
 
+    get _noAnimation() {
+      var cs = getComputedStyle(this);
+      return (cs.transitionDuration === '0s' || cs.opacity == 0);
+    },
+
     listeners: {
       'transitionend': '_onTransitionend'
     },
@@ -162,7 +167,4 @@ Custom property | Description | Default
       }.bind(this));
     }
   });
-
-})();
-
 </script>

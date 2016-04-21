@@ -322,16 +322,23 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this._manager.addOrRemoveOverlay(this);
 
-      this.__isAnimating = true;
-
-      // requestAnimationFrame for non-blocking rendering
       if (this.__openChangedAsync) {
         window.cancelAnimationFrame(this.__openChangedAsync);
       }
+
+      // Defer any animation-related code on attached
+      // (_openedChanged gets called again on attached).
+      if (!this.isAttached) {
+        return;
+      }
+
+      this.__isAnimating = true;
+
       if (this.opened) {
         if (this.withBackdrop) {
           this.backdropElement.prepare();
         }
+        // requestAnimationFrame for non-blocking rendering
         this.__openChangedAsync = window.requestAnimationFrame(function() {
           this.__openChangedAsync = null;
           this._prepareRenderOpened();

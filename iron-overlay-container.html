@@ -19,7 +19,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        transform: translateX(0);
+        /* No interference with the document flow */
+        position: absolute;
       }
     </style>
     <content></content>

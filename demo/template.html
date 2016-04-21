@@ -32,7 +32,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <link rel="import" href="../iron-overlay-template.html">
   <link rel="import" href="../iron-overlay-content-template.html">
-  <link rel="import" href="../iron-overlay-container-behavior.html">
+  <link rel="import" href="../iron-overlay-host-behavior.html">
   <link rel="import" href="../iron-overlay-container.html">
 
   <style is="custom-style" include="demo-pages-shared-styles">
@@ -118,7 +118,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <p>Elements that need an <code>iron-dropdown</code> in their shadowDOM (e.g. <code>paper-menu-button</code>) usually distribute partial content in it.</p>
   <p>Keeping the same markup would require a <code>detach &amp;  attach</code> of all the content distributed in the dropdown.</p>
-  <p>To avoid this, use <code>iron-overlay-content-template</code> to stamp overlay content; <code>x-menu-button</code> (which implements <code>iron-overlay-container-behavior</code>) will ensure the content is added to the dropdown.</p>
+  <p>To avoid this, use <code>iron-overlay-content-template</code> to stamp overlay content; <code>x-menu-button</code> (which implements <code>iron-overlay-host-behavior</code>) will ensure the content is added to the dropdown.</p>
 
   <demo-snippet>
     <template>
@@ -179,10 +179,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </template>
         </x-menu-button>
 
-        <x-menu-button-bound horizontal-align="right" options="{{data}}">
-          <paper-button raised class="dropdown-trigger">x-menu-button-bound</paper-button>
-        </x-menu-button-bound>
-
         <x-select horizontal-align="right" dropdown-class="myDropdown2">
           <paper-button raised class="dropdown-trigger">x-select</paper-button>
           <template is="overlay-content">
@@ -239,52 +235,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             horizontalAlign: String,
             dropdownClass: String
           },
-          behaviors: [Polymer.IronOverlayContainerBehavior],
-          get overlay() {
-            return this.$.overlayTemplate.overlay;
-          },
-          ready: function() {
-            this.overlay.positionTarget = this;
-          }
-        });
-      });
-    </script>
-  </dom-module>
-
-
-
-  <dom-module id="x-menu-button-bound">
-    <template>
-      <style>
-        :host {
-          display: inline-block;
-        }
-      </style>
-      <span on-tap="open">
-        <content select=".dropdown-trigger"></content>
-      </span>
-      <template is="overlay-template" id="overlayTemplate">
-        <iron-dropdown horizontal-align="{{horizontalAlign}}" class$="{{dropdownClass}}">
-          <paper-listbox class="dropdown-content">
-            <template is="dom-repeat" items="{{options}}">
-              <paper-item>{{item}}</paper-item>
-            </template>
-          </paper-listbox>
-        </iron-dropdown>
-      </template>
-    </template>
-
-    <script>
-      HTMLImports.whenReady(function() {
-        Polymer({
-          is: 'x-menu-button-bound',
-          behaviors: [Polymer.IronOverlayFactoryBehavior],
-          properties: {
-            options: Array,
-            horizontalAlign: String,
-            dropdownClass: String
-          },
-          behaviors: [Polymer.IronOverlayContainerBehavior],
+          behaviors: [Polymer.IronOverlayHostBehavior],
           get overlay() {
             return this.$.overlayTemplate.overlay;
           },
@@ -321,7 +272,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           properties: {
             horizontalAlign: String
           },
-          behaviors: [Polymer.IronOverlayContainerBehavior],
+          behaviors: [Polymer.IronOverlayHostBehavior],
           get overlay() {
             return this.$.overlayTemplate.overlay;
           },

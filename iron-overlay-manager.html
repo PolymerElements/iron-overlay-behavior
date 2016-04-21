@@ -225,6 +225,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     trackBackdrop: function() {
       this.backdropElement.style.zIndex = this.backdropZ();
+      this.backdropElement.setOpened(!!this._overlayWithBackdrop());
     },
 
     /**

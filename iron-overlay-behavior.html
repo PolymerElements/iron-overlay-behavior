@@ -255,10 +255,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
       this.opened = false;
-      if (this.withBackdrop) {
-        // Allow user interactions right away.
-        this.backdropElement.close();
-      }
     },
 
     /**
@@ -335,9 +331,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.__isAnimating = true;
 
       if (this.opened) {
-        if (this.withBackdrop) {
-          this.backdropElement.prepare();
-        }
         // requestAnimationFrame for non-blocking rendering
         this.__openChangedAsync = window.requestAnimationFrame(function() {
           this.__openChangedAsync = null;
@@ -365,15 +358,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
       if (this.opened) {
         this._manager.trackBackdrop();
-        if (this.withBackdrop) {
-          this.backdropElement.prepare();
-          // Give time to be added to document.
-          this.async(function(){
-            this.backdropElement.open();
-          }, 1);
-        } else {
-          this.backdropElement.close();
-        }
       }
     },
 
@@ -401,9 +385,6 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _renderOpened: function() {
-      if (this.withBackdrop) {
-        this.backdropElement.open();
-      }
       this._finishRenderOpened();
     },
 
@@ -412,9 +393,6 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _renderClosed: function() {
-      if (this.withBackdrop) {
-        this.backdropElement.close();
-      }
       this._finishRenderClosed();
     },
 

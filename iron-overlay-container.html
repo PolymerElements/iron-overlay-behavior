@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-overlay-backdrop.html">
 
 <!--
 `iron-overlay-container` contains overlays.
@@ -24,18 +25,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     <content></content>
+    <iron-overlay-backdrop id="backdrop" no-detach-on-close></iron-overlay-backdrop>
   </template>
 
   <script>
     Polymer({
       is: 'iron-overlay-container',
 
-      created: function() {
-        document.body.addEventListener('iron-overlay-template-attach', this._onOverlayAttach.bind(this));
+      properties: {
+        /**
+         * Which overlay types should be hosted by this container
+         */
+        type: {
+          type: String
+        }
+      },
+      ready: function() {
+        var host = Polymer.dom(this).getOwnerRoot() || document;
+        host.addEventListener('iron-overlay-template-attach', this._onOverlayAttach.bind(this));
       },
 
       _onOverlayAttach: function(event) {
+        if (event.defaultPrevented) {
+          return;
+        }
+        var overlay = Polymer.dom(event).rootTarget.overlay;
+        if (this.type && this.type !== overlay.tagName.toLowerCase()) {
+          return;
+        }
+        overlay.backdropElement = this.$.backdrop;
         Polymer.dom(this).appendChild(event.detail);
+        event.preventDefault();
+        event.stopPropagation();
       }
     });
   </script>

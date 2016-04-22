@@ -133,7 +133,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       var i = this._overlays.indexOf(overlay);
       if (i >= 0) {
         this._bringOverlayAtIndexToFront(i);
-        this.trackBackdrop();
+        this.trackBackdrop(overlay);
         return;
       }
       var insertionIndex = this._overlays.length;
@@ -160,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Get focused node.
       var element = this.deepActiveElement;
       overlay.restoreFocusNode = this._overlayParent(element) ? null : element;
-      this.trackBackdrop();
+      this.trackBackdrop(overlay);
     },
 
     /**
@@ -179,7 +179,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (node && Polymer.dom(document.body).deepContains(node)) {
         node.focus();
       }
-      this.trackBackdrop();
+      this.trackBackdrop(overlay);
     },
 
     /**
@@ -225,15 +225,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     /**
      * Updates the backdrop z-index.
+     * @param {!Element} overlay
      */
-    trackBackdrop: function() {
-      var overlay = this._overlayWithBackdrop();
-      // Avoid creating the backdrop if there is no overlay with backdrop.
-      if (!overlay && !this._backdropElement) {
-        return;
+    trackBackdrop: function(overlay) {
+      // First, set these to false; the next forEach will set them to true if needed.
+      overlay.backdropElement.opened = false;
+      this.backdropElement.opened = false;
+      var backdrop, overlay;
+      for (var i = 0; i < this._overlays.length; i++) {
+        overlay = this._overlays[i];
+        if (overlay.withBackdrop && (!backdrop || backdrop !== overlay.backdropElement)) {
+          backdrop = overlay.backdropElement;
+          backdrop.style.zIndex = this._getZ(overlay) - 1;
+          backdrop.opened = true;
+        }
       }
-      this.backdropElement.style.zIndex = this._getZ(overlay) - 1;
-      this.backdropElement.opened = !!overlay;
     },
 
     /**

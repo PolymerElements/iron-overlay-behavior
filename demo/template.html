@@ -22,6 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
   <link rel="import" href="../../iron-dropdown/iron-dropdown.html">
+  <link rel="import" href="../../iron-list/iron-list.html">
   <link rel="import" href="../../paper-button/paper-button.html">
   <link rel="import" href="../../paper-dialog/paper-dialog.html">
   <link rel="import" href="../../paper-menu-button/paper-menu-button.html">
@@ -187,13 +188,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </template>
         </x-select>
 
-        <p>-
-          <template is="dom-repeat" items="{{data}}">
-            <span>{{item}} -</span>
+        <p>Action on item {{selectedIndex}}</p>
+        <iron-list items="{{data}}">
+          <template>
+            <paper-item>
+              <paper-button raised onclick="this.nextElementSibling.overlay.open()">dialog {{index}}</paper-button>
+              <template is="overlay-template">
+                <paper-dialog with-backdrop>
+                  <h2>dialog {{index}}</h2>
+                  <div class="buttons">
+                    <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                  </div>
+                </paper-dialog>
+              </template>
+
+              <paper-menu-button>
+                <paper-button raised class="dropdown-trigger">paper-menu-button {{index}}</paper-button>
+                <paper-listbox class="dropdown-content">
+                  <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                </paper-listbox>
+              </paper-menu-button>
+
+              <x-select>
+                <paper-button raised class="dropdown-trigger">x-select {{index}}</paper-button>
+                <template is="overlay-content">
+                  <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                </template>
+              </x-select>
+            </paper-item>
           </template>
+        </iron-list>
+        <p>
+          <paper-button raised on-tap="addData">Add</paper-button>
+          <paper-button raised on-tap="resetData">Reset</paper-button>
         </p>
-        <paper-button raised on-tap="addData">Add</paper-button>
-        <paper-button raised on-tap="resetData">Reset</paper-button>
       </template>
       <script>
         var t = document.querySelector('template[is="dom-bind"]');
@@ -203,6 +231,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         t.resetData = function() {
           t.data = ['item0', 'item1', 'item2'];
         };
+        t.onAction = function(e) {
+          t.selectedIndex = e.model.index;
+        }
         t.resetData();
       </script>
     </template>
@@ -216,6 +247,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <style>
         :host {
           display: inline-block;
+          padding: 8px;
         }
       </style>
       <span on-tap="open">
@@ -252,6 +284,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <style>
         :host {
           display: inline-block;
+          padding: 8px;
         }
       </style>
       <span on-tap="open">

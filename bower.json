@@ -29,6 +29,7 @@
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
     "iron-dropdown": "PolymerElements/iron-dropdown#^1.0.0",
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
+    "iron-list": "PolymerElements/iron-list#^1.0.0",
     "iron-test-helpers": "PolymerElements/iron-test-helpers#^1.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.0",
     "paper-menu-button": "PolymerElements/paper-menu-button#^1.0.0",

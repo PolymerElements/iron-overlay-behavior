@@ -162,8 +162,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <paper-menu-button horizontal-align="right">
           <paper-button raised class="dropdown-trigger">paper-menu-button</paper-button>
           <paper-listbox class="dropdown-content">
-            <template is="dom-repeat" items="{{data}}">
-              <paper-item>{{item}}</paper-item>
+            <template is="dom-repeat" items="{{data}}" as="item">
+              <paper-item>{{item.name}}</paper-item>
             </template>
           </paper-listbox>
         </paper-menu-button>
@@ -172,8 +172,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-button raised class="dropdown-trigger">x-menu-button</paper-button>
           <template is="overlay-content">
             <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="{{data}}">
-                <paper-item>{{item}}</paper-item>
+              <template is="dom-repeat" items="{{data}}" as="item">
+                <paper-item>{{item.name}}</paper-item>
               </template>
             </paper-listbox>
           </template>
@@ -182,22 +182,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <x-select horizontal-align="right" dropdown-class="myDropdown2">
           <paper-button raised class="dropdown-trigger">x-select</paper-button>
           <template is="overlay-content">
-            <template is="dom-repeat" items="{{data}}">
-              <paper-item>{{item}}</paper-item>
+            <template is="dom-repeat" items="{{data}}" as="item">
+              <paper-item>{{item.name}}</paper-item>
             </template>
           </template>
         </x-select>
 
-        <p>Action on item {{selectedIndex}}</p>
-        <iron-list items="{{data}}">
+        <p>
+          <pre><code>index: {{selectedIndex}}<br> json: {{selectedItem}}</code></pre>
+        </p>
+        <iron-list items="{{data}}" as="item" as="item">
           <template>
             <paper-item>
               <paper-button raised onclick="this.nextElementSibling.overlay.open()">dialog {{index}}</paper-button>
               <template is="overlay-template">
                 <paper-dialog with-backdrop>
                   <h2>dialog {{index}}</h2>
+                  <p>Name: {{item.name}}</p>
                   <div class="buttons">
-                    <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                    <paper-button on-tap="onAction" dialog-dismiss>show</paper-button>
                   </div>
                 </paper-dialog>
               </template>
@@ -205,14 +208,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <paper-menu-button>
                 <paper-button raised class="dropdown-trigger">paper-menu-button {{index}}</paper-button>
                 <paper-listbox class="dropdown-content">
-                  <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                  <paper-button on-tap="onAction" dialog-dismiss>show</paper-button>
                 </paper-listbox>
               </paper-menu-button>
 
               <x-select>
                 <paper-button raised class="dropdown-trigger">x-select {{index}}</paper-button>
                 <template is="overlay-content">
-                  <paper-button on-tap="onAction" dialog-dismiss>action {{index}}</paper-button>
+                  <paper-button on-tap="onAction" dialog-dismiss data-index="{{index}}" data-item="{{item}}">show</paper-button>
                 </template>
               </x-select>
             </paper-item>
@@ -226,14 +229,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <script>
         var t = document.querySelector('template[is="dom-bind"]');
         t.addData = function() {
-          t.data = t.data.concat(['item' + t.data.length]);
+          t.data = t.data.concat([{
+            name: 'item ' + t.data.length
+          }]);
         };
         t.resetData = function() {
-          t.data = ['item0', 'item1', 'item2'];
+          t.data = [];
+          t.addData();
+          t.addData();
+          t.addData();
         };
         t.onAction = function(e) {
           t.selectedIndex = e.model.index;
-        }
+          t.selectedItem = JSON.stringify(e.model.item);
+        };
         t.resetData();
       </script>
     </template>

@@ -54,7 +54,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return;
         }
         overlay.backdropElement = this.$.backdrop;
-        Polymer.dom(this.root).appendChild(event.detail);
+        Polymer.dom(this.root).insertBefore(event.detail, this.$.backdrop);
         event.preventDefault();
         event.stopPropagation();
       }

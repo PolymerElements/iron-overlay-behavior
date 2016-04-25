@@ -30,11 +30,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // an overlay or not!
       this.templatize(this);
       var inst = this.stamp();
-      var children = inst.root.querySelectorAll('*');
-      var overlay = this._getOverlay(children);
+      var overlay = this._getOverlay(inst);
       if (!overlay) {
         throw Error('does not contain an overlay.');
       }
+      this._handleStyles(inst);
       this.__instance = inst;
       this._setOverlay(overlay);
     },
@@ -65,11 +65,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     },
 
-    _getOverlay: function(children) {
+    _getOverlay: function(instance) {
+      var children = instance.root.children;
       for (var i = 0; i < children.length; i++) {
         if (Polymer.IronOverlayManager.isOverlay(children[i])) {
           return children[i];
         }
+      }
+    },
+
+
+    /* TEMP, Polymer removes styles when included into nested templates */
+    _handleStyles: function(instance) {
+      var scripts = instance.root.querySelectorAll('script[type="css"]');
+      for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i];
+        var css = script.textContent;
+        var style = document.createElement('style');
+        if (script.getAttribute('is') === 'custom-style') {
+          style.setAttribute('is', 'custom-style');
+        }
+        if (style.styleSheet){
+          style.styleSheet.cssText = css;
+        } else {
+          style.appendChild(document.createTextNode(css));
+        }
+        instance.root.insertBefore(style, script);
+        instance.root.removeChild(script);
       }
     }
   });

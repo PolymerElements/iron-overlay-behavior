@@ -766,6 +766,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             done();
           });
         });
+
+        test('withBackdrop = true prevents click outside event', function(done) {
+          runAfterOpen(overlay, function() {
+            overlay.addEventListener('iron-overlay-canceled', function(event) {
+              assert.isTrue(event.detail.defaultPrevented, 'click event prevented');
+              done();
+            });
+            MockInteractions.tap(document.body);
+          });
+        });
+
+        test('withBackdrop = false does not prevent click outside event', function(done) {
+          overlay.withBackdrop = false;
+          runAfterOpen(overlay, function() {
+            overlay.addEventListener('iron-overlay-canceled', function(event) {
+              assert.isFalse(event.detail.defaultPrevented, 'click event not prevented');
+              done();
+            });
+            MockInteractions.tap(document.body);
+          });
+        });
       });
 
       suite('multiple overlays', function() {

@@ -230,7 +230,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return;
       }
       this.backdropElement.style.zIndex = this._getZ(overlay) - 1;
-      this.backdropElement.setOpened(!!overlay);
+      this.backdropElement.opened = !!overlay;
     },
 
     /**

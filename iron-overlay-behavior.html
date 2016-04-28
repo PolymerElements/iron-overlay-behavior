@@ -88,6 +88,22 @@ context. You should place this element as a child of `<body>` whenever possible.
       },
 
       /**
+       * Set to true for this overlay to remain a child of its original
+       * parent element.
+       *
+       * By default, this overlay element appends both its overlay
+       * and its backdrop as an immediate child of the `body` element.
+       *
+       * If you want to keep the overlay as a child of its original
+       * parent element, set `keepWithParent` to "true".
+       */
+      keepWithParent: {
+        type: Boolean,
+        default: false,
+        notify: true
+      },
+
+      /**
        * Set to true to disable auto-focusing the overlay or child nodes with
        * the `autofocus` attribute` when the overlay is opened.
        */
@@ -246,6 +262,10 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     attached: function() {
+      // Append overlay to body element
+      if (this.keepWithParent !== true) {
+        document.querySelector('body').appendChild(this);
+      }
       // Call _openedChanged here so that position can be computed correctly.
       if (this.opened) {
         this._openedChanged();

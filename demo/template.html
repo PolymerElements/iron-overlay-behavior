@@ -18,6 +18,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
 
+  <script>
+    Polymer = {
+      dom: 'shadow',
+      useNativeCSSProperties: true,
+      lazyRegister: true
+    };
+  </script>
+
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
 
@@ -46,22 +54,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <p>Overlays contained in elements that create a new stacking context are trapped within it.
     <br> E.g. Click on <code>trapped</code> and notice how the overlay renders behind the backdrop and scrolls together with the rest of the content.</p>
   <p><code>iron-overlay-template</code> solves this issue while still providing a reference to the overlay at the spot where it is created.</p>
+  <p>Styles can be added inside the template.</p>
   <demo-snippet>
     <template>
-      <style is="custom-style">
+      <style>
         .stacking-context {
           transform: translateZ(0);
           border: 1px solid gray;
           padding: 10px;
         }
 
-        .myDialog {
-          background-color: #cec;
-          --paper-dialog-button-color: red;
+        paper-dialog {
+          background-color: orange;
+          --paper-dialog-button-color: gray;
         }
       </style>
       <div class="stacking-context">
-        <paper-dialog id="dialog" class="myDialog" with-backdrop>
+        <paper-dialog id="dialog" with-backdrop>
           <h2>Dialog</h2>
           <div class="buttons">
             <paper-button dialog-dismiss>close</paper-button>
@@ -70,7 +79,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <paper-button raised onclick="dialog.open()">trapped</paper-button>
 
         <template is="overlay-template" id="c0">
-          <paper-dialog class="myDialog" with-backdrop>
+          <style>
+            paper-dialog {
+              background-color: #cec;
+              --paper-dialog-button-color: red;
+            }
+          </style>
+          <paper-dialog with-backdrop>
             <h2>Dialog</h2>
             <div class="buttons">
               <paper-button dialog-dismiss>close</paper-button>
@@ -81,6 +96,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
     </template>
   </demo-snippet>
+
 
   <h3>iron-dropdown</h3>
 
@@ -241,6 +257,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </demo-snippet>
 
+
   <iron-overlay-container type="paper-dialog"></iron-overlay-container>
   <iron-overlay-container></iron-overlay-container>
 
@@ -295,7 +312,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <content select=".dropdown-trigger"></content>
       </span>
       <template is="overlay-template" id="overlayTemplate">
-        <iron-dropdown horizontal-align="{{horizontalAlign}}" on-iron-select="_onIronSelect">
+        <script type="css">
+          .x-select-dropdown .dropdown-content {
+            border-radius: 10px;
+            border: 1px solid lightgray;
+          }
+        </script>
+        <iron-dropdown class="x-select-dropdown" horizontal-align="{{horizontalAlign}}" on-iron-select="_onIronSelect">
           <paper-listbox class="dropdown-content" overlay-content-parent></paper-listbox>
         </iron-dropdown>
       </template>

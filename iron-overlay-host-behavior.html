@@ -9,38 +9,68 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="iron-overlay-manager.html">
 <link rel="import" href="iron-overlay-content-template.html">
 
 <script>
   /**
+   * `IronOverlayHostBehavior` should be used by elements that host an `overlay-template` in their
+   * shadow DOM, and need to distribute content in them.
+   *
+   * `IronOverlayHostBehavior` ensures that the content of `overlay-content`
+   * is stamped into the overlay. You can define an insertion point where to insert the content through
+   * the `overlay-content-parent` attribute:
+   *
+   *      <template is="overlay-template">
+   *        <iron-dropdown>
+   *          <div class="dropdown-content" overlay-content-parent></div>
+   *        </iron-dropdown>
+   *      </template>
+   *      <content></content>
+   *
+   *      ...
+   *
+   *      behaviors: [Polymer.IronOverlayHostBehavior]
+   *
    * @demo demo/template.html
    * @polymerBehavior Polymer.IronOverlayHostBehavior
    */
   Polymer.IronOverlayHostBehavior = {
 
     /**
-     * Returns the overlay instance. Override it to return the overlay.
+     * The overlay instance.
+     * @type {Node}
      */
-    get overlay() {},
+    get overlay() {
+      var template = Polymer.dom(this.root).querySelector('template[is="overlay-template"]');
+      return template.overlay;
+    },
 
     ready: function() {
       var overlay = this.overlay;
-      if (!Polymer.IronOverlayManager.isOverlay(overlay)) {
-        throw Error('overlay not found!');
-      }
       var content = this.queryEffectiveChildren('template[is="overlay-content"]');
       if (content) {
-        // Stamp in an insertion point or the overlay itself
+        // Stamp in an insertion point or the overlay itself.
         content.contentParent = Polymer.dom(overlay).querySelector('[overlay-content-parent]') || overlay;
       }
     },
+
+    /**
+     * Opens the overlay.
+     */
     open: function() {
       this.overlay.open();
     },
+
+    /**
+     * Closes the overlay.
+     */
     close: function() {
       this.overlay.close();
     },
+
+    /**
+     * Toggles the overlay.
+     */
     toggle: function() {
       this.overlay.toggle();
     }

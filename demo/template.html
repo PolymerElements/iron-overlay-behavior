@@ -272,7 +272,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <span on-tap="open">
         <content select=".dropdown-trigger"></content>
       </span>
-      <template is="overlay-template" id="overlayTemplate">
+      <template is="overlay-template">
         <iron-dropdown horizontal-align="{{horizontalAlign}}" on-iron-select="_onIronSelect"></iron-dropdown>
       </template>
       <content></content>
@@ -286,9 +286,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             horizontalAlign: String
           },
           behaviors: [Polymer.IronOverlayHostBehavior],
-          get overlay() {
-            return this.$.overlayTemplate.overlay;
-          },
           ready: function() {
             this.overlay.positionTarget = this;
           },
@@ -311,7 +308,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <span on-tap="open">
         <content select=".dropdown-trigger"></content>
       </span>
-      <template is="overlay-template" id="overlayTemplate">
+      <template is="overlay-template">
         <script type="css">
           .x-select-dropdown .dropdown-content {
             border-radius: 10px;
@@ -333,9 +330,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             horizontalAlign: String
           },
           behaviors: [Polymer.IronOverlayHostBehavior],
-          get overlay() {
-            return this.$.overlayTemplate.overlay;
-          },
           ready: function() {
             this.overlay.positionTarget = this;
           },

@@ -12,7 +12,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-backdrop.html">
 
 <!--
-`iron-overlay-container` contains overlays.
+`iron-overlay-container` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
+ caused by [the stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context).
+
+`iron-overlay-container` listens to `iron-overlay-template-attach` and appends the overlay into its `root`
+(ensuring style encapsulation).
+It should be defined in the main stacking context (e.g. `document.body`):
+
+    <body>
+      <div class="with-stacking-context">
+         <template is="overlay-template">
+            <paper-dialog>My dialog</paper-dialog>
+         </template>
+      </div>
+      <iron-overlay-container></iron-overlay-container>
+    </body>
+
+You can limit the type of overlay to be hosted:
+
+    <iron-overlay-container type="paper-dialog"></iron-overlay-container>
+    <iron-overlay-container type="simple-overlay"></iron-overlay-container>
+
+### Styling
+
+The following custom properties and mixins are available for styling.
+
+Custom property | Description | Default
+--|--|--
+`--iron-overlay-container`|Mixin applied to `iron-overlay-container`.|{}
+
+
+@demo demo/template.html
 -->
 
 <dom-module id="iron-overlay-container">
@@ -22,10 +52,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host {
         /* No interference with the document flow */
         position: absolute;
+        @apply(--iron-overlay-container);
       }
     </style>
     <content></content>
-    <iron-overlay-backdrop id="backdrop" no-detach-on-close></iron-overlay-backdrop>
+    <iron-overlay-backdrop id="backdrop"></iron-overlay-backdrop>
   </template>
 
   <script>
@@ -34,7 +65,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       properties: {
         /**
-         * Which overlay types should be hosted by this container
+         * Which overlay types should be hosted in this container
          */
         type: {
           type: String
@@ -42,10 +73,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
       ready: function() {
         var host = Polymer.dom(this).getOwnerRoot() || document;
-        host.addEventListener('iron-overlay-template-attach', this._onOverlayAttach.bind(this));
+        host.addEventListener('iron-overlay-template-attach', this._onAttachOverlay.bind(this));
       },
 
-      _onOverlayAttach: function(event) {
+      /**
+       * Appends the overlay into its root.
+       * @param {!Event} event
+       * @private
+       */
+      _onAttachOverlay: function(event) {
         if (event.defaultPrevented) {
           return;
         }

@@ -12,21 +12,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-manager.html">
 
 <script>
-  /** @demo demo/template.html */
+  /**
+   * `overlay-content` template allows to distribute its content in a `contentParent`.
+   * Its main use case is to distribute its contents in an `overlay-template`
+   * hosted within the shadow dom of an element. See `Polymer.IronOverlayHostBehavior` for
+   * more details.
+   *
+   * @demo demo/template.html
+   */
 
   Polymer({
     is: 'overlay-content',
     extends: 'template',
     behaviors: [Polymer.Templatizer],
     properties: {
+      /**
+       * The parent where to stamp the contents.
+       */
       contentParent: {
         type: Node,
         observer: '_contentParentChanged'
       }
     },
+
     created: function() {
       this._physicalItems = [];
     },
+
     attached: function() {
       if (this.contentParent) {
         this._contentParentChanged(this.contentParent);
@@ -34,6 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     _contentParentChanged: function() {
+      // We append the contents only once.
       if (!this.isAttached || this.__instance) {
         return;
       }
@@ -42,6 +55,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this._physicalItems = this.__instance.root.querySelectorAll('*');
       Polymer.dom(this.contentParent).appendChild(this.__instance.root);
     },
+
     /**
      * Implements extension point from Templatizer.
      * Forward values to overlay instance.

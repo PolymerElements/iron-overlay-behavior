@@ -330,16 +330,16 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.__isAnimating = true;
 
-      if (this.opened) {
-        // requestAnimationFrame for non-blocking rendering
-        this.__openChangedAsync = window.requestAnimationFrame(function() {
-          this.__openChangedAsync = null;
+      // requestAnimationFrame for non-blocking rendering
+      this.__openChangedAsync = window.requestAnimationFrame(function() {
+        this.__openChangedAsync = null;
+        if (this.opened) {
           this._prepareRenderOpened();
           this._renderOpened();
-        }.bind(this));
-      } else {
-        this._renderClosed();
-      }
+        } else {
+          this._renderClosed();
+        }
+      }.bind(this));
     },
 
     _canceledChanged: function() {

@@ -40,13 +40,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     this._backdropElement = null;
 
     // Listen to mousedown and touchstart to be sure to be the first to capture
-    // clicks outside the overlay.
-    if ('ontouchstart' in window) {
-      document.addEventListener('touchstart', this._onCaptureClick.bind(this), true);
-    }
-    if ('onmousedown' in window) {
-      document.addEventListener('mousedown', this._onCaptureClick.bind(this), true);
-    }
+    // clicks/taps outside the overlay. Listen to both as we might have devices
+    // supporting both touch and mouse interactions.
+    document.addEventListener('touchstart', this._onCaptureClick.bind(this), true);
+    document.addEventListener('mousedown', this._onCaptureClick.bind(this), true);
     document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
     document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
   };

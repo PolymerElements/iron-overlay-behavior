@@ -300,6 +300,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }, 10);
         });
 
+        test('open overlay on touchstart does not close it', function(done) {
+          var btn = document.createElement('button');
+          btn.addEventListener('touchstart', overlay.open.bind(overlay));
+          document.body.appendChild(btn);
+          // It triggers touchstart, touchend, tap.
+          MockInteractions.tap(btn, {emulateTouch: true});
+          document.body.removeChild(btn);
+
+          assert.isTrue(overlay.opened, 'overlay opened');
+          overlay.async(function() {
+            assert.isTrue(overlay.opened, 'overlay is still open');
+            done();
+          }, 10);
+        });
+
         test('clicking outside fires iron-overlay-canceled', function(done) {
           runAfterOpen(overlay, function() {
             overlay.addEventListener('iron-overlay-canceled', function(event) {

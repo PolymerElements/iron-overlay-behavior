@@ -89,6 +89,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
           <div tabindex="2" class="focusable2">2</div>
         </test-overlay>
+        <test-overlay2>
+          Overlay with optimized focusableNodes getter
+          <button class="focusable1">1</button>
+        </test-overlay2>
       </template>
     </test-fixture>
 
@@ -550,12 +554,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('focusable nodes', function() {
-        var overlay, overlayWithTabIndex;
+        var overlay, overlayWithTabIndex, overlayFocusableNodes;
 
         setup(function() {
           var f = fixture('focusables');
           overlay = f[0];
           overlayWithTabIndex = f[1];
+          overlayFocusableNodes = f[2];
         });
 
         test('_focusableNodes returns nodes that are focusable', function() {
@@ -582,6 +587,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(focusableNodes[3], Polymer.dom(overlayWithTabIndex).querySelector('.focusable4'));
           assert.equal(focusableNodes[4], Polymer.dom(overlayWithTabIndex).querySelector('.focusable5'));
           assert.equal(focusableNodes[5], Polymer.dom(overlayWithTabIndex).querySelector('.focusable6'));
+        });
+
+        test('_focusableNodes can be overridden', function() {
+          // It has 1 focusable in the light dom, and 2 in the shadow dom.
+          var focusableNodes = overlayFocusableNodes._focusableNodes;
+          assert.equal(focusableNodes.length, 2, 'length ok');
+          assert.equal(focusableNodes[0], overlayFocusableNodes.$.first, 'first ok');
+          assert.equal(focusableNodes[1], overlayFocusableNodes.$.last, 'last ok');
         });
 
         test('with-backdrop: TAB & Shift+TAB wrap focus', function(done) {
@@ -643,6 +656,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               // Simulate Shift+TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
+              done();
+            }, 1);
+          });
+        });
+
+        test('with-backdrop: Shift+TAB wrap focus in shadowDOM', function(done) {
+          overlayFocusableNodes.withBackdrop = true;
+          runAfterOpen(overlayFocusableNodes, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
+            Polymer.Base.async(function() {
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate Shift+TAB.
+              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              assert.equal(overlayFocusableNodes.$.last, Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to last focusable in the shadowDOM');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
               // Cleanup.

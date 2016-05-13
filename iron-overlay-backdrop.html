@@ -22,7 +22,7 @@ Custom property | Description | Default
 -------------------------------------------|------------------------|---------
 `--iron-overlay-backdrop-background-color` | Backdrop background color                                     | #000
 `--iron-overlay-backdrop-opacity`          | Backdrop opacity                                              | 0.6
-`--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                      | {}
+`--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                     | {}
 `--iron-overlay-backdrop-opened`           | Mixin applied to `iron-overlay-backdrop` when it is displayed | {}
 -->
 
@@ -31,19 +31,29 @@ Custom property | Description | Default
   <template>
     <style>
       :host {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        outline: 9999px solid var(--iron-overlay-backdrop-background-color, #000);
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: -1;
+        @apply(--iron-overlay-backdrop);
+      }
+
+      :host::before {
+        content: '';
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--iron-overlay-backdrop-background-color, #000);
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-        @apply(--iron-overlay-backdrop);
       }
 
-      :host(.opened) {
+      :host([opened]) {
         opacity: var(--iron-overlay-backdrop-opacity, 0.6);
         pointer-events: auto;
         @apply(--iron-overlay-backdrop-opened);
@@ -77,10 +87,6 @@ Custom property | Description | Default
 
     },
 
-    listeners: {
-      'transitionend': '_onTransitionend'
-    },
-
     created: function() {
       // Used to cancel previous requestAnimationFrame calls when opened changes.
       this.__openedRaf = null;
@@ -91,11 +97,14 @@ Custom property | Description | Default
     },
 
     /**
-     * Appends the backdrop to document body if needed.
+     * Appends the backdrop to the parent if the backdrop is opened.
+     * @param {!Element} parent
      */
-    prepare: function() {
-      if (this.opened && !this.parentNode) {
-        Polymer.dom(document.body).appendChild(this);
+    prepare: function(parent) {
+      var curParent = Polymer.dom(this).parentNode;
+      if (this.opened && curParent !== parent.root) {
+        Polymer.dom(parent.root).appendChild(this);
+        this.updateStyles();
       }
     },
 
@@ -114,17 +123,12 @@ Custom property | Description | Default
     },
 
     /**
-     * Removes the backdrop from document body if needed.
+     * Removes the backdrop from the parent if backdrop is closed.
      */
     complete: function() {
-      if (!this.opened && this.parentNode === document.body) {
-        Polymer.dom(this.parentNode).removeChild(this);
-      }
-    },
-
-    _onTransitionend: function(event) {
-      if (event && event.target === this) {
-        this.complete();
+      var parent = Polymer.dom(this).parentNode;
+      if (!this.opened && parent) {
+        Polymer.dom(parent).removeChild(this);
       }
     },
 
@@ -133,27 +137,16 @@ Custom property | Description | Default
      * @private
      */
     _openedChanged: function(opened) {
-      if (opened) {
-        // Auto-attach.
-        this.prepare();
-      } else {
-        // Animation might be disabled via the mixin or opacity custom property.
-        // If it is disabled in other ways, it's up to the user to call complete.
-        var cs = window.getComputedStyle(this);
-        if (cs.transitionDuration === '0s' || cs.opacity == 0) {
-          this.complete();
-        }
+      // Always cancel previous requestAnimationFrame.
+      if (this.__openedRaf) {
+        window.cancelAnimationFrame(this.__openedRaf);
+        this.__openedRaf = null;
       }
 
       if (!this.isAttached) {
         return;
       }
 
-      // Always cancel previous requestAnimationFrame.
-      if (this.__openedRaf) {
-        window.cancelAnimationFrame(this.__openedRaf);
-        this.__openedRaf = null;
-      }
       // Force relayout to ensure proper transitions.
       this.scrollTop = this.scrollTop;
       this.__openedRaf = window.requestAnimationFrame(function() {

@@ -70,7 +70,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 // Flush so we are sure backdrop is added in the DOM.
                 Polymer.dom.flush();
                 var backdrop = overlay.backdropElement;
-                var parent = backdrop.parentElement;
+                var parent = Polymer.dom(backdrop).parentNode.host;
                 assert.strictEqual(backdrop.offsetWidth, parent.clientWidth, 'backdrop width matches parent width');
                 assert.strictEqual(backdrop.offsetHeight, parent.clientHeight, 'backdrop height matches parent height');
                 done();

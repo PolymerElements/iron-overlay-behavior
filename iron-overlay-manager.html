@@ -232,8 +232,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (!overlay && !this._backdropElement) {
         return;
       }
-      this.backdropElement.style.zIndex = this._getZ(overlay) - 1;
       this.backdropElement.opened = !!overlay;
+      if (overlay && overlay.opened) {
+        this.backdropElement.prepare(overlay);
+      }
     },
 
     /**
@@ -346,9 +348,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @private
      */
     _onCaptureClick: function(event) {
+      if (!this._overlays.length) {
+        return;
+      }
       var overlay = /** @type {?} */ (this.currentOverlay());
-      // Check if clicked outside of top overlay.
-      if (overlay && this._overlayInPath(Polymer.dom(event).path) !== overlay) {
+      var path = Polymer.dom(event).path;
+      // Check if clicked outside of top overlay or on the backdrop element.
+      if (this._overlayInPath(path) !== overlay ||
+          (overlay.withBackdrop && path.indexOf(this.backdropElement) !== -1)) {
         overlay._onCaptureClick(event);
       }
     },

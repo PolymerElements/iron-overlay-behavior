@@ -316,10 +316,15 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
 
-      this._manager.addOrRemoveOverlay(this);
-
       if (this.__openChangedAsync) {
         window.cancelAnimationFrame(this.__openChangedAsync);
+      }
+
+      // Synchronously remove the overlay.
+      // The adding is done asynchronously to go out of the scope of the event
+      // which might have generated the opening.
+      if (!this.opened) {
+        this._manager.removeOverlay(this);
       }
 
       // Defer any animation-related code on attached
@@ -334,6 +339,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.__openChangedAsync = window.requestAnimationFrame(function() {
         this.__openChangedAsync = null;
         if (this.opened) {
+          this._manager.addOverlay(this);
           this._prepareRenderOpened();
           this._renderOpened();
         } else {
@@ -356,7 +362,7 @@ context. You should place this element as a child of `<body>` whenever possible.
         this.removeAttribute('tabindex');
         this.__shouldRemoveTabIndex = false;
       }
-      if (this.opened) {
+      if (this.opened && this.isAttached) {
         this._manager.trackBackdrop();
       }
     },

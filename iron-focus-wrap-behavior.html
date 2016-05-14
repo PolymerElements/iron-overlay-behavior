@@ -21,9 +21,8 @@ as soon as it gets focused, by listening at `TAB` keyboard events.
 
 When `TAB` is pressed and the `lastFocusable` is already focused, `IronFocusWrapBehavior`
 will move the focus to `firstFocusable`.
-Likewise, when `Shift+TAB` is pressed and
-the `firstFocusable` is already focused, `IronFocusWrapBehavior` will move
-the focus to `lastFocusable`.
+Likewise, when `Shift+TAB` is pressed and the `firstFocusable` is already focused,
+`IronFocusWrapBehavior` will move the focus to `lastFocusable`.
 
     <button id="first">first</button>
     <content></content>
@@ -66,6 +65,7 @@ focus of an active element.
           return this;
         }
       },
+
       /**
        * The last focusable element. It should be a child of the element or the
        * element itself. Defaults to `this`.
@@ -77,6 +77,7 @@ focus of an active element.
           return this;
         }
       },
+
       /**
        * If true, it will wrap the focus on `TAB` or `Shift+TAB` when the focus
        * is already in the element.
@@ -109,12 +110,11 @@ focus of an active element.
      * Searches and sets the `firstFocusable` and `lastFocusable`. This is very
      * expensive and you're encouraged to set first and last focusable yourself
      * if you know the content.
-     * @param {boolean=} searchInShadowDOM If true, the search is performed in
-     * the shadow dom.
+     * @param {Element=} root The node where to search, defaults to `this`.
      * @protected
      */
-    _searchAndSetFocusables: function(searchInShadowDOM) {
-      var focusableNodes = this.__getFocusableNodes(searchInShadowDOM);
+    _searchAndSetFocusables: function(root) {
+      var focusableNodes = this.__getFocusableNodes(root);
       this.firstFocusable = focusableNodes[0];
       this.lastFocusable = focusableNodes[focusableNodes.length - 1];
     },
@@ -179,13 +179,13 @@ focus of an active element.
     },
 
     /**
-     * Array of nodes that can receive focus (host included), ordered by `tabindex`.
-     * @param {boolean} searchInShadowDOM If true, the search is performed in the
-     * shadow dom.
+     * Array of nodes that can receive focus (root included), ordered by `tabindex`.
+     * @param {Element=} root The node where to search, defaults to `this`.
      * @returns {Array<Node>}
      * @private
      */
-    __getFocusableNodes: function(searchInShadowDOM) {
+    __getFocusableNodes: function(root) {
+      root = root || this;
       // Elements that can be focused even if they have [disabled] attribute.
       var FOCUSABLE_WITH_DISABLED = [
         'a[href]',
@@ -209,22 +209,15 @@ focus of an active element.
         FOCUSABLE_WITHOUT_DISABLED.join(':not([disabled]):not([tabindex="-1"]),') +
         ':not([disabled]):not([tabindex="-1"])';
 
-      var node = searchInShadowDOM ? this.root : this;
-      var focusables = Polymer.dom(node).querySelectorAll(selector);
-      if (this.tabIndex >= 0) {
-        // Insert at the beginning because we might have all elements with tabIndex = 0,
-        // and the overlay should be the first of the list.
-        focusables.splice(0, 0, this);
+      var focusables = Polymer.dom(root).querySelectorAll(selector);
+      if (root.hasAttribute('tabindex') && root.tabIndex >= 0) {
+        // Insert at the beginning because we might have all elements with
+        // tabIndex = 0, and the root should be the first of the list.
+        focusables.splice(0, 0, root);
       }
       // Sort by tabindex.
       return focusables.sort(function (a, b) {
-        if (a.tabIndex === b.tabIndex) {
-          return 0;
-        }
-        if (a.tabIndex === 0 || a.tabIndex > b.tabIndex) {
-          return 1;
-        }
-        return -1;
+        return a.tabIndex - b.tabIndex;
       });
     },
   };

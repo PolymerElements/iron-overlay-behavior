@@ -1,0 +1,251 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+
+  <head>
+
+    <title>iron-focus-wrap-behavior tests</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <script src="../../web-component-tester/browser.js"></script>
+    <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html">
+    <link rel="import" href="test-focus-wrapper.html">
+
+  </head>
+
+  <body>
+
+    <test-fixture id="basic">
+      <template>
+        <test-focus-wrapper wrap-focus>
+          <h2>Focusables (no tabindex)</h2>
+          <div class="input-container">
+            <input class="focusable1" placeholder="1 (nested)">
+          </div>
+          <button class="focusable2">1</button>
+          <button disabled> disabled button</button>
+          <div tabindex="-1">not focusable</div>
+          <button class="focusable3">2</button>
+        </test-focus-wrapper>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="tabindexes">
+      <template>
+        <test-focus-wrapper wrap-focus>
+          <h2>Focusables (with tabindex)</h2>
+          <div tabindex="-1">not focusable</div>
+          <div tabindex="3" class="focusable3">3</div>
+          <div tabindex="4" class="focusable4">4</div>
+          <div tabindex="5" class="focusable5">5</div>
+          <div>
+            <div tabindex="1" class="focusable1">1 (nested)</div>
+            <div tabindex="6" class="focusable6">6 (nested)</div>
+          </div>
+          <div tabindex="2" class="focusable2">2</div>
+        </test-focus-wrapper>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="one-focusable">
+      <template>
+        <test-focus-wrapper wrap-focus>
+          <button>focusable</button>
+        </test-focus-wrapper>
+      </template>
+    </test-fixture>
+
+    <script>
+      var wrapper, focusableNodes;
+      suite('focusable nodes', function() {
+        test('return nodes that are focusable', function() {
+          wrapper = fixture('basic');
+          focusableNodes = wrapper.__getFocusableNodes();
+          assert.equal(focusableNodes.length, 3, '3 nodes are focusable');
+          assert.equal(focusableNodes[0], Polymer.dom(wrapper).querySelector('.focusable1'));
+          assert.equal(focusableNodes[1], Polymer.dom(wrapper).querySelector('.focusable2'));
+          assert.equal(focusableNodes[2], Polymer.dom(wrapper).querySelector('.focusable3'));
+        });
+
+        test('include root if focusable', function() {
+          wrapper = fixture('basic');
+          wrapper.setAttribute('tabindex', '0');
+          focusableNodes = wrapper.__getFocusableNodes();
+          assert.equal(focusableNodes.length, 4, '4 focusable nodes');
+          assert.equal(focusableNodes[0], wrapper, 'wrapper is included');
+        });
+
+        test('respect the tabindex order', function() {
+          wrapper = fixture('tabindexes');
+          focusableNodes = wrapper.__getFocusableNodes();
+          assert.equal(focusableNodes.length, 6, '6 nodes are focusable');
+          assert.equal(focusableNodes[0], Polymer.dom(wrapper).querySelector('.focusable1'));
+          assert.equal(focusableNodes[1], Polymer.dom(wrapper).querySelector('.focusable2'));
+          assert.equal(focusableNodes[2], Polymer.dom(wrapper).querySelector('.focusable3'));
+          assert.equal(focusableNodes[3], Polymer.dom(wrapper).querySelector('.focusable4'));
+          assert.equal(focusableNodes[4], Polymer.dom(wrapper).querySelector('.focusable5'));
+          assert.equal(focusableNodes[5], Polymer.dom(wrapper).querySelector('.focusable6'));
+        });
+
+        test('return focusables of a specific node', function() {
+          wrapper = fixture('basic');
+          var node = Polymer.dom(wrapper).querySelector('.input-container');
+          focusableNodes = wrapper.__getFocusableNodes(node);
+          assert.equal(focusableNodes.length, 1, '1 focusable node');
+          assert.equal(focusableNodes[0], Polymer.dom(wrapper).querySelector('.focusable1'));
+        });
+
+      });
+
+      suite('__getDeepActiveElement', function() {
+
+        test('handles document.body', function (){
+          document.body.focus();
+          assert.equal(Polymer.IronFocusWrapBehaviorImpl.__getDeepActiveElement(), document.body);
+        });
+
+        test('handles light dom', function () {
+          wrapper = fixture('basic');
+          wrapper.setAttribute('tabindex', '0');
+          wrapper.focus();
+          assert.equal(Polymer.IronFocusWrapBehaviorImpl.__getDeepActiveElement(), wrapper);
+        });
+
+        test('handles shadow dom', function () {
+          wrapper = fixture('basic');
+          var focusable = document.createElement('button');
+          // Insert in shadow dom
+          Polymer.dom(wrapper.root).appendChild(focusable);
+          Polymer.dom.flush();
+          focusable.focus();
+          assert.equal(Polymer.IronFocusWrapBehaviorImpl.__getDeepActiveElement(), focusable);
+        });
+
+      });
+
+      suite('search and set focusables', function() {
+        test('sets first and last focusable', function() {
+          wrapper = fixture('basic');
+          wrapper._searchAndSetFocusables(wrapper);
+          assert.equal(wrapper.firstFocusable, Polymer.dom(wrapper).querySelector('.focusable1'), 'firstFocusable ok');
+          assert.equal(wrapper.lastFocusable, Polymer.dom(wrapper).querySelector('.focusable3'), 'lastFocusable ok');
+        });
+
+        test('include root if focusable', function() {
+          wrapper = fixture('basic');
+          wrapper.setAttribute('tabindex', '0');
+          wrapper._searchAndSetFocusables(wrapper);
+          assert.equal(wrapper.firstFocusable, wrapper, 'firstFocusable ok');
+          assert.equal(wrapper.lastFocusable, Polymer.dom(wrapper).querySelector('.focusable3'), 'lastFocusable ok');
+        });
+
+        test('respect tabindex', function() {
+          wrapper = fixture('tabindexes');
+          wrapper._searchAndSetFocusables(wrapper);
+          assert.equal(wrapper.firstFocusable, Polymer.dom(wrapper).querySelector('.focusable1'), 'firstFocusable ok');
+          assert.equal(wrapper.lastFocusable, Polymer.dom(wrapper).querySelector('.focusable6'), 'lastFocusable ok');
+        });
+
+      });
+
+      suite('wrap focus', function() {
+
+        test('TAB and Shift+TAB', function() {
+          wrapper = fixture('basic');
+          wrapper._searchAndSetFocusables(wrapper);
+          // Go to last element.
+          wrapper.lastFocusable.focus();
+
+          // Spy keydown.
+          var tabSpy = sinon.spy();
+          document.addEventListener('keydown', tabSpy);
+          // Simulate TAB.
+          MockInteractions.pressAndReleaseKeyOn(wrapper, 9);
+          assert.equal(wrapper.firstFocusable, document.activeElement, 'focus wrapped to first focusable');
+          assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+          assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown prevented');
+          // Simulate Shift+TAB.
+          MockInteractions.pressAndReleaseKeyOn(wrapper, 9, ['shift']);
+          assert.equal(wrapper.lastFocusable, document.activeElement, 'focus wrapped to last focusable');
+          assert.isTrue(tabSpy.calledTwice, 'keydown spy called again');
+          assert.isTrue(tabSpy.getCall(1).args[0].defaultPrevented, 'keydown prevented again');
+          // Cleanup.
+          document.removeEventListener('keydown', tabSpy);
+        });
+
+        test('Shift+TAB wraps focus if wrapper is focused but not firstFocusable', function() {
+          wrapper = fixture('basic');
+          // First focusable won't be wrapper, as right now is not focusable.
+          wrapper._searchAndSetFocusables(wrapper);
+          // Make it focusable so we can move focus.
+          wrapper.setAttribute('tabindex', '0');
+          wrapper.focus();
+
+          // Spy keydown.
+          var tabSpy = sinon.spy();
+          document.addEventListener('keydown', tabSpy);
+          // Simulate Shift+TAB.
+          MockInteractions.pressAndReleaseKeyOn(wrapper, 9, ['shift']);
+          assert.equal(wrapper.lastFocusable, document.activeElement, 'focus wrapped to last focusable');
+          assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+          assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown prevented');
+          // Cleanup.
+          document.removeEventListener('keydown', tabSpy);
+        });
+
+        test('wrapFocus = false disables wrapping', function() {
+          wrapper = fixture('basic');
+          wrapper.wrapFocus = false;
+          // First focusable won't be wrapper, as right now is not focusable.
+          wrapper._searchAndSetFocusables(wrapper);
+          // Move focus to last focusable.
+          wrapper.lastFocusable.focus();
+
+          // Spy keydown.
+          var tabSpy = sinon.spy();
+          document.addEventListener('keydown', tabSpy);
+          // Simulate TAB.
+          MockInteractions.pressAndReleaseKeyOn(wrapper, 9);
+          assert.isFalse(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown not prevented');
+          // Cleanup.
+          document.removeEventListener('keydown', tabSpy);
+        });
+
+        test('one focusable will trap the focus within', function() {
+          wrapper = fixture('one-focusable');
+          // First focusable won't be wrapper, as right now is not focusable.
+          wrapper._searchAndSetFocusables(wrapper);
+          assert.equal(wrapper.lastFocusable, wrapper.firstFocusable, 'last and first focusable are the same element');
+          // Move focus.
+          wrapper.lastFocusable.focus();
+
+          // Spy keydown.
+          var tabSpy = sinon.spy();
+          document.addEventListener('keydown', tabSpy);
+          // Simulate TAB.
+          MockInteractions.pressAndReleaseKeyOn(wrapper, 9);
+          // Preventing the TAB will also prevent the focus.
+          assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown prevented');
+          // Cleanup.
+          document.removeEventListener('keydown', tabSpy);
+        });
+
+      });
+    </script>
+
+  </body>
+
+</html>

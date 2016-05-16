@@ -43,7 +43,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer.Gestures.add(document, 'tap', null);
     // Need to have useCapture=true, Polymer.Gestures doesn't offer that.
     document.addEventListener('tap', this._onCaptureClick.bind(this), true);
-    document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
     document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
   };
 
@@ -60,21 +59,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this._backdropElement = document.createElement('iron-overlay-backdrop');
       }
       return this._backdropElement;
-    },
-
-    /**
-     * The deepest active element.
-     * @type {!Element} activeElement the active element
-     */
-    get deepActiveElement() {
-      // document.activeElement can be null
-      // https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement
-      // In case of null, default it to document.body.
-      var active = document.activeElement || document.body;
-      while (active.root && Polymer.dom(active.root).activeElement) {
-        active = Polymer.dom(active.root).activeElement;
-      }
-      return active;
     },
 
     /**
@@ -157,9 +141,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       this._overlays.splice(insertionIndex, 0, overlay);
 
-      // Get focused node.
-      var element = this.deepActiveElement;
-      overlay.restoreFocusNode = this._overlayParent(element) ? null : element;
       this.trackBackdrop();
     },
 
@@ -172,13 +153,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return;
       }
       this._overlays.splice(i, 1);
-
-      var node = overlay.restoreFocusOnClose ? overlay.restoreFocusNode : null;
-      overlay.restoreFocusNode = null;
-      // Focus back only if still contained in document.body
-      if (node && Polymer.dom(document.body).deepContains(node)) {
-        node.focus();
-      }
       this.trackBackdrop();
     },
 
@@ -353,32 +327,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Ensures the focus event is delegated to the right overlay.
-     * @param {!Event} event
-     * @private
-     */
-    _onCaptureFocus: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
-      if (overlay) {
-        overlay._onCaptureFocus(event);
-      }
-    },
-
-    /**
-     * Ensures TAB and ESC keyboard events are delegated to the right overlay.
-     * @param {!Event} event
-     * @private
-     */
-    _onCaptureKeyDown: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
-      if (overlay) {
-        if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'esc')) {
-          overlay._onCaptureEsc(event);
-        } else if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'tab')) {
-          overlay._onCaptureTab(event);
-        }
-      }
-    },
+      * Ensures ESC keyboard events are delegated to the right overlay.
+      * @param {!Event} event
+      * @private
+      */
+     _onCaptureKeyDown: function(event) {
+       var overlay = /** @type {?} */ (this.currentOverlay());
+       if (overlay && Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'esc')) {
+         overlay._onCaptureEsc(event);
+       }
+     },
 
     /**
      * Returns if the overlay1 should be behind overlay2.

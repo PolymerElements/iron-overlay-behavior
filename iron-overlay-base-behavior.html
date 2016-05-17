@@ -360,10 +360,8 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
-      if (this.transitioning) {
-        return;
-      }
       if (!this.opened) {
+        this._focusNode.blur();
         this._manager.focusOverlay();
       } else if (!this.noAutoFocus) {
         this._focusNode.focus();
@@ -371,7 +369,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     /**
-     * Cancels (closes) the overlay. Call when click happens outside the overlay.
+     * Cancels (closes) the overlay. Called when click happens outside the overlay.
      * @param {!Event} event
      * @protected
      */
@@ -379,7 +377,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       if (!this.noCancelOnOutsideClick) {
         this.cancel(event);
       } else if (this.wrapFocus) {
-        event.preventDefault();
         this._applyFocus();
       }
     },

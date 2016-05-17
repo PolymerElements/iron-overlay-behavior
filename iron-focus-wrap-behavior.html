@@ -164,7 +164,7 @@ focus of an active element.
         // force the focus. This will also prevent the focus to temporarily move
         // outside the element, which might cause scrolling.
         event.preventDefault();
-        nodeToSet.focus();
+        nodeToSet && nodeToSet.focus();
       }
     },
 

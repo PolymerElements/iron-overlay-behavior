@@ -232,7 +232,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     /**
      * Called when `opened` has changed.
-     * @param {boolean} opened
+     * @param {boolean=} opened
      * @protected
      */
     _openedChanged: function(opened) {
@@ -259,21 +259,20 @@ context. You should place this element as a child of `<body>` whenever possible.
         if (opened) {
           // Save current focus.
           this.saveDeepActiveElement();
-          // Preparation stuff for proper animation.
+          // Make the overlay visible.
           this._prepareRenderOpened();
-          // Safari will apply the focus to the autofocus element when displayed
-          // for the first time, so ensure focus is kept where it was.
+          // Manager will set the correct z-index.
+          this._manager.addOverlay(this);
+          // Safari7 applies the focus to the autofocus element when displayed
+          // for the first time. Make sure the deepActiveElement is preserved.
           if (this.noAutoFocus) {
             this._focusNode.blur();
             this.restoreDeepActiveElement();
           }
-          // Animate.
           this._renderOpened();
         } else {
           this._renderClosed();
         }
-        // This will update the z-index.
-        this._manager.addOrRemoveOverlay(this);
       }.bind(this));
     },
 
@@ -345,8 +344,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     _finishRenderClosed: function() {
       // Hide the overlay and remove the backdrop.
       this.style.display = 'none';
-      // Reset z-index only at the end of the transition.
-      this.style.zIndex = '';
+      this._manager.removeOverlay(this);
 
       if (this.restoreFocusOnClose) {
         this.restoreDeepActiveElement();

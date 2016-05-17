@@ -111,6 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </test-overlay>
         <test-overlay class="overlay-2">
           Test overlay 2
+          <button>Click</button>
         </test-overlay>
         <test-overlay2 class="overlay-3">
           Other overlay 3
@@ -1076,19 +1077,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('click events handled only by top overlay', function(done) {
-          var btn = document.createElement('button');
-          btn.addEventListener('tap', overlay2.close.bind(overlay2));
-          Polymer.dom(overlay2).appendChild(btn);
-          runAfterOpen(overlay1, function() {
-            runAfterOpen(overlay2, function() {
-              MockInteractions.tap(btn);
-              assert.isFalse(overlay2.opened, 'overlay2 closed');
-              assert.isTrue(overlay1.opened, 'overlay1 still opened');
-              done();
+        var clickEvents = ['click', 'tap'];
+        for (var i = 0; i < clickEvents.length; i++) {
+          var eventName = clickEvents[i];
+          test(eventName + ' event handled only by top overlay', function(done) {
+            runAfterOpen(overlay1, function() {
+              runAfterOpen(overlay2, function() {
+                var btn = Polymer.dom(overlay2).querySelector('button');
+                btn.addEventListener(eventName, overlay2.close.bind(overlay2));
+                MockInteractions.tap(btn);
+                assert.isFalse(overlay2.opened, 'overlay2 closed');
+                assert.isTrue(overlay1.opened, 'overlay1 opened');
+                overlay2.addEventListener('iron-overlay-closed', function() {
+                  assert.isTrue(overlay1.opened, 'overlay1 still opened');
+                  done();
+                });
+              });
             });
           });
-        });
+        }
 
         test('updating with-backdrop updates z-index', function(done) {
           runAfterOpen(overlay1, function() {

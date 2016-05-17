@@ -91,18 +91,23 @@ focus of an active element.
     },
 
     /**
-     * Updates the `storedDeepActiveElement` to the currently focused element.
+     * Stores the current `deepActiveElement`. Focus can be restored to this
+     * element using `restoreDeepActiveElement()`.
      */
     saveDeepActiveElement: function() {
       this.__deepActiveElement = this.__getDeepActiveElement();
     },
 
     /**
-     * Restores the focus to the `storedDeepActiveElement`.
+     * Restores the focus to the stored `deepActiveElement`.
      */
     restoreDeepActiveElement: function() {
-      if (this.__deepActiveElement) {
-        this.__deepActiveElement.focus();
+      // Focus back only if still contained in document.body.
+      var node = this.__deepActiveElement;
+      if (node && Polymer.dom(document.body).deepContains(node)) {
+        node.focus();
+      } else {
+        this.__deepActiveElement = null;
       }
     },
 

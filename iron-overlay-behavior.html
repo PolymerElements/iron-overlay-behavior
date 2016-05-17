@@ -145,6 +145,14 @@ context. You should place this element as a child of `<body>` whenever possible.
       },
 
       /**
+       * Is true during the transition from close to open and open to close.
+       */
+      transitioning: {
+        type: Boolean,
+        readOnly: true
+      },
+
+      /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {Polymer.IronOverlayManagerClass}
@@ -237,24 +245,22 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     ready: function() {
-      // Used to skip calls to notifyResize and refit while the overlay is animating.
-      this.__isAnimating = false;
       // with-backdrop needs tabindex to be set in order to trap the focus.
       // If it is not set, IronOverlayBehavior will set it, and remove it if with-backdrop = false.
       this.__shouldRemoveTabIndex = false;
       // Used for wrapping the focus on TAB / Shift+TAB.
       this.__firstFocusableNode = this.__lastFocusableNode = null;
       // Used for requestAnimationFrame when opened changes.
-      this.__openChangedAsync = null;
+      this.__openedChangedRAF = null;
       // Used for requestAnimationFrame when iron-resize is fired.
-      this.__onIronResizeAsync = null;
+      this.__ironResizeRAF = null;
       this._ensureSetup();
     },
 
     attached: function() {
       // Call _openedChanged here so that position can be computed correctly.
       if (this.opened) {
-        this._openedChanged();
+        this._openedChanged(this.opened);
       }
       this._observer = Polymer.dom(this).observeNodes(this._onNodesChange);
     },
@@ -262,8 +268,12 @@ context. You should place this element as a child of `<body>` whenever possible.
     detached: function() {
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
-      this.opened = false;
       this._manager.removeOverlay(this);
+      if (this.__openedChangedRAF) {
+        window.cancelAnimationFrame(this.__openedChangedRAF);
+        this.__openedChangedRAF = null;
+      }
+      this.opened = false;
     },
 
     /**
@@ -295,6 +305,9 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @param {Event=} event The original event
      */
     cancel: function(event) {
+      if (!this.opened) {
+        return;
+      }
       var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true});
       if (cancelEvent.defaultPrevented) {
         return;
@@ -313,20 +326,16 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.style.display = 'none';
     },
 
-    _openedChanged: function() {
-      if (this.opened) {
+    /**
+     * Called when `opened` changes.
+     * @param {boolean=} opened
+     * @protected
+     */
+    _openedChanged: function(opened) {
+      if (opened) {
         this.removeAttribute('aria-hidden');
       } else {
         this.setAttribute('aria-hidden', 'true');
-      }
-
-      // wait to call after ready only if we're initially open
-      if (!this._overlaySetup) {
-        return;
-      }
-
-      if (this.__openChangedAsync) {
-        window.cancelAnimationFrame(this.__openChangedAsync);
       }
 
       // Defer any animation-related code on attached
@@ -335,13 +344,30 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
 
-      this.__isAnimating = true;
+      this._setTransitioning(true);
 
-      // requestAnimationFrame for non-blocking rendering
-      this.__openChangedAsync = window.requestAnimationFrame(function() {
-        this.__openChangedAsync = null;
+      // Use requestAnimationFrame for non-blocking rendering.
+      if (this.__openedChangedRAF) {
+        window.cancelAnimationFrame(this.__openedChangedRAF);
+      }
+      this.__openedChangedRAF = window.requestAnimationFrame(function() {
+        this.__openedChangedRAF = null;
+        // Update the manager asynchronously, so that the triggering event that
+        // might have caused this opened change won't affect the overlay being
+        // opened/closed.
+        // Example 1: button onclick opens the overlay. This event is listened
+        // also by the manager on document.body, which checks if it happened
+        // outside the currentOverlay and cancels (closes) it if so.
+        // If this overlay becomes the current overlay synchronously, it would
+        // be the current overlay during the click outside check, hence canceled
+        // right away.
+        // Example 2: two overlays already opened, both with a button that
+        // onclick closes the overlay where is contained. If we'd update the
+        // currentOverlay synchronously, both overlays would get closed, the top
+        // one because of the direct call to close(), and the bottom one because
+        // it would be the current overlay when the manager listener is invoked.
         this._manager.addOrRemoveOverlay(this);
-        if (this.opened) {
+        if (opened) {
           this._prepareRenderOpened();
           this._renderOpened();
         } else {
@@ -414,11 +440,12 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderOpened: function() {
-      
-      this.notifyResize();
-      this.__isAnimating = false;
       // Focus the child node with [autofocus]
       this._applyFocus();
+
+      this.notifyResize();
+      this._setTransitioning(false);
+
       // Store it so we don't query too much.
       var focusableNodes = this._focusableNodes;
       this.__firstFocusableNode = focusableNodes[0];
@@ -432,14 +459,15 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderClosed: function() {
-      // Hide the overlay and remove the backdrop.
+      // Hide the overlay.
       this.style.display = 'none';
       // Reset z-index only at the end of the animation.
       this.style.zIndex = '';
 
-      this.notifyResize();
-      this.__isAnimating = false;
       this._applyFocus();
+
+      this.notifyResize();
+      this._setTransitioning(false);
       this.fire('iron-overlay-closed', this.closingReason);
     },
 
@@ -469,13 +497,6 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
-      // We have to be careful to focus the next overlay _after_ any current
-      // transitions are complete (due to the state being toggled prior to the
-      // transition). Otherwise, we risk infinite recursion when a transitioning
-      // (closed) overlay becomes the current overlay.
-      if (this.__isAnimating) {
-        return;
-      }
       if (this.opened) {
         if (!this.noAutoFocus) {
           this._focusNode.focus();
@@ -581,13 +602,13 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _onIronResize: function() {
-      if (this.__onIronResizeAsync) {
-        window.cancelAnimationFrame(this.__onIronResizeAsync);
-        this.__onIronResizeAsync = null;
+      if (this.__ironResizeRAF) {
+        window.cancelAnimationFrame(this.__ironResizeRAF);
+        this.__ironResizeRAF = null;
       }
-      if (this.opened && !this.__isAnimating) {
-        this.__onIronResizeAsync = window.requestAnimationFrame(function() {
-          this.__onIronResizeAsync = null;
+      if (this.opened && !this.transitioning) {
+        this.__ironResizeRAF = window.requestAnimationFrame(function() {
+          this.__ironResizeRAF = null;
           this.refit();
         }.bind(this));
       }
@@ -599,7 +620,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _onNodesChange: function() {
-      if (this.opened && !this.__isAnimating) {
+      if (this.opened && !this.transitioning) {
         this.notifyResize();
       }
     }

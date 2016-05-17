@@ -37,8 +37,6 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
     },
 
     ready: function() {
-      // Used to skip calls to notifyResize and refit while the overlay is animating.
-      this.__isAnimating = false;
       // Used for requestAnimationFrame when iron-resize is fired.
       this.__onIronResizeAsync = null;
     },
@@ -50,18 +48,10 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
     detached: function() {
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
-      this.opened = false;
-    },
-
-    _openedChanged: function() {
-      if (this.isAttached) {
-        this.__isAnimating = true;
-      }
-      Polymer.IronOverlayBaseBehaviorImpl._openedChanged.apply(this, arguments);
     },
 
     /**
-     * tasks which must occur before opening; e.g. making the element visible.
+     * Tasks which must occur before opening; e.g. making the element visible.
      * @protected
      */
     _prepareRenderOpened: function() {
@@ -91,8 +81,9 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
       this.scrollTop = this.scrollTop;
     },
 
+    // Legacy, allows overriding through Polymer.IronOverlayBaseBehaviorImpl.
+    _openedChanged: Polymer.IronOverlayBaseBehaviorImpl._openedChanged,
     _renderOpened: Polymer.IronOverlayBaseBehaviorImpl._renderOpened,
-
     _renderClosed: Polymer.IronOverlayBaseBehaviorImpl._renderClosed,
 
     /**
@@ -101,7 +92,6 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
      */
     _finishRenderOpened: function() {
       this.notifyResize();
-      this.__isAnimating = false;
       Polymer.IronOverlayBaseBehaviorImpl._finishRenderOpened.apply(this, arguments);
     },
 
@@ -111,7 +101,6 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
      */
     _finishRenderClosed: function() {
       this.notifyResize();
-      this.__isAnimating = false;
       Polymer.IronOverlayBaseBehaviorImpl._finishRenderClosed.apply(this, arguments);
     },
 
@@ -124,7 +113,7 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
         window.cancelAnimationFrame(this.__onIronResizeAsync);
         this.__onIronResizeAsync = null;
       }
-      if (this.opened && !this.__isAnimating) {
+      if (this.opened && !this.transitioning) {
         this.__onIronResizeAsync = window.requestAnimationFrame(function() {
           this.__onIronResizeAsync = null;
           this.refit();
@@ -138,7 +127,7 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
      * @protected
      */
     _onNodesChange: function() {
-      if (this.opened && !this.__isAnimating) {
+      if (this.opened && !this.transitioning) {
         this.notifyResize();
       }
     }

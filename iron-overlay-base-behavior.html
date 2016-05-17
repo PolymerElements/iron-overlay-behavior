@@ -131,6 +131,14 @@ context. You should place this element as a child of `<body>` whenever possible.
       },
 
       /**
+       * Is true during the transition from close to open and open to close.
+       */
+      transitioning: {
+        type: Boolean,
+        readOnly: true
+      },
+
+      /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {Polymer.IronOverlayManagerClass}
@@ -177,7 +185,11 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     detached: function() {
-      this.opened = false;
+      if (this.__openChangedAsync) {
+        window.cancelAnimationFrame(this.__openChangedAsync);
+        this.__openChangedAsync = null;
+      }
+      this._manager.removeOverlay(this);
     },
 
     /**
@@ -218,22 +230,16 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.opened = false;
     },
 
-    _openedChanged: function(opened, oldOpened) {
+    /**
+     * Called when `opened` has changed.
+     * @param {boolean} opened
+     * @protected
+     */
+    _openedChanged: function(opened) {
       if (opened) {
         this.removeAttribute('aria-hidden');
       } else {
         this.setAttribute('aria-hidden', 'true');
-      }
-
-      if (this.__openChangedAsync) {
-        window.cancelAnimationFrame(this.__openChangedAsync);
-      }
-
-      // Synchronously remove the overlay.
-      // The adding is done asynchronously to go out of the scope of the event
-      // which might have generated the opening.
-      if (!opened && oldOpened) {
-        this._manager.removeOverlay(this);
       }
 
       // Defer any animation-related code on attached
@@ -242,17 +248,18 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
 
-      if (opened) {
-        this.saveDeepActiveElement();
-      }
+      this._setTransitioning(true);
 
       // requestAnimationFrame for non-blocking rendering
+      if (this.__openChangedAsync) {
+        window.cancelAnimationFrame(this.__openChangedAsync);
+      }
       this.__openChangedAsync = window.requestAnimationFrame(function() {
         this.__openChangedAsync = null;
         if (opened) {
-          // Make this the currentOverlay
-          this._manager.addOverlay(this);
-          // Preparation stuff before animating.
+          // Save current focus.
+          this.saveDeepActiveElement();
+          // Preparation stuff for proper animation.
           this._prepareRenderOpened();
           // Safari will apply the focus to the autofocus element when displayed
           // for the first time, so ensure focus is kept where it was.
@@ -260,12 +267,13 @@ context. You should place this element as a child of `<body>` whenever possible.
             this._focusNode.blur();
             this.restoreDeepActiveElement();
           }
-
           // Animate.
           this._renderOpened();
         } else {
           this._renderClosed();
         }
+        // This will update the z-index.
+        this._manager.addOrRemoveOverlay(this);
       }.bind(this));
     },
 
@@ -292,7 +300,7 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     /**
-     * tasks which must occur before opening; e.g. making the element visible.
+     * Tasks which must occur before opening; e.g. making the element visible.
      * @protected
      */
     _prepareRenderOpened: function() {
@@ -323,10 +331,10 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderOpened: function() {
-      // Focus the child node with [autofocus]
-      this._applyFocus();
-
       this._searchAndSetFocusables();
+
+      this._setTransitioning(false);
+      this._applyFocus();
       this.fire('iron-overlay-opened');
     },
 
@@ -337,14 +345,15 @@ context. You should place this element as a child of `<body>` whenever possible.
     _finishRenderClosed: function() {
       // Hide the overlay and remove the backdrop.
       this.style.display = 'none';
-      // Reset z-index only at the end of the animation.
+      // Reset z-index only at the end of the transition.
       this.style.zIndex = '';
 
       if (this.restoreFocusOnClose) {
         this.restoreDeepActiveElement();
       }
-      this._applyFocus();
 
+      this._setTransitioning(false);
+      this._applyFocus();
       this.fire('iron-overlay-closed', this.closingReason);
     },
 
@@ -353,6 +362,9 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
+      if (this.transitioning) {
+        return;
+      }
       if (!this.opened) {
         this._manager.focusOverlay();
       } else if (!this.noAutoFocus) {

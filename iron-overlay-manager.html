@@ -210,15 +210,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     focusOverlay: function() {
       var current = /** @type {?} */ (this.currentOverlay());
-      // We have to be careful to focus the next overlay _after_ any current
-      // transitions are complete (due to the state being toggled prior to the
-      // transition). Otherwise, we risk infinite recursion when a transitioning
-      // (closed) overlay becomes the current overlay.
-      //
-      // NOTE: We make the assumption that any overlay that completes a transition
-      // will call into focusOverlay to kick the process back off. Currently:
-      // transitionend -> _applyFocus -> focusOverlay.
-      if (current && !current.transitioning) {
+      if (current) {
         current._applyFocus();
       }
     },

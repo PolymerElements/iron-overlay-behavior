@@ -837,9 +837,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('manager.getBackdrops() updated on opened changes', function(done) {
           runAfterOpen(overlay, function() {
             assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 1, 'overlay added to manager backdrops');
-            overlay.close();
-            assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
-            done();
+            runAfterClose(overlay, function() {
+              assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
+              done();
+            });
           });
         });
 
@@ -953,9 +954,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('close handled', function(done) {
           runAfterOpen(overlay1, function() {
-            overlay1.close();
-            assert.equal(overlays.length, 0, '0 overlays after close');
-            done();
+            runAfterClose(overlay1, function() {
+              assert.equal(overlays.length, 0, '0 overlays after close');
+              done();
+            });
           });
         });
 
@@ -1053,10 +1055,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay1.opened = true;
           overlay2.opened = true;
           runAfterOpen(overlay3, function() {
-            overlay1.opened = overlay2.opened = overlay3.opened = false;
-            Polymer.dom.flush();
-            assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 0, 'backdrop element removed from the DOM');
-            done();
+            overlay1.opened = overlay2.opened = false;
+            runAfterClose(overlay3, function() {
+              assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 0, 'backdrop element removed from the DOM');
+              done();
+            });
           });
         });
 

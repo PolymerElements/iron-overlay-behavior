@@ -254,6 +254,9 @@ context. You should place this element as a child of `<body>` whenever possible.
           this._manager.addOverlay(this);
           // Preparation stuff before animating.
           this._prepareRenderOpened();
+          // Safari will apply the focus to the autofocus element when displayed
+          // for the first time, so ensure focus is kept where it was.
+          this.noAutoFocus && this.restoreDeepActiveElement();
           // Animate.
           this._renderOpened();
         } else {

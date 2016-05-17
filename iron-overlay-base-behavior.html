@@ -256,7 +256,11 @@ context. You should place this element as a child of `<body>` whenever possible.
           this._prepareRenderOpened();
           // Safari will apply the focus to the autofocus element when displayed
           // for the first time, so ensure focus is kept where it was.
-          this.noAutoFocus && this.restoreDeepActiveElement();
+          if (this.noAutoFocus) {
+            this._focusNode.blur();
+            this.restoreDeepActiveElement();
+          }
+
           // Animate.
           this._renderOpened();
         } else {

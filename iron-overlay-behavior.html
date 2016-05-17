@@ -263,6 +263,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
       this.opened = false;
+      this._manager.removeOverlay(this);
     },
 
     /**
@@ -328,13 +329,6 @@ context. You should place this element as a child of `<body>` whenever possible.
         window.cancelAnimationFrame(this.__openChangedAsync);
       }
 
-      // Synchronously remove the overlay.
-      // The adding is done asynchronously to go out of the scope of the event
-      // which might have generated the opening.
-      if (!this.opened) {
-        this._manager.removeOverlay(this);
-      }
-
       // Defer any animation-related code on attached
       // (_openedChanged gets called again on attached).
       if (!this.isAttached) {
@@ -346,8 +340,8 @@ context. You should place this element as a child of `<body>` whenever possible.
       // requestAnimationFrame for non-blocking rendering
       this.__openChangedAsync = window.requestAnimationFrame(function() {
         this.__openChangedAsync = null;
+        this._manager.addOrRemoveOverlay(this);
         if (this.opened) {
-          this._manager.addOverlay(this);
           this._prepareRenderOpened();
           this._renderOpened();
         } else {
@@ -420,10 +414,11 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderOpened: function() {
-
+      
       this.notifyResize();
       this.__isAnimating = false;
-
+      // Focus the child node with [autofocus]
+      this._applyFocus();
       // Store it so we don't query too much.
       var focusableNodes = this._focusableNodes;
       this.__firstFocusableNode = focusableNodes[0];
@@ -444,6 +439,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.notifyResize();
       this.__isAnimating = false;
+      this._applyFocus();
       this.fire('iron-overlay-closed', this.closingReason);
     },
 
@@ -473,6 +469,13 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
+      // We have to be careful to focus the next overlay _after_ any current
+      // transitions are complete (due to the state being toggled prior to the
+      // transition). Otherwise, we risk infinite recursion when a transitioning
+      // (closed) overlay becomes the current overlay.
+      if (this.__isAnimating) {
+        return;
+      }
       if (this.opened) {
         if (!this.noAutoFocus) {
           this._focusNode.focus();

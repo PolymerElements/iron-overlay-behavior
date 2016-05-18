@@ -15,8 +15,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 `iron-overlay-container` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
  caused by [the stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context).
 
-`iron-overlay-container` listens to `iron-overlay-template-attach` and appends the overlay into its `root`
-(ensuring style encapsulation).
+`iron-overlay-container` listens to [`iron-overlay-template-attach`](#overlay-template:event-iron-overlay-template-attach)
+and appends the overlay into its `root` (ensuring style encapsulation).
 It should be defined in the main stacking context (e.g. `document.body`):
 
     <body>

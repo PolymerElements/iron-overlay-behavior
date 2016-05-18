@@ -16,10 +16,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * `overlay-template` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
    * caused by [the stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context).
    *
-   * `overlay-template` stamps the overlay and notifies the document that the overlay should be
-   * appended by firing the `iron-overlay-template-attach` event.
-   * `iron-overlay-container` will listen to this event and append the overlay as its child. Ensure
-   * you declare at least one `iron-overlay-container` in your document.
+   * `overlay-template` stamps the overlay and notifies that the overlay should
+   * be appended by firing the event [`iron-overlay-template-attach`](#overlay-template:event-iron-overlay-template-attach).
+   *
+   * [`iron-overlay-container`](#iron-overlay-container) will listen to this event and
+   * append the overlay as its child. Ensure you declare at least one in your document.
    *
    * ### Styling
    * You can pass styles within the template:

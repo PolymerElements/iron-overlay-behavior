@@ -215,10 +215,13 @@ focus of an active element.
         ':not([disabled]):not([tabindex="-1"])';
 
       var focusables = Polymer.dom(root).querySelectorAll(selector);
-      if (root.hasAttribute('tabindex') && root.tabIndex >= 0) {
+
+      // For the root, we only check if it has a non-negative tabindex.
+      var rootTabindex = root.getAttribute('tabindex') || '-1';
+      if (Number(rootTabindex) >= 0) {
         // Insert at the beginning because we might have all elements with
         // tabIndex = 0, and the root should be the first of the list.
-        focusables.splice(0, 0, root);
+        focusables.unshift(root);
       }
       // Sort by tabindex.
       return focusables.sort(function (a, b) {

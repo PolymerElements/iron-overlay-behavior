@@ -67,9 +67,7 @@ Custom property | Description | Default
         /**
          * Which overlay types should be hosted in this container
          */
-        type: {
-          type: String
-        }
+        type: String
       },
       ready: function() {
         var host = Polymer.dom(this).getOwnerRoot() || document;
@@ -90,7 +88,8 @@ Custom property | Description | Default
           return;
         }
         overlay.backdropElement = this.$.backdrop;
-        Polymer.dom(this.root).insertBefore(event.detail, this.$.backdrop);
+        var instanceRoot = event.detail;
+        Polymer.dom(this.root).insertBefore(instanceRoot, this.$.backdrop);
         event.preventDefault();
         event.stopPropagation();
       }

@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="iron-overlay-backdrop.html">
 
 <!--
 `iron-overlay-container` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
@@ -55,8 +54,7 @@ Custom property | Description | Default
         @apply(--iron-overlay-container);
       }
     </style>
-    <content></content>
-    <iron-overlay-backdrop id="backdrop"></iron-overlay-backdrop>
+    <div id="overlays"></div>
   </template>
 
   <script>
@@ -67,11 +65,19 @@ Custom property | Description | Default
         /**
          * Which overlay types should be hosted in this container
          */
-        type: String
+        type: String,
+        /**
+         * If true, it will self-attach to `document.body` when it has at least
+         * one overlay, and detach itself when empty.
+         */
+        autoAttach: Boolean
       },
+
       ready: function() {
+        this._overlayRoots = [];
         var host = Polymer.dom(this).getOwnerRoot() || document;
         host.addEventListener('iron-overlay-template-attach', this._onAttachOverlay.bind(this));
+        host.addEventListener('iron-overlay-template-detach', this._onDetachOverlay.bind(this));
       },
 
       /**
@@ -83,17 +89,95 @@ Custom property | Description | Default
         if (event.defaultPrevented) {
           return;
         }
-        var overlay = Polymer.dom(event).rootTarget.overlay;
-        if (this.type && this.type !== overlay.tagName.toLowerCase()) {
+        // Check for the type. The event target is a <template is="overlay-template">
+        if (this.type && this.type !== Polymer.dom(event).rootTarget.overlay.tagName.toLowerCase()) {
           return;
         }
-        overlay.backdropElement = this.$.backdrop;
-        var instanceRoot = event.detail;
-        Polymer.dom(this.root).insertBefore(instanceRoot, this.$.backdrop);
         event.preventDefault();
         event.stopPropagation();
+
+        // event.detail is the instance root.
+        this._attachRoot(event.detail);
+        if (this.autoAttach && !this.parentNode) {
+          Polymer.dom(document.body).appendChild(this);
+        }
+      },
+
+      _attachRoot: function(root) {
+        this._overlayRoots.push(root);
+        // Create a separate container for each root.
+        var container = document.createElement('iron-overlay-host');
+        container.srcRoot = root;
+        Polymer.dom(this.$.overlays).appendChild(container);
+      },
+
+      _onDetachOverlay: function(event) {
+        if (event.defaultPrevented) {
+          return;
+        }
+        // event.detail is the instance root.
+        var i = this._overlayRoots.indexOf(event.detail);
+        if (i === -1) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this._detachRootAtIndex(i);
+      },
+
+      _detachRootAtIndex: function(idx) {
+        // Update roots.
+        this._overlayRoots.splice(idx, 1);
+        // Remove the container we created.
+        var container = this.$.overlays.children[idx];
+        Polymer.dom(this.$.overlays).removeChild(container);
+        // Check if it needs to detach itself.
+        if (this.autoAttach && this.parentNode && !this._overlayRoots.length) {
+          Polymer.dom(this.parentNode).removeChild(this);
+        }
       }
     });
   </script>
 
+</dom-module>
+
+
+<dom-module id="iron-overlay-host">
+  <template>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+      is: 'iron-overlay-host',
+      properties: {
+        srcRoot: {
+          type: DocumentFragment,
+          observer: '_srcRootChanged'
+        }
+      },
+
+      detached: function() {
+        // It will trigger the reparenting of children.
+        this.srcRoot = null;
+      },
+
+      _srcRootChanged: function(newSrc, oldSrc) {
+        if (oldSrc) {
+          this._moveChildrenTo(oldSrc);
+        }
+        if (newSrc) {
+          Polymer.dom(this).appendChild(newSrc);
+        }
+      },
+
+      _moveChildrenTo: function(root) {
+        var children = Polymer.dom(this).children;
+        var $root = Polymer.dom(root);
+        for (var i = 0; i < children.length; i++) {
+          $root.appendChild(children[i]);
+        }
+      }
+
+    });
+  </script>
 </dom-module>

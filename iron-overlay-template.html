@@ -52,17 +52,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this._overlay = null;
       // The stamped instance.
       this._root = null;
-      // The instance children; must keep track of these, as on detached we
-      // want to bring these back to the instance root.
+      // The instance children, so we can forward bindings.
       this._children = [];
+      this._host = null;
     },
 
     attached: function() {
       this._ensureAttached();
+      this._host = Polymer.dom(this).getOwnerRoot() || document;
     },
 
     detached: function() {
-      this._ensureDetached();
+      this.fire('iron-overlay-template-detach', this._root, {node: this._host});
+      this._host = null;
     },
 
     /**
@@ -153,26 +155,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       if (!this.isAttached || !overlay || overlay.isAttached || !overlay.opened) {
         return;
       }
-      // Copy children in a separate array, so we can bring them back to root on detach.
+      // Copy children in a separate array, as they'll be moved to another root.
       this._children = Array.prototype.slice.apply(this._root.children);
       var event = this.fire('iron-overlay-template-attach', this._root, {cancelable: true});
       // If overlay wasn't attached & the event not prevented, we create an `iron-overlay-container`.
       if (!event.defaultPrevented && !overlay.isAttached) {
         var container = document.createElement('iron-overlay-container');
-        document.body.appendChild(container);
+        container.autoAttach = true;
         this.fire('iron-overlay-template-attach', this._root, {cancelable: true});
       }
-    },
-
-    /**
-     * Brings the children back to the instance root from wherever they were.
-     * @private
-     */
-    _ensureDetached: function() {
-      for (var i = 0; i < this._children.length; i++) {
-        this._root.appendChild(this._children[i]);
-      }
-      this._children = [];
     }
   });
 

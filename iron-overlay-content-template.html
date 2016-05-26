@@ -38,7 +38,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     created: function() {
-      this._physicalItems = [];
+      // The stamped instance.
+      this._root = null;
+      // The instance children; must keep track of these, as on detached we
+      // want to bring these back to the instance root.
+      this._children = [];
     },
 
     attached: function() {
@@ -47,24 +51,48 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     },
 
-    _contentParentChanged: function() {
-      // We append the contents only once.
-      if (!this.isAttached || this.__instance) {
-        return;
-      }
-      this.templatize(this);
-      this.__instance = this.stamp();
-      this._physicalItems = this.__instance.root.querySelectorAll('*');
-      Polymer.dom(this.contentParent).appendChild(this.__instance.root);
+    detached: function() {
+      this._ensureDetached();
     },
 
     /**
-     * Implements extension point from Templatizer.
-     * Forward values to overlay instance.
+     * Stamps the template if needed, and appends its contents to the contentParent.
+     * @private
+     */
+    _contentParentChanged: function() {
+      if (!this.isAttached) {
+        return;
+      }
+      if (!this._root) {
+        this.templatize(this);
+        this._root = this.stamp().root;
+      } else {
+        // Bring children back to root.
+        this._ensureDetached();
+      }
+      // Store children & append to new content parent.
+      this._children = Array.prototype.slice.apply(this._root.children);
+      Polymer.dom(this.contentParent).appendChild(this._root);
+    },
+
+    /**
+     * Brings the children back to the instance root from wherever they were.
+     * @private
+     */
+    _ensureDetached: function() {
+      for (var i = 0; i < this._children.length; i++) {
+        this._root.appendChild(this._children[i]);
+      }
+      this._children = [];
+    },
+
+    /**
+     * Implements extension point from `Polymer.Templatizer`.
+     * Forward values to the stamped children.
      */
     _forwardParentProp: function(prop, value) {
-      for (var i = 0; i < this._physicalItems.length; i++) {
-        var inst = this._physicalItems[i]._templateInstance;
+      for (var i = 0; i < this._children.length; i++) {
+        var inst = this._children[i]._templateInstance;
         // Might be undefined (e.g. for template elements)
         if (inst) {
           inst[prop] = value;

@@ -41,17 +41,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @type {Node}
      */
     get overlay() {
-      var template = Polymer.dom(this.root).querySelector('template[is="overlay-template"]');
-      return template.overlay;
+      // Lazily distribute content.
+      this._distributeOverlayContent();
+      return this.__overlayTemplate.overlay;
     },
 
     ready: function() {
-      var overlay = this.overlay;
-      var content = this.queryEffectiveChildren('template[is="overlay-content"]');
-      if (content) {
-        // Stamp in an insertion point or the overlay itself.
-        content.contentParent = Polymer.dom(overlay).querySelector('[overlay-content-parent]') || overlay;
-      }
+      // Memoize the `overlay-template`.
+      this.__overlayTemplate = Polymer.dom(this.root).querySelector('template[is="overlay-template"]');
     },
 
     /**
@@ -73,6 +70,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     toggle: function() {
       this.overlay.toggle();
+    },
+
+    /**
+     * Distributes the contents of <template is="overlay-content"> into the overlay.
+     * @protected
+     */
+    _distributeOverlayContent: function() {
+      var overlay = this.__overlayTemplate.overlay;
+      var content = this.queryEffectiveChildren('template[is="overlay-content"]');
+      if (content) {
+        // Stamp in an insertion point or the overlay itself.
+        content.contentParent = Polymer.dom(overlay).querySelector('[overlay-content-parent]') || overlay;
+      }
     }
   };
 </script>

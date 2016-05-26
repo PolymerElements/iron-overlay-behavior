@@ -9,7 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="iron-overlay-manager.html">
 <link rel="import" href="iron-overlay-container.html">
 
 <script>
@@ -81,8 +80,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Ensures the instance is stamped, checks if it contains an overlay.
-     * Listens to overlay `opened` changes to delay its attach.
+     * Ensures the instance is stamped and listens to overlay `opened` changes.
      * @private
      */
     _ensureStamped: function() {
@@ -90,18 +88,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return;
       }
       this.templatize(this);
-      var inst = this.stamp();
-      var overlay = this._getOverlay(inst.root);
-      if (!overlay) {
-        throw Error('does not contain an overlay.');
-      }
-      this._root = inst.root;
-      this._overlay = overlay;
+      this._root = this.stamp().root;
+
       // Polymer removes styles when included into nested templates.
       // FIXME(valdrin) remove this when Polymer gets fixed.
-      this._convertScriptsToStyles(inst.root);
+      this._convertScriptsToStyles(this._root);
+
+      this._overlay = this._getOverlay(this._root);
       // Listen to `opened` changes to delay the attach to when the overlay is opened.
-      overlay.addEventListener('opened-changed', this._ensureAttached.bind(this));
+      this._overlay.addEventListener('opened-changed', this._ensureAttached.bind(this));
     },
 
     /**
@@ -113,7 +108,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _getOverlay: function(root) {
       var children = root.children;
       for (var i = 0; i < children.length; i++) {
-        if (Polymer.IronOverlayManager.isOverlay(children[i])) {
+        var name = children[i].tagName.toLowerCase();
+        if (name !== 'script' && name !== 'style' && name !== 'link') {
           return children[i];
         }
       }

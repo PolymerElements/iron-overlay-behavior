@@ -46,6 +46,10 @@ Set the `with-backdrop` attribute to display a backdrop behind the overlay. The 
 appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
 options.
 
+In addition, `with-backdrop` will wrap the focus within the content in the light DOM.
+Override the [`_focusableNodes` getter](#Polymer.IronOverlayBehavior:property-_focusableNodes)
+to achieve a different behavior.
+
 ### Limitations
 
 The element is styled to appear on top of other content by setting its `z-index` property. You
@@ -81,7 +85,8 @@ context. You should place this element as a child of `<body>` whenever possible.
       },
 
       /**
-       * Set to true to display a backdrop behind the overlay.
+       * Set to true to display a backdrop behind the overlay. It traps the focus
+       * within the light DOM of the overlay.
        */
       withBackdrop: {
         observer: '_withBackdropChanged',

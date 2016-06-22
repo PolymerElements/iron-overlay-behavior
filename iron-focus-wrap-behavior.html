@@ -1,0 +1,237 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+
+<script>
+(function() {
+'use strict';
+
+/**
+`Polymer.IronFocusWrapBehavior` can wrap (and trap) the focus within an element
+as soon as it gets focused, by listening at `TAB` keyboard events.
+
+When `TAB` is pressed and the `lastFocusable` is already focused, `IronFocusWrapBehavior`
+will move the focus to `firstFocusable`.
+Likewise, when `Shift+TAB` is pressed and the `firstFocusable` is already focused,
+`IronFocusWrapBehavior` will move the focus to `lastFocusable`.
+
+    <button id="first">first</button>
+    <content></content>
+    <button id="last">last</button>
+
+    ...
+
+    ready: function() {
+      this.wrapFocus = true;
+      this.firstFocusable = this.$.first;
+      this.lastFocusable = this.$.last;
+    }
+
+In addition, `Polymer.IronFocusWrapBehavior` can be used to save and restore the
+focus of an active element.
+
+    // Before moving the focus, store the deep active element.
+    this.saveDeepActiveElement();
+    this.focus();
+
+    // later on...
+    this.blur();
+    this.restoreDeepActiveElement();
+
+@demo demo/index.html
+@polymerBehavior Polymer.IronFocusWrapBehavior
+*/
+
+  Polymer.IronFocusWrapBehaviorImpl = {
+
+    properties: {
+      /**
+       * The first focusable element. It should be a child of the element or the
+       * element itself. Defaults to `this`.
+       * @type {Element}
+       */
+      firstFocusable: {
+        type: Element,
+        value: function() {
+          return this;
+        }
+      },
+
+      /**
+       * The last focusable element. It should be a child of the element or the
+       * element itself. Defaults to `this`.
+       * @type {Element}
+       */
+      lastFocusable: {
+        type: Element,
+        value: function() {
+          return this;
+        }
+      },
+
+      /**
+       * If true, it will wrap the focus on `TAB` or `Shift+TAB` when the focus
+       * is already in the element.
+       */
+      wrapFocus: Boolean
+    },
+
+    ready: function() {
+      this.__deepActiveElement = null;
+      this.addOwnKeyBinding('tab', '__onTab');
+    },
+
+    /**
+     * Stores the current `deepActiveElement`. Focus can be restored to this
+     * element using `restoreDeepActiveElement()`.
+     */
+    saveDeepActiveElement: function() {
+      this.__deepActiveElement = this.__getDeepActiveElement();
+    },
+
+    /**
+     * Restores the focus to the stored `deepActiveElement`.
+     */
+    restoreDeepActiveElement: function() {
+      // Focus back only if still contained in document.body.
+      var node = this.__deepActiveElement;
+      if (node && Polymer.dom(document.body).deepContains(node)) {
+        node.focus();
+      } else {
+        this.__deepActiveElement = null;
+      }
+    },
+
+    /**
+     * Searches and sets the `firstFocusable` and `lastFocusable`. This is very
+     * expensive and you're encouraged to set first and last focusable yourself
+     * if you know the content.
+     * @param {Element=} root The node where to search, defaults to `this`.
+     * @protected
+     */
+    _searchAndSetFocusables: function(root) {
+      var focusableNodes = this.__getFocusableNodes(root);
+      this.firstFocusable = focusableNodes[0];
+      this.lastFocusable = focusableNodes[focusableNodes.length - 1];
+    },
+
+    /**
+     * Handles TAB key events to track focus changes and wraps the focus.
+     * @param {!Event} event
+     * @private
+     */
+    __onTab: function(event) {
+      if (!this.wrapFocus) {
+        return;
+      }
+      // TAB wraps from last to first focusable.
+      // Shift + TAB wraps from first to last focusable.
+      var shift = event.detail.keyboardEvent.shiftKey;
+      var nodeToCheck = shift ? this.firstFocusable : this.lastFocusable;
+      var nodeToSet = shift ? this.lastFocusable : this.firstFocusable;
+      var shouldWrap = false;
+      if (nodeToCheck === nodeToSet) {
+        // If nodeToCheck is the same as nodeToSet, it means we have an element
+        // with 0 or 1 focusables; in either case we still need to trap the
+        // focus within the element.
+        shouldWrap = true;
+      } else if (nodeToCheck && nodeToSet) {
+        // If the active element is not the nodeToCheck but the element itself,
+        // it means the focus is about to go outside the element, hence we
+        // should prevent that (e.g. user opens the element and hit Shift+TAB).
+        var focusedNode = this.__getDeepActiveElement();
+        shouldWrap = (focusedNode === nodeToCheck || focusedNode === this);
+      }
+
+      if (shouldWrap) {
+        // When the element contains the last focusable element of the document
+        // and it's already focused, pressing TAB would move the focus outside
+        // the document (e.g. to the browser search bar). Similarly, when the
+        // element contains the first focusable element of the document and it's
+        // already focused, pressing Shift+TAB would move the focus outside the
+        // document (e.g. to the browser search bar).
+        // In both cases, we would not receive a focus event, but only a blur.
+        // In order to achieve focus wrapping, we prevent this TAB event and
+        // force the focus. This will also prevent the focus to temporarily move
+        // outside the element, which might cause scrolling.
+        event.preventDefault();
+        nodeToSet && nodeToSet.focus();
+      }
+    },
+
+    /**
+     * The deepest active element.
+     * @type {!Element} activeElement
+     */
+    __getDeepActiveElement: function() {
+      // document.activeElement can be null
+      // https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement
+      // In case of null, default it to document.body.
+      var active = document.activeElement || document.body;
+      while (active.root && Polymer.dom(active.root).activeElement) {
+        active = Polymer.dom(active.root).activeElement;
+      }
+      return active;
+    },
+
+    /**
+     * Array of nodes that can receive focus (root included), ordered by `tabindex`.
+     * @param {Element=} root The node where to search, defaults to `this`.
+     * @returns {Array<Node>}
+     * @private
+     */
+    __getFocusableNodes: function(root) {
+      root = root || this;
+      // Elements that can be focused even if they have [disabled] attribute.
+      var FOCUSABLE_WITH_DISABLED = [
+        'a[href]',
+        'area[href]',
+        'iframe',
+        '[tabindex]',
+        '[contentEditable=true]'
+      ];
+
+      // Elements that cannot be focused if they have [disabled] attribute.
+      var FOCUSABLE_WITHOUT_DISABLED = [
+        'input',
+        'select',
+        'textarea',
+        'button'
+      ];
+
+      // Discard elements with tabindex=-1 (makes them not focusable).
+      var selector = FOCUSABLE_WITH_DISABLED.join(':not([tabindex="-1"]),') +
+        ':not([tabindex="-1"]),' +
+        FOCUSABLE_WITHOUT_DISABLED.join(':not([disabled]):not([tabindex="-1"]),') +
+        ':not([disabled]):not([tabindex="-1"])';
+
+      var focusables = Polymer.dom(root).querySelectorAll(selector);
+
+      // For the root, we only check if it has a non-negative tabindex.
+      var rootTabindex = root.getAttribute('tabindex') || '-1';
+      if (Number(rootTabindex) >= 0) {
+        // Insert at the beginning because we might have all elements with
+        // tabIndex = 0, and the root should be the first of the list.
+        focusables.unshift(root);
+      }
+      // Sort by tabindex.
+      return focusables.sort(function (a, b) {
+        return a.tabIndex - b.tabIndex;
+      });
+    },
+  };
+
+  /** @polymerBehavior */
+  Polymer.IronFocusWrapBehavior = [Polymer.IronA11yKeysBehavior, Polymer.IronFocusWrapBehaviorImpl];
+
+})();
+</script>

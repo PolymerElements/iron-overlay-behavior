@@ -1,0 +1,420 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-focus-wrap-behavior.html">
+<link rel="import" href="iron-overlay-manager.html">
+
+<script>
+(function() {
+'use strict';
+
+/**
+Use `Polymer.IronOverlayBaseBehavior` to implement an element that can be hidden or shown, and displays
+on top of other content. It includes an optional backdrop, and can be used to implement a variety
+of UI controls including dialogs and drop downs. Multiple overlays may be displayed at once.
+
+### Closing and canceling
+
+A dialog may be hidden by closing or canceling. The difference between close and cancel is user
+intent. Closing generally implies that the user acknowledged the content on the overlay. By default,
+it will cancel whenever the user taps outside it or presses the escape key. This behavior is
+configurable with the `no-cancel-on-esc-key` and the `no-cancel-on-outside-click` properties.
+`close()` should be called explicitly by the implementer when the user interacts with a control
+in the overlay element. When the dialog is canceled, the overlay fires an 'iron-overlay-canceled'
+event. Call `preventDefault` on this event to prevent the overlay from closing.
+
+### Backdrop
+
+Set the `with-backdrop` attribute to display a backdrop behind the overlay. The backdrop is
+appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
+options.
+
+### Limitations
+
+The element is styled to appear on top of other content by setting its `z-index` property. You
+must ensure no element has a stacking context with a higher `z-index` than its parent stacking
+context. You should place this element as a child of `<body>` whenever possible.
+
+@demo demo/index.html
+@polymerBehavior Polymer.IronOverlayBaseBehavior
+*/
+
+  Polymer.IronOverlayBaseBehaviorImpl = {
+
+    properties: {
+
+      /**
+       * True if the overlay is currently displayed.
+       */
+      opened: {
+        observer: '_openedChanged',
+        type: Boolean,
+        value: false,
+        notify: true
+      },
+
+      /**
+       * True if the overlay was canceled when it was last closed.
+       */
+      canceled: {
+        observer: '_canceledChanged',
+        readOnly: true,
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Set to true to display a backdrop behind the overlay.
+       */
+      withBackdrop: {
+        observer: '_withBackdropChanged',
+        type: Boolean
+      },
+
+      /**
+       * Set to true to disable auto-focusing the overlay or child nodes with
+       * the `autofocus` attribute` when the overlay is opened.
+       */
+      noAutoFocus: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Set to true to disable canceling the overlay with the ESC key.
+       */
+      noCancelOnEscKey: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Set to true to disable canceling the overlay by clicking outside it.
+       */
+      noCancelOnOutsideClick: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Contains the reason(s) this overlay was last closed (see `iron-overlay-closed`).
+       * `IronOverlayBaseBehavior` provides the `canceled` reason; implementers of the
+       * behavior can provide other reasons in addition to `canceled`.
+       */
+      closingReason: {
+        // was a getter before, but needs to be a property so other
+        // behaviors can override this.
+        type: Object
+      },
+
+      /**
+       * Set to true to enable restoring of focus when overlay is closed.
+       */
+      restoreFocusOnClose: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Set to true to keep overlay always on top.
+       */
+      alwaysOnTop: {
+        type: Boolean
+      },
+
+      /**
+       * Is true during the transition from close to open and open to close.
+       */
+      transitioning: {
+        type: Boolean,
+        readOnly: true
+      },
+
+      /**
+       * Shortcut to access to the overlay manager.
+       * @private
+       * @type {Polymer.IronOverlayManagerClass}
+       */
+      _manager: {
+        type: Object,
+        value: Polymer.IronOverlayManager
+      }
+
+    },
+
+    /**
+     * The backdrop element.
+     * @type {Element}
+     */
+    get backdropElement() {
+      return this._manager.backdropElement;
+    },
+
+    /**
+     * Returns the node to give focus to.
+     * @type {Node}
+     */
+    get _focusNode() {
+      return Polymer.dom(this).querySelector('[autofocus]') || this;
+    },
+
+    ready: function() {
+      // with-backdrop needs tabindex to be set in order to trap the focus.
+      // If it is not set, IronOverlayBaseBehavior will set it, and remove it if with-backdrop = false.
+      this.__shouldRemoveTabIndex = false;
+      // Used for requestAnimationFrame when opened changes.
+      this.__openChangedAsync = null;
+      // Ensure it is invisible.
+      this.style.outline = 'none';
+      this.style.display = 'none';
+    },
+
+    attached: function() {
+      // Call _openedChanged here so that position can be computed correctly.
+      if (this.opened) {
+        this._openedChanged(this.opened);
+      }
+    },
+
+    detached: function() {
+      if (this.__openChangedAsync) {
+        window.cancelAnimationFrame(this.__openChangedAsync);
+        this.__openChangedAsync = null;
+      }
+      this._manager.removeOverlay(this);
+    },
+
+    /**
+     * Toggle the opened state of the overlay.
+     */
+    toggle: function() {
+      this._setCanceled(false);
+      this.opened = !this.opened;
+    },
+
+    /**
+     * Open the overlay.
+     */
+    open: function() {
+      this._setCanceled(false);
+      this.opened = true;
+    },
+
+    /**
+     * Close the overlay.
+     */
+    close: function() {
+      this._setCanceled(false);
+      this.opened = false;
+    },
+
+    /**
+     * Cancels the overlay.
+     * @param {Event=} event The original event
+     */
+    cancel: function(event) {
+      var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true});
+      if (cancelEvent.defaultPrevented) {
+        return;
+      }
+
+      this._setCanceled(true);
+      this.opened = false;
+    },
+
+    /**
+     * Called when `opened` has changed.
+     * @param {boolean=} opened
+     * @protected
+     */
+    _openedChanged: function(opened) {
+      if (opened) {
+        this.removeAttribute('aria-hidden');
+      } else {
+        this.setAttribute('aria-hidden', 'true');
+      }
+
+      // Defer any animation-related code on attached
+      // (_openedChanged gets called again on attached).
+      if (!this.isAttached) {
+        return;
+      }
+
+      this._setTransitioning(true);
+
+      // requestAnimationFrame for non-blocking rendering
+      if (this.__openChangedAsync) {
+        window.cancelAnimationFrame(this.__openChangedAsync);
+      }
+      this.__openChangedAsync = window.requestAnimationFrame(function() {
+        this.__openChangedAsync = null;
+        if (opened) {
+          // Save current focus.
+          this.saveDeepActiveElement();
+          // Make the overlay visible.
+          this._prepareRenderOpened();
+          // Manager will set the correct z-index.
+          this._manager.addOverlay(this);
+          // Safari7 applies the focus to the autofocus element when displayed
+          // for the first time. Make sure the deepActiveElement is preserved.
+          if (this.noAutoFocus) {
+            this._focusNode.blur();
+            this.restoreDeepActiveElement();
+          }
+          this._renderOpened();
+        } else {
+          this._renderClosed();
+        }
+      }.bind(this));
+    },
+
+    _canceledChanged: function() {
+      this.closingReason = this.closingReason || {};
+      this.closingReason.canceled = this.canceled;
+    },
+
+    _withBackdropChanged: function() {
+
+      this.wrapFocus = this.withBackdrop;
+
+      // If tabindex is already set, no need to override it.
+      if (this.withBackdrop && !this.hasAttribute('tabindex')) {
+        this.setAttribute('tabindex', '-1');
+        this.__shouldRemoveTabIndex = true;
+      } else if (this.__shouldRemoveTabIndex) {
+        this.removeAttribute('tabindex');
+        this.__shouldRemoveTabIndex = false;
+      }
+      if (this.opened && this.isAttached) {
+        this._manager.trackBackdrop();
+      }
+    },
+
+    /**
+     * Tasks which must occur before opening; e.g. making the element visible.
+     * @protected
+     */
+    _prepareRenderOpened: function() {
+      this.style.display = '';
+      // Force reflow, so that following animations are properly started.
+      // Set scrollTop to itself so that Closure Compiler doesn't remove this.
+      this.scrollTop = this.scrollTop;
+    },
+
+    /**
+     * Tasks which cause the overlay to actually open; typically play an animation.
+     * @protected
+     */
+    _renderOpened: function() {
+      this._finishRenderOpened();
+    },
+
+    /**
+     * Tasks which cause the overlay to actually close; typically play an animation.
+     * @protected
+     */
+    _renderClosed: function() {
+      this._finishRenderClosed();
+    },
+
+    /**
+     * Tasks to be performed at the end of open action. Will fire `iron-overlay-opened`.
+     * @protected
+     */
+    _finishRenderOpened: function() {
+      this._searchAndSetFocusables();
+
+      this._setTransitioning(false);
+      this._applyFocus();
+      this.fire('iron-overlay-opened');
+    },
+
+    /**
+     * Tasks to be performed at the end of close action. Will fire `iron-overlay-closed`.
+     * @protected
+     */
+    _finishRenderClosed: function() {
+      // Hide the overlay and remove the backdrop.
+      this.style.display = 'none';
+      this._manager.removeOverlay(this);
+
+      if (this.restoreFocusOnClose) {
+        this.restoreDeepActiveElement();
+      }
+
+      this._setTransitioning(false);
+      this._applyFocus();
+      this.fire('iron-overlay-closed', this.closingReason);
+    },
+
+    /**
+     * Applies focus according to the opened state.
+     * @protected
+     */
+    _applyFocus: function() {
+      if (!this.opened) {
+        this._focusNode.blur();
+        this._manager.focusOverlay();
+      } else if (!this.noAutoFocus) {
+        this._focusNode.focus();
+      }
+    },
+
+    /**
+     * Cancels (closes) the overlay. Called when click happens outside the overlay.
+     * @param {!Event} event
+     * @protected
+     */
+    _onCaptureClick: function(event) {
+      if (!this.noCancelOnOutsideClick) {
+        this.cancel(event);
+      } else if (this.wrapFocus) {
+        this._applyFocus();
+      }
+    },
+
+    /**
+     * Handles the ESC key event and cancels (closes) the overlay.
+     * @param {!Event} event
+     * @protected
+     */
+    _onCaptureEsc: function(event) {
+      if (!this.noCancelOnEscKey) {
+        this.cancel(event);
+      }
+    }
+  };
+
+  /** @polymerBehavior */
+  Polymer.IronOverlayBaseBehavior = [Polymer.IronFocusWrapBehavior, Polymer.IronOverlayBaseBehaviorImpl];
+
+  /**
+   * Fired after the overlay opens.
+   * @event iron-overlay-opened
+   */
+
+  /**
+   * Fired when the overlay is canceled, but before it is closed.
+   * @event iron-overlay-canceled
+   * @param {Event} event The closing of the overlay can be prevented
+   * by calling `event.preventDefault()`. The `event.detail` is the original event that
+   * originated the canceling (e.g. ESC keyboard event or click event outside the overlay).
+   */
+
+  /**
+   * Fired after the overlay closes.
+   * @event iron-overlay-closed
+   * @param {Event} event The `event.detail` is the `closingReason` property
+   * (contains `canceled`, whether the overlay was canceled).
+   */
+
+})();
+</script>

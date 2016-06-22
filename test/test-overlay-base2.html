@@ -9,30 +9,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../polymer/polymer.html">
-<link rel="import" href="test-overlay-base.html">
 
-<dom-module id="test-menu-button">
+<link rel="import" href="../iron-overlay-base-behavior.html">
+
+<dom-module id="test-overlay-base2">
+
+  <style>
+    :host {
+      background: orange;
+      color: blue;
+      border: 1px solid gray;
+      position: fixed;
+      top: 5px;
+      right: 5px;
+    }
+  </style>
 
   <template>
-    <button id="trigger" on-click="toggle">Open</button>
-    <test-overlay-base id="overlay">
-      Composed overlay
-      <button>button 1</button>
-      <button>button 2</button>
-    </test-overlay-base>
+    <content></content>
   </template>
 
 </dom-module>
 
 <script>
+  (function() {
 
-(function() {
-  Polymer({
-    is: 'test-menu-button',
-    toggle: function() {
-      this.$.overlay.toggle();
-    }
-  });
-})();
+    Polymer({
 
+      is: 'test-overlay-base2',
+
+      behaviors: [
+        Polymer.IronOverlayBaseBehavior
+      ]
+
+    });
+
+  })();
 </script>

@@ -187,45 +187,50 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     get _focusableNodes() {
-      // Elements that can be focused even if they have [disabled] attribute.
-      var FOCUSABLE_WITH_DISABLED = [
-        'a[href]',
-        'area[href]',
-        'iframe',
-        '[tabindex]',
-        '[contentEditable=true]'
-      ];
+      var result = [];
+      // If root has non-negative tabindex, it should be the first of the list.
+      var rootTabindex = this.hasAttribute('tabindex') ? this.tabIndex : -1;
+      rootTabindex >= 0 && result.push(this);
+      // If there is at least one element with tabindex > 0, we need to sort
+      // the final array by tabindex.
+      var needsSort = rootTabindex > 0;
 
-      // Elements that cannot be focused if they have [disabled] attribute.
-      var FOCUSABLE_WITHOUT_DISABLED = [
-        'input',
-        'select',
-        'textarea',
-        'button'
-      ];
-
-      // Discard elements with tabindex=-1 (makes them not focusable).
-      var selector = FOCUSABLE_WITH_DISABLED.join(':not([tabindex="-1"]),') +
-        ':not([tabindex="-1"]),' +
-        FOCUSABLE_WITHOUT_DISABLED.join(':not([disabled]):not([tabindex="-1"]),') +
-        ':not([disabled]):not([tabindex="-1"])';
-
-      var focusables = Polymer.dom(this).querySelectorAll(selector);
-      if (this.tabIndex >= 0) {
-        // Insert at the beginning because we might have all elements with tabIndex = 0,
-        // and the overlay should be the first of the list.
-        focusables.splice(0, 0, this);
+      var focusableChildren = Polymer.dom(this).querySelectorAll(
+        // Elements that can be focused even if they have [disabled] attribute.
+        'a[href], area[href], iframe, [tabindex], [contentEditable], ' +
+        // Elements that cannot be focused if they have [disabled] attribute.
+        'input:not([disabled]), select:not([disabled]), ' +
+        'textarea:not([disabled]), button:not([disabled])'
+      );
+      for (var i = 0; i < focusableChildren.length; i++) {
+        var focusable = focusableChildren[i];
+        // Discard elements with negative tabindex.
+        if (focusable.tabIndex < 0) {
+          continue;
+        }
+        // Keep only visible focusables.
+        var style = window.getComputedStyle(focusable);
+        if (style.visibility !== 'hidden' && style.display !== 'none') {
+          needsSort = needsSort || focusable.tabIndex > 0;
+          result.push(focusable);
+        }
       }
-      // Sort by tabindex.
-      return focusables.sort(function (a, b) {
-        if (a.tabIndex === b.tabIndex) {
-          return 0;
-        }
-        if (a.tabIndex === 0 || a.tabIndex > b.tabIndex) {
-          return 1;
-        }
-        return -1;
-      });
+
+      if (needsSort) {
+        // Sort by tabindex. Move elements with tabindex = 0 to the end to match
+        // browser behavior, e.g. [0, 3, 1, 2] --> [1, 2, 3, 0]
+        result.sort(function tabIndexCompare(a, b) {
+          // Move tabindex = 0 elements to the end of the list.
+          if (a.tabIndex === 0 || b.tabIndex === 0) {
+            // The one with bigger `tabindex` goes on top of the list.
+            return b.tabIndex - a.tabIndex;
+          }
+          // The one with smaller `tabindex` goes on top of the list.
+          return a.tabIndex - b.tabIndex;
+        });
+      }
+
+      return result;
     },
 
     ready: function() {
@@ -286,7 +291,9 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @param {Event=} event The original event
      */
     cancel: function(event) {
-      var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true});
+      var cancelEvent = this.fire('iron-overlay-canceled', event, {
+        cancelable: true
+      });
       if (cancelEvent.defaultPrevented) {
         return;
       }
@@ -491,7 +498,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @param {!Event} event
      * @protected
      */
-    _onCaptureFocus: function (event) {
+    _onCaptureFocus: function(event) {
       if (!this.withBackdrop) {
         return;
       }

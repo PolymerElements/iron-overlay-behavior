@@ -34,6 +34,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           transition: none;
         }
       }
+
+      .hidden {
+        visibility: hidden;
+      }
+
+      .no-display {
+        display: none;
+      }
     </style>
 
   </head>
@@ -571,6 +579,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var focusableNodes = overlay._focusableNodes;
           assert.equal(focusableNodes.length, 4, '4 focusable nodes');
           assert.notEqual(focusableNodes.indexOf(overlay), -1, 'overlay is included');
+        });
+
+        test('_focusableNodes filters out visibility: hidden elements', function() {
+          var focusable = Polymer.dom(overlay).querySelector('.focusable1');
+          focusable.classList.add('hidden');
+          var focusableNodes = overlay._focusableNodes;
+          assert.equal(focusableNodes.length, 2, '2 focusable nodes');
+          assert.equal(focusableNodes.indexOf(focusable), -1, 'hidden element is not included');
+        });
+
+        test('_focusableNodes filters out display: none elements', function() {
+          var focusable = Polymer.dom(overlay).querySelector('.focusable1');
+          focusable.classList.add('no-display');
+          var focusableNodes = overlay._focusableNodes;
+          assert.equal(focusableNodes.length, 2, '2 focusable nodes');
+          assert.equal(focusableNodes.indexOf(focusable), -1, 'hidden element is not included');
         });
 
         test('_focusableNodes respects the tabindex order', function() {

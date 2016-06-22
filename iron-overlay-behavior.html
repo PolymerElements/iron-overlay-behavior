@@ -405,11 +405,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.notifyResize();
       this.__isAnimating = false;
 
-      // Store it so we don't query too much.
-      var focusableNodes = this._focusableNodes;
-      this.__firstFocusableNode = focusableNodes[0];
-      this.__lastFocusableNode = focusableNodes[focusableNodes.length - 1];
-
       this.fire('iron-overlay-opened');
     },
 
@@ -529,8 +524,9 @@ context. You should place this element as a child of `<body>` whenever possible.
       // TAB wraps from last to first focusable.
       // Shift + TAB wraps from first to last focusable.
       var shift = event.shiftKey;
-      var nodeToCheck = shift ? this.__firstFocusableNode : this.__lastFocusableNode;
-      var nodeToSet = shift ? this.__lastFocusableNode : this.__firstFocusableNode;
+      var focusableNodes = this._focusableNodes;
+      var nodeToCheck = focusableNodes[shift ? 0 : focusableNodes.length - 1];
+      var nodeToSet = focusableNodes[shift ? focusableNodes.length - 1 : 0];
       var shouldWrap = false;
       if (nodeToCheck === nodeToSet) {
         // If nodeToCheck is the same as nodeToSet, it means we have an overlay

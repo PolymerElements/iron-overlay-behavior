@@ -488,23 +488,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('with-backdrop traps the focus within the overlay', function(done) {
-          var focusSpy = sinon.stub();
-          var button = document.createElement('button');
-          document.body.appendChild(button);
-          button.addEventListener('focus', focusSpy, true);
-
-          overlay.withBackdrop = true;
-          runAfterOpen(overlay, function() {
-            // Try to steal the focus
-            MockInteractions.focus(button);
-            assert.equal(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, '<button autofocus> is focused');
-            assert.equal(focusSpy.callCount, 0, 'button in body did not get the focus');
-            document.body.removeChild(button);
-            done();
-          });
-        });
-
         test('overlay with-backdrop and 1 focusable: prevent TAB and trap the focus', function(done) {
           overlay.withBackdrop = true;
           runAfterOpen(overlay, function() {

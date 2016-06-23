@@ -43,7 +43,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer.Gestures.add(document, 'tap', null);
     // Need to have useCapture=true, Polymer.Gestures doesn't offer that.
     document.addEventListener('tap', this._onCaptureClick.bind(this), true);
-    document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
     document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
   };
 
@@ -350,18 +349,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Check if clicked outside of top overlay.
       if (overlay && this._overlayInPath(Polymer.dom(event).path) !== overlay) {
         overlay._onCaptureClick(event);
-      }
-    },
-
-    /**
-     * Ensures the focus event is delegated to the right overlay.
-     * @param {!Event} event
-     * @private
-     */
-    _onCaptureFocus: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
-      if (overlay) {
-        overlay._onCaptureFocus(event);
       }
     },
 

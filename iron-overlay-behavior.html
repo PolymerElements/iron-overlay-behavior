@@ -144,14 +144,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       _manager: {
         type: Object,
         value: Polymer.IronOverlayManager
-      },
-
-      /**
-       * The node being focused.
-       * @type {?Node}
-       */
-      _focusedChild: {
-        type: Object
       }
 
     },
@@ -173,7 +165,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @type {Node}
      */
     get _focusNode() {
-      return this._focusedChild || Polymer.dom(this).querySelector('[autofocus]') || this;
+      return Polymer.dom(this).querySelector('[autofocus]') || this;
     },
 
     /**
@@ -464,14 +456,10 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _applyFocus: function() {
-      if (this.opened) {
-        if (!this.noAutoFocus) {
-          this._focusNode.focus();
-        }
-      } else {
-        this._focusNode.blur();
-        this._focusedChild = null;
+      if (!this.opened) {
         this._manager.focusOverlay();
+      } else if (!this.noAutoFocus) {
+        this._focusNode.focus();
       }
     },
 
@@ -483,24 +471,8 @@ context. You should place this element as a child of `<body>` whenever possible.
     _onCaptureClick: function(event) {
       if (!this.noCancelOnOutsideClick) {
         this.cancel(event);
-      }
-    },
-
-    /**
-     * Keeps track of the focused child. If withBackdrop, traps focus within overlay.
-     * @param {!Event} event
-     * @protected
-     */
-    _onCaptureFocus: function (event) {
-      if (!this.withBackdrop) {
-        return;
-      }
-      var path = Polymer.dom(event).path;
-      if (path.indexOf(this) === -1) {
-        event.stopPropagation();
-        this._applyFocus();
       } else {
-        this._focusedChild = path[0];
+        this._applyFocus();
       }
     },
 
@@ -538,8 +510,8 @@ context. You should place this element as a child of `<body>` whenever possible.
         shouldWrap = true;
       } else {
         // In dom=shadow, the manager will receive focus changes on the main
-        // root but not the ones within other shadow roots, so we can't rely on
-        // _focusedChild, but we should check the deepest active element.
+        // root but not the ones within other shadow roots, so we should check
+        // the deepest active element.
         var focusedNode = this._manager.deepActiveElement;
         // If the active element is not the nodeToCheck but the overlay itself,
         // it means the focus is about to go outside the overlay, hence we
@@ -559,8 +531,11 @@ context. You should place this element as a child of `<body>` whenever possible.
         // force the focus. This will also prevent the focus to temporarily move
         // outside the overlay, which might cause scrolling.
         event.preventDefault();
-        this._focusedChild = nodeToSet;
-        this._applyFocus();
+        if (nodeToSet) {
+          nodeToSet.focus();
+        } else {
+          this._applyFocus();
+        }
       }
     },
 

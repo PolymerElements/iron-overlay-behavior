@@ -268,12 +268,9 @@ context. You should place this element as a child of `<body>` whenever possible.
     detached: function() {
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
+      this.__openedChangedRAF && window.cancelAnimationFrame(this.__openedChangedRAF);
+      this.__openedChangedRAF = null;
       this._manager.removeOverlay(this);
-      if (this.__openedChangedRAF) {
-        window.cancelAnimationFrame(this.__openedChangedRAF);
-        this.__openedChangedRAF = null;
-      }
-      this.opened = false;
     },
 
     /**
@@ -305,9 +302,6 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @param {Event=} event The original event
      */
     cancel: function(event) {
-      if (!this.opened) {
-        return;
-      }
       var cancelEvent = this.fire('iron-overlay-canceled', event, {cancelable: true});
       if (cancelEvent.defaultPrevented) {
         return;
@@ -347,26 +341,9 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._setTransitioning(true);
 
       // Use requestAnimationFrame for non-blocking rendering.
-      if (this.__openedChangedRAF) {
-        window.cancelAnimationFrame(this.__openedChangedRAF);
-      }
+      this.__openedChangedRAF && window.cancelAnimationFrame(this.__openedChangedRAF);
       this.__openedChangedRAF = window.requestAnimationFrame(function() {
         this.__openedChangedRAF = null;
-        // Update the manager asynchronously, so that the triggering event that
-        // might have caused this opened change won't affect the overlay being
-        // opened/closed.
-        // Example 1: button onclick opens the overlay. This event is listened
-        // also by the manager on document.body, which checks if it happened
-        // outside the currentOverlay and cancels (closes) it if so.
-        // If this overlay becomes the current overlay synchronously, it would
-        // be the current overlay during the click outside check, hence canceled
-        // right away.
-        // Example 2: two overlays already opened, both with a button that
-        // onclick closes the overlay where is contained. If we'd update the
-        // currentOverlay synchronously, both overlays would get closed, the top
-        // one because of the direct call to close(), and the bottom one because
-        // it would be the current overlay when the manager listener is invoked.
-        this._manager.addOrRemoveOverlay(this);
         if (opened) {
           this._prepareRenderOpened();
           this._renderOpened();
@@ -440,6 +417,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderOpened: function() {
+      this._manager.addOverlay(this);
       // Focus the child node with [autofocus]
       this._applyFocus();
 
@@ -459,6 +437,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderClosed: function() {
+      this._manager.removeOverlay(this);
       // Hide the overlay.
       this.style.display = 'none';
       // Reset z-index only at the end of the animation.

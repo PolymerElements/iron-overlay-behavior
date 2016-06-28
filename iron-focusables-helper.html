@@ -1,0 +1,135 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+  (function() {
+    'use strict';
+
+    Polymer.IronFocusablesHelper = {
+
+      /**
+       * Returns a sorted array of tabbable nodes, including the root node.
+       * It searches the tabbable nodes in the light and shadow dom of the chidren,
+       * sorting the result by tabindex.
+       * @param {!Node} node
+       * @return {Array<Node>}
+       */
+      getTabbableNodes: function(node) {
+        var result = [];
+        // If there is at least one element with tabindex > 0, we need to sort
+        // the final array by tabindex.
+        var maxTabIndex = this._findTabbableNodes(node, result);
+        maxTabIndex > 0 && result.sort(this._tabIndexSort);
+        return result;
+      },
+
+      /**
+       * Returns if a node is focusable.
+       * @param {!Node} node
+       * @return {boolean}
+       */
+      isFocusable: function(node) {
+        // shadow roots won't have this method.
+        if (!node.hasAttribute) {
+          return false;
+        }
+        var name = node.localName;
+        // Elements that can be focused even if they have [disabled] attribute.
+        if (name === 'iframe' ||
+          ((name === 'a' || name === 'area') && node.hasAttribute('href')) ||
+          node.hasAttribute('tabindex') || node.hasAttribute('contentEditable')) {
+          return true;
+        }
+        // Elements that cannot be focused if they have [disabled] attribute.
+        return /^(input|select|textarea|button|object)$/.test(name) && !node.disabled;
+      },
+
+      /**
+       * Returns if a node is tabbable.
+       * @param {!Node} node
+       * @return {boolean}
+       */
+      isTabbable: function(node) {
+        return node.tabIndex >= 0 && this.isFocusable(node) && this._isVisible(node);
+      },
+
+      /**
+       * Searches for nodes that are tabbable and adds them to the `result` array.
+       * Returns the maximum tabindex of the added nodes.
+       * @param {!Node} node The starting point for the search; it's added if tabbable.
+       * @param {!Array<Node>} result
+       * @return {Number}
+       * @private
+       */
+      _findTabbableNodes: function(node, result) {
+        var maxTabIndex = 0;
+        // Skip #text nodes. If not visible, no need to explore children.
+        if (node.nodeType !== 3 && this._isVisible(node)) {
+          if (this.isTabbable(node)) {
+            result.push(node);
+            maxTabIndex = node.tabIndex;
+          }
+          var children;
+          if (node.localName === 'content') {
+            children = Polymer.dom(node).getDistributedNodes();
+          } else {
+            // Use shadow root if possible, will check for distributed nodes.
+            children = Polymer.dom(node.root || node).children;
+          }
+          for (var i = 0; i < children.length; i++) {
+            maxTabIndex = Math.max(this._findTabbableNodes(children[i], result), maxTabIndex);
+          }
+        }
+        return maxTabIndex;
+      },
+
+      /**
+       * Returns false if the node has `visibility: hidden` or `display: none`
+       * @param {!Node} node
+       * @return {boolean}
+       * @private
+       */
+      _isVisible: function(node) {
+        // Check inline style first, might save a re-flow.
+        return this._isStyleVisible(node.style) && this._isStyleVisible(window.getComputedStyle(node));
+      },
+
+      /**
+       * Returns false if the style is `visibility: hidden` or `display: none`
+       * @param {!CSSStyleDeclaration} style
+       * @return {boolean}
+       * @private
+       */
+      _isStyleVisible: function(style) {
+        return (style.visibility !== 'hidden' && style.display !== 'none');
+      },
+
+      /**
+       * Sort by tabindex. Move elements with tabindex = 0 to the end to match
+       * browser behavior, e.g. [0, 3, 1, 2] --> [1, 2, 3, 0]
+       * @param {!Node} a
+       * @param {!Node} b
+       * @return {Number}
+       * @private
+       */
+      _tabIndexSort: function(a, b) {
+        // Move tabindex = 0 elements to the end of the list.
+        if (a.tabIndex === 0 || b.tabIndex === 0) {
+          // The one with bigger `tabindex` goes on top of the list.
+          return b.tabIndex - a.tabIndex;
+        }
+        // The one with smaller `tabindex` goes on top of the list.
+        return a.tabIndex - b.tabIndex;
+      }
+    };
+  })();
+</script>

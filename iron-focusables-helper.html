@@ -70,7 +70,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {boolean}
        */
       isTabbable: function(node) {
-        return node.tabIndex >= 0 && this.isFocusable(node) && this._isVisible(node);
+        // Check for the attribute "tabindex" instead of the element property
+        // `tabIndex` since browsers assign different values to it e.g.
+        // <div contenteditable></div> has tabIndex = -1 in FF, tabIndex = 0 in
+        // other browsers.
+        return this.isFocusable(node) && this._isVisible(node) &&
+          node.getAttribute('tabindex') !== '-1';
       },
 
       /**

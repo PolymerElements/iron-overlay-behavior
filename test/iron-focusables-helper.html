@@ -46,10 +46,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div>
           <input class="focusable1" placeholder="1 (nested)">
         </div>
-        <button class="focusable2">1</button>
+        <a href="#" class="focusable2">1</a>
         <button disabled> disabled button</button>
+        <input disabled tabindex="0" value="disabled input with tabindex">
         <div tabindex="-1">not focusable</div>
-        <button class="focusable3">2</button>
+        <div contenteditable class="focusable3">2</div>
       </div>
     </template>
   </test-fixture>

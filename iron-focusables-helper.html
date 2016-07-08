@@ -38,19 +38,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {boolean}
        */
       isFocusable: function(node) {
+        // From http://stackoverflow.com/a/1600194/4228703:
+        // There isn't a definite list, it's up to the browser. The only
+        // standard we have is DOM Level 2 HTML https://www.w3.org/TR/DOM-Level-2-HTML/html.html,
+        // according to which the only elements that have a focus() method are
+        // HTMLInputElement,  HTMLSelectElement, HTMLTextAreaElement and
+        // HTMLAnchorElement. This notably omits HTMLButtonElement and
+        // HTMLAreaElement.
+        // Referring to these tests with focusables in different browsers
+        // http://allyjs.io/data-tables/focusable.html
+
         // shadow roots won't have this method.
         if (!node.hasAttribute) {
           return false;
         }
         var name = node.localName;
-        // Elements that can be focused even if they have [disabled] attribute.
-        if (name === 'iframe' ||
-          ((name === 'a' || name === 'area') && node.hasAttribute('href')) ||
-          node.hasAttribute('tabindex') || node.hasAttribute('contentEditable')) {
-          return true;
+        // These elements cannot be focused if they have [disabled] attribute.
+        if (/^(input|select|textarea|button|object)$/.test(name)) {
+          return !node.disabled;
         }
-        // Elements that cannot be focused if they have [disabled] attribute.
-        return /^(input|select|textarea|button|object)$/.test(name) && !node.disabled;
+        // These elements can be focused even if they have [disabled] attribute.
+        return name === 'iframe' ||
+          (/^(a|area)$/.test(name) && node.hasAttribute('href')) ||
+          node.hasAttribute('tabindex') ||
+          node.hasAttribute('contenteditable');
       },
 
       /**
@@ -99,18 +110,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @private
        */
       _isVisible: function(node) {
-        // Check inline style first, might save a re-flow.
-        return this._isStyleVisible(node.style) && this._isStyleVisible(window.getComputedStyle(node));
-      },
-
-      /**
-       * Returns false if the style is `visibility: hidden` or `display: none`
-       * @param {!CSSStyleDeclaration} style
-       * @return {boolean}
-       * @private
-       */
-      _isStyleVisible: function(style) {
-        return (style.visibility !== 'hidden' && style.display !== 'none');
+        // Check inline style first to save a re-flow. If looks good, check also
+        // computed style.
+        if (node.style.visibility !== 'hidden' && node.style.display !== 'none') {
+          var style = window.getComputedStyle(node);
+          return (style.visibility !== 'hidden' && style.display !== 'none');
+        }
+        return false;
       },
 
       /**

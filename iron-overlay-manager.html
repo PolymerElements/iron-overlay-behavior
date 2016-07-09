@@ -156,9 +156,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       this._overlays.splice(insertionIndex, 0, overlay);
 
-      // Get focused node.
-      var element = this.deepActiveElement;
-      overlay.restoreFocusNode = this._overlayParent(element) ? null : element;
       this.trackBackdrop();
     },
 
@@ -172,12 +169,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       this._overlays.splice(i, 1);
 
-      var node = overlay.restoreFocusOnClose ? overlay.restoreFocusNode : null;
-      overlay.restoreFocusNode = null;
-      // Focus back only if still contained in document.body
-      if (node && Polymer.dom(document.body).deepContains(node)) {
-        node.focus();
-      }
       this.trackBackdrop();
     },
 
@@ -303,24 +294,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     _applyOverlayZ: function(overlay, aboveZ) {
       this._setZ(overlay, aboveZ + 2);
-    },
-
-    /**
-     * Returns the overlay containing the provided node. If the node is an overlay,
-     * it returns the node.
-     * @param {Element=} node
-     * @return {Element|undefined}
-     * @private
-     */
-    _overlayParent: function(node) {
-      while (node && node !== document.body) {
-        // Check if it is an overlay.
-        if (node._manager === this) {
-          return node;
-        }
-        // Use logical parentNode, or native ShadowRoot host.
-        node = Polymer.dom(node).parentNode || node.host;
-      }
     },
 
     /**

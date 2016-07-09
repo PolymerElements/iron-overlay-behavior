@@ -753,37 +753,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('overlay does not return focus to elements contained in another overlay', function(done) {
-          var overlay2 = fixture('basic');
-          // So it doesn't interfere with focus changes.
-          overlay2.noAutoFocus = true;
-          var focusable = document.createElement('input');
-          runAfterOpen(overlay2,function () {
-            Polymer.dom(overlay2).appendChild(focusable);
-            focusable.focus();
-            runAfterOpen(overlay, function() {
-              runAfterClose(overlay, function() {
-                assert.notEqual(Polymer.IronOverlayManager.deepActiveElement, focusable, 'focus not restored to focusable inside overlay2');
-                done();
-              });
-            });
-          });
-        });
-
-        test('overlay does not return focus to elements that are not in the body anymore', function(done) {
-          var focusable = document.createElement('input');
-          document.body.appendChild(focusable);
-          focusable.focus();
-          var focusSpy = sinon.spy(focusable, 'focus');
-          runAfterOpen(overlay, function() {
-            document.body.removeChild(focusable);
-            runAfterClose(overlay, function() {
-              assert.isFalse(focusSpy.called, 'focus not called');
-              done();
-            });
-          });
-        });
-
       });
 
       suite('overlay with backdrop', function() {

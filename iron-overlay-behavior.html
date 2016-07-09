@@ -254,6 +254,8 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.__openedChangedRAF = null;
       // Used for requestAnimationFrame when iron-resize is fired.
       this.__ironResizeRAF = null;
+      // Focused node before overlay gets opened. Can be restored on close.
+      this.__restoreFocusNode = null;
       this._ensureSetup();
     },
 
@@ -379,6 +381,8 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _prepareRenderOpened: function() {
+      // Store focused node.
+      this.__restoreFocusNode = this._manager.deepActiveElement;
 
       // Needed to calculate the size of the overlay so that transitions on its size
       // will have the correct starting points.
@@ -389,10 +393,11 @@ context. You should place this element as a child of `<body>` whenever possible.
       // Move the focus to the child node with [autofocus].
       this._applyFocus();
 
-      // Safari will apply the focus to the autofocus element when displayed for the first time,
-      // so we blur it. Later, _applyFocus will set the focus if necessary.
-      if (this.noAutoFocus && document.activeElement === this._focusNode) {
+      // Safari will apply the focus to the autofocus element when displayed
+      // for the first time, so we make sure to return the focus where it was.
+      if (this.noAutoFocus) {
         this._focusNode.blur();
+        this.__restoreFocusNode.focus();
       }
     },
 
@@ -483,6 +488,11 @@ context. You should place this element as a child of `<body>` whenever possible.
       } else {
         this._focusNode.blur();
         this._focusedChild = null;
+        // Restore focus.
+        if (this.restoreFocusOnClose && this.__restoreFocusNode) {
+          this.__restoreFocusNode.focus();
+        }
+        this.__restoreFocusNode = null;
         this._manager.focusOverlay();
       }
     },

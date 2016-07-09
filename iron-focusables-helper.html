@@ -65,17 +65,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Returns if a node is tabbable.
+       * Returns if a node is tabbable. To be tabbable, a node must be focusable
+       * and visible.
        * @param {!Node} node
        * @return {boolean}
        */
       isTabbable: function(node) {
-        // Check for the attribute "tabindex" instead of the element property
-        // `tabIndex` since browsers assign different values to it e.g.
-        // <div contenteditable></div> has tabIndex = -1 in FF, tabIndex = 0 in
-        // other browsers.
-        return this.isFocusable(node) && this._isVisible(node) &&
-          node.getAttribute('tabindex') !== '-1';
+        return this._normalizedTabIndex(node) >= 0 && this._isVisible(node);
+      },
+
+      /**
+       * Returns the normalized node tabindex. If not focusable, returns -1.
+       * It checks for the attribute "tabindex" instead of the element property
+       * `tabIndex` since browsers assign different values to it.
+       * e.g. for <div id="elem" contenteditable>
+       * `elem.tabIndex` is `-1` in Firefox, `0` in other browsers.
+       * @param {!Node} node
+       * @return {Number}
+       * @private
+       */
+      _normalizedTabIndex: function(node) {
+        if (this.isFocusable(node)) {
+          var tabIndex = node.getAttribute('tabindex') || 0;
+          return Number(tabIndex);
+        }
+        return -1;
       },
 
       /**
@@ -90,9 +104,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var maxTabIndex = 0;
         // Skip #text nodes. If not visible, no need to explore children.
         if (node.nodeType !== 3 && this._isVisible(node)) {
-          if (this.isTabbable(node)) {
+          var tabIndex = this._normalizedTabIndex(node);
+          if (tabIndex >= 0) {
             result.push(node);
-            maxTabIndex = node.tabIndex;
+            maxTabIndex = tabIndex;
           }
           var children;
           if (node.localName === 'content') {

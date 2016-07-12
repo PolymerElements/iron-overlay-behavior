@@ -457,6 +457,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var overlay;
 
         setup(function() {
+          // Ensure focus is set to document.body
+          document.body.focus();
           overlay = fixture('autofocus');
         });
 

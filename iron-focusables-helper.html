@@ -27,8 +27,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var result = [];
         // If there is at least one element with tabindex > 0, we need to sort
         // the final array by tabindex.
-        var maxTabIndex = this._findTabbableNodes(node, result);
-        maxTabIndex > 0 && result.sort(this._tabIndexSort);
+        var needsSortByTabIndex = this._collectTabbableNodes(node, result);
+        if (needsSortByTabIndex) {
+          result.sort(this._tabIndexSort);
+        }
         return result;
       },
 
@@ -94,33 +96,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       /**
        * Searches for nodes that are tabbable and adds them to the `result` array.
-       * Returns the maximum tabindex of the added nodes.
-       * @param {!Node} node The starting point for the search; it's added if tabbable.
+       * Returns if the `result` array needs to be sorted by tabindex.
+       * @param {!Node} node The starting point for the search; added to `result`
+       * if tabbable.
        * @param {!Array<Node>} result
-       * @return {Number}
+       * @return {boolean}
        * @private
        */
-      _findTabbableNodes: function(node, result) {
-        var maxTabIndex = 0;
+      _collectTabbableNodes: function(node, result) {
         // Skip #text nodes. If not visible, no need to explore children.
-        if (node.nodeType !== 3 && this._isVisible(node)) {
-          var tabIndex = this._normalizedTabIndex(node);
-          if (tabIndex >= 0) {
-            result.push(node);
-            maxTabIndex = tabIndex;
-          }
-          var children;
-          if (node.localName === 'content') {
-            children = Polymer.dom(node).getDistributedNodes();
-          } else {
-            // Use shadow root if possible, will check for distributed nodes.
-            children = Polymer.dom(node.root || node).children;
-          }
-          for (var i = 0; i < children.length; i++) {
-            maxTabIndex = Math.max(this._findTabbableNodes(children[i], result), maxTabIndex);
-          }
+        if (node.nodeType === 3 || !this._isVisible(node)) {
+          return false;
         }
-        return maxTabIndex;
+        var tabIndex = this._normalizedTabIndex(node);
+
+        // TODO(valdrin) uncomment this when delegatesFocus is implemented.
+        // if delegatesFocus and tabindex = -1, should skip its children.
+        // if (tabIndex < 0 && node.delegatesFocus) {
+        //   return false;
+        // }
+
+        var needsSortByTabIndex = tabIndex > 0;
+        if (tabIndex >= 0) {
+          result.push(node);
+        }
+
+        var children;
+        if (node.localName === 'content') {
+          children = Polymer.dom(node).getDistributedNodes();
+        } else {
+          // Use shadow root if possible, will check for distributed nodes.
+          children = Polymer.dom(node.root || node).children;
+        }
+        for (var i = 0; i < children.length; i++) {
+          // Ensure method is always invoked to collect tabbable children.
+          var needsSort = this._collectTabbableNodes(children[i], result);
+          needsSortByTabIndex = needsSortByTabIndex || needsSort;
+        }
+        return needsSortByTabIndex;
       },
 
       /**

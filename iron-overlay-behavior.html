@@ -145,14 +145,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       },
 
       /**
-       * Is true during the transition from close to open and open to close.
-       */
-      transitioning: {
-        type: Boolean,
-        readOnly: true
-      },
-
-      /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {Polymer.IronOverlayManagerClass}
@@ -245,6 +237,8 @@ context. You should place this element as a child of `<body>` whenever possible.
     },
 
     ready: function() {
+      // Used to skip calls to notifyResize and refit while the overlay is animating.
+      this.__isAnimating = false;
       // with-backdrop needs tabindex to be set in order to trap the focus.
       // If it is not set, IronOverlayBehavior will set it, and remove it if with-backdrop = false.
       this.__shouldRemoveTabIndex = false;
@@ -340,18 +334,25 @@ context. You should place this element as a child of `<body>` whenever possible.
         return;
       }
 
-      this._setTransitioning(true);
+      this.__isAnimating = true;
 
       // Use requestAnimationFrame for non-blocking rendering.
       this.__openedChangedRAF && window.cancelAnimationFrame(this.__openedChangedRAF);
       this.__openedChangedRAF = window.requestAnimationFrame(function() {
         this.__openedChangedRAF = null;
         if (opened) {
+          // Make overlay visible, then add it to the manager.
           this._prepareRenderOpened();
+          this._manager.addOverlay(this);
+          // Move the focus to the child node with [autofocus].
+          this._applyFocus();
+
           this._renderOpened();
         } else {
-          // Move the focus before actually closing.
+          // Remove overlay, then restore the focus before actually closing.
+          this._manager.removeOverlay(this);
           this._applyFocus();
+
           this._renderClosed();
         }
       }.bind(this));
@@ -390,12 +391,9 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.refit();
       this._finishPositioning();
 
-      // Move the focus to the child node with [autofocus].
-      this._applyFocus();
-
       // Safari will apply the focus to the autofocus element when displayed
       // for the first time, so we make sure to return the focus where it was.
-      if (this.noAutoFocus) {
+      if (this.noAutoFocus && document.activeElement === this._focusNode) {
         this._focusNode.blur();
         this.__restoreFocusNode.focus();
       }
@@ -422,12 +420,8 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderOpened: function() {
-      this._manager.addOverlay(this);
-      // Focus the child node with [autofocus]
-      this._applyFocus();
-
       this.notifyResize();
-      this._setTransitioning(false);
+      this.__isAnimating = false;
 
       // Store it so we don't query too much.
       var focusableNodes = this._focusableNodes;
@@ -442,16 +436,12 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _finishRenderClosed: function() {
-      this._manager.removeOverlay(this);
       // Hide the overlay.
       this.style.display = 'none';
       // Reset z-index only at the end of the animation.
       this.style.zIndex = '';
-
-      this._applyFocus();
-
       this.notifyResize();
-      this._setTransitioning(false);
+      this.__isAnimating = false;
       this.fire('iron-overlay-closed', this.closingReason);
     },
 
@@ -485,7 +475,8 @@ context. You should place this element as a child of `<body>` whenever possible.
         if (!this.noAutoFocus) {
           this._focusNode.focus();
         }
-      } else {
+      }
+      else {
         this._focusNode.blur();
         this._focusedChild = null;
         // Restore focus.
@@ -493,7 +484,13 @@ context. You should place this element as a child of `<body>` whenever possible.
           this.__restoreFocusNode.focus();
         }
         this.__restoreFocusNode = null;
-        this._manager.focusOverlay();
+        // If many overlays get closed at the same time, one of them would still
+        // be the currentOverlay even if already closed, and would call _applyFocus
+        // infinitely, so we check for this not to be the current overlay.
+        var currentOverlay = this._manager.currentOverlay();
+        if (currentOverlay && this !== currentOverlay) {
+          currentOverlay._applyFocus();
+        }
       }
     },
 
@@ -595,7 +592,7 @@ context. You should place this element as a child of `<body>` whenever possible.
         window.cancelAnimationFrame(this.__ironResizeRAF);
         this.__ironResizeRAF = null;
       }
-      if (this.opened && !this.transitioning) {
+      if (this.opened && !this.__isAnimating) {
         this.__ironResizeRAF = window.requestAnimationFrame(function() {
           this.__ironResizeRAF = null;
           this.refit();
@@ -609,7 +606,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @protected
      */
     _onNodesChange: function() {
-      if (this.opened && !this.transitioning) {
+      if (this.opened && !this.__isAnimating) {
         this.notifyResize();
       }
     }

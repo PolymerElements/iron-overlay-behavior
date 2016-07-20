@@ -44,6 +44,7 @@ Custom property | Description | Default
         @apply(--iron-overlay-backdrop);
       }
 
+      /* Blocks the interactions */
       :host::before {
         content: '';
         position: fixed;
@@ -51,6 +52,8 @@ Custom property | Description | Default
         left: 0;
         width: 100%;
         height: 100%;
+        /* IE10: this makes the element opaque and actually blocks interactions. */
+        background-color: rgba(0, 0, 0, 0.001);
       }
 
       :host([opened]) {

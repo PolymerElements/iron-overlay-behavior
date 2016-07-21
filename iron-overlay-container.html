@@ -1,0 +1,183 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`iron-overlay-container` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
+ caused by [the stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context).
+
+`iron-overlay-container` listens to [`iron-overlay-template-attach`](#overlay-template:event-iron-overlay-template-attach)
+and appends the overlay into its `root` (ensuring style encapsulation).
+It should be defined in the main stacking context (e.g. `document.body`):
+
+    <body>
+      <div class="with-stacking-context">
+         <template is="overlay-template">
+            <paper-dialog>My dialog</paper-dialog>
+         </template>
+      </div>
+      <iron-overlay-container></iron-overlay-container>
+    </body>
+
+You can limit the type of overlay to be hosted:
+
+    <iron-overlay-container type="paper-dialog"></iron-overlay-container>
+    <iron-overlay-container type="simple-overlay"></iron-overlay-container>
+
+### Styling
+
+The following custom properties and mixins are available for styling.
+
+Custom property | Description | Default
+--|--|--
+`--iron-overlay-container`|Mixin applied to `iron-overlay-container`.|{}
+
+
+@demo demo/template.html
+-->
+
+<dom-module id="iron-overlay-container">
+
+  <template>
+    <style>
+      :host {
+        /* No interference with the document flow */
+        position: absolute;
+        @apply(--iron-overlay-container);
+      }
+    </style>
+    <div id="overlays"></div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'iron-overlay-container',
+
+      properties: {
+        /**
+         * Which overlay types should be hosted in this container
+         */
+        type: String,
+        /**
+         * If true, it will self-attach to `document.body` when it has at least
+         * one overlay, and detach itself when empty.
+         */
+        autoAttach: Boolean
+      },
+
+      ready: function() {
+        this._overlayRoots = [];
+        var host = Polymer.dom(this).getOwnerRoot() || document;
+        host.addEventListener('iron-overlay-template-attach', this._onAttachOverlay.bind(this));
+        host.addEventListener('iron-overlay-template-detach', this._onDetachOverlay.bind(this));
+      },
+
+      /**
+       * Appends the overlay into its root.
+       * @param {!Event} event
+       * @private
+       */
+      _onAttachOverlay: function(event) {
+        if (event.defaultPrevented) {
+          return;
+        }
+        // Check for the type. The event target is a <template is="overlay-template">
+        if (this.type && this.type !== Polymer.dom(event).rootTarget.overlay.tagName.toLowerCase()) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+
+        // event.detail is the instance root.
+        this._attachRoot(event.detail);
+        if (this.autoAttach && !this.parentNode) {
+          Polymer.dom(document.body).appendChild(this);
+        }
+      },
+
+      _attachRoot: function(root) {
+        this._overlayRoots.push(root);
+        // Create a separate container for each root.
+        var container = document.createElement('iron-overlay-host');
+        container.srcRoot = root;
+        Polymer.dom(this.$.overlays).appendChild(container);
+      },
+
+      _onDetachOverlay: function(event) {
+        if (event.defaultPrevented) {
+          return;
+        }
+        // event.detail is the instance root.
+        var i = this._overlayRoots.indexOf(event.detail);
+        if (i === -1) {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this._detachRootAtIndex(i);
+      },
+
+      _detachRootAtIndex: function(idx) {
+        // Update roots.
+        this._overlayRoots.splice(idx, 1);
+        // Remove the container we created.
+        var container = this.$.overlays.children[idx];
+        Polymer.dom(this.$.overlays).removeChild(container);
+        // Check if it needs to detach itself.
+        if (this.autoAttach && this.parentNode && !this._overlayRoots.length) {
+          Polymer.dom(this.parentNode).removeChild(this);
+        }
+      }
+    });
+  </script>
+
+</dom-module>
+
+
+<dom-module id="iron-overlay-host">
+  <template>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+      is: 'iron-overlay-host',
+      properties: {
+        srcRoot: {
+          type: DocumentFragment,
+          observer: '_srcRootChanged'
+        }
+      },
+
+      detached: function() {
+        // It will trigger the reparenting of children.
+        this.srcRoot = null;
+      },
+
+      _srcRootChanged: function(newSrc, oldSrc) {
+        if (oldSrc) {
+          this._moveChildrenTo(oldSrc);
+        }
+        if (newSrc) {
+          Polymer.dom(this).appendChild(newSrc);
+        }
+      },
+
+      _moveChildrenTo: function(root) {
+        var children = Polymer.dom(this).children;
+        var $root = Polymer.dom(root);
+        for (var i = 0; i < children.length; i++) {
+          $root.appendChild(children[i]);
+        }
+      }
+
+    });
+  </script>
+</dom-module>

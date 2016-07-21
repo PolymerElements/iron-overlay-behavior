@@ -1,0 +1,88 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-overlay-content-template.html">
+
+<script>
+  /**
+   * `IronOverlayHostBehavior` should be used by elements that host an [`overlay-template`](#overlay-template)
+   * in their shadow DOM, and need to distribute content in them.
+   *
+   * `IronOverlayHostBehavior` ensures that the content of [`overlay-content`](#overlay-content) template
+   * is stamped into the overlay. You can define an insertion point where to insert the content through
+   * the `overlay-content-parent` attribute:
+   *
+   *      <template is="overlay-template">
+   *        <iron-dropdown>
+   *          <div class="dropdown-content" overlay-content-parent></div>
+   *        </iron-dropdown>
+   *      </template>
+   *      <content></content>
+   *
+   *      ...
+   *
+   *      behaviors: [Polymer.IronOverlayHostBehavior]
+   *
+   * @demo demo/template.html
+   * @polymerBehavior Polymer.IronOverlayHostBehavior
+   */
+  Polymer.IronOverlayHostBehavior = {
+
+    /**
+     * The overlay instance.
+     * @type {Node}
+     */
+    get overlay() {
+      // Lazily distribute content.
+      this._distributeOverlayContent();
+      return this.__overlayTemplate.overlay;
+    },
+
+    ready: function() {
+      // Memoize the `overlay-template`.
+      this.__overlayTemplate = Polymer.dom(this.root).querySelector('template[is="overlay-template"]');
+    },
+
+    /**
+     * Opens the overlay.
+     */
+    open: function() {
+      this.overlay.open();
+    },
+
+    /**
+     * Closes the overlay.
+     */
+    close: function() {
+      this.overlay.close();
+    },
+
+    /**
+     * Toggles the overlay.
+     */
+    toggle: function() {
+      this.overlay.toggle();
+    },
+
+    /**
+     * Distributes the contents of <template is="overlay-content"> into the overlay.
+     * @protected
+     */
+    _distributeOverlayContent: function() {
+      var overlay = this.__overlayTemplate.overlay;
+      var content = this.queryEffectiveChildren('template[is="overlay-content"]');
+      if (content) {
+        // Stamp in an insertion point or the overlay itself.
+        content.contentParent = Polymer.dom(overlay).querySelector('[overlay-content-parent]') || overlay;
+      }
+    }
+  };
+</script>

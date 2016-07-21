@@ -1,0 +1,360 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+
+<head>
+
+  <title>demo</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script>
+    Polymer = {
+      useNativeCSSProperties: true,
+      lazyRegister: true
+    };
+  </script>
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+
+  <link rel="import" href="../../iron-dropdown/iron-dropdown.html">
+  <link rel="import" href="../../iron-list/iron-list.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../paper-dialog/paper-dialog.html">
+  <link rel="import" href="../../paper-menu-button/paper-menu-button.html">
+  <link rel="import" href="../../paper-listbox/paper-listbox.html">
+  <link rel="import" href="../../paper-item/paper-item.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+
+  <link rel="import" href="../iron-overlay-template.html">
+  <link rel="import" href="../iron-overlay-content-template.html">
+  <link rel="import" href="../iron-overlay-host-behavior.html">
+  <link rel="import" href="../iron-overlay-container.html">
+
+  <style is="custom-style" include="demo-pages-shared-styles">
+    .stacking-context {
+      transform: translateZ(0);
+    }
+    demo-snippet {
+      --demo-snippet-demo-display: block;
+    }
+  </style>
+</head>
+
+<body unresolved>
+
+  <div class="stacking-context">
+
+    <h3>Stacking context</h3>
+
+    <p>Overlays contained in elements that create a new stacking context are trapped within it.
+      <br> E.g. Click on <code>trapped</code> and notice how the overlay renders behind the backdrop and scrolls together with the rest of the content.</p>
+    <p><code>iron-overlay-template</code> solves this issue while still providing a reference to the overlay at the spot where it is created.</p>
+    <p>Styles can be added inside the template.</p>
+    <demo-snippet>
+      <template>
+        <style>
+          paper-dialog {
+            background-color: orange;
+            --paper-dialog-button-color: gray;
+          }
+        </style>
+        <paper-dialog id="dialog" with-backdrop>
+          <h2>Dialog</h2>
+          <div class="buttons">
+            <paper-button dialog-dismiss>close</paper-button>
+          </div>
+        </paper-dialog>
+        <paper-button raised onclick="dialog.open()">trapped</paper-button>
+
+        <template is="overlay-template" id="c0">
+          <style>
+            paper-dialog {
+              background-color: #cec;
+              --paper-dialog-button-color: red;
+            }
+          </style>
+          <paper-dialog with-backdrop>
+            <h2>Dialog</h2>
+            <div class="buttons">
+              <paper-button dialog-dismiss>close</paper-button>
+            </div>
+          </paper-dialog>
+        </template>
+        <paper-button raised onclick="c0.overlay.open()">free</paper-button>
+      </template>
+    </demo-snippet>
+
+
+    <h3>iron-dropdown</h3>
+
+    <p><code>iron-dropdown</code> positions itself according to a positionTarget element (usually the parent node).
+      <br> The parent node can implement <code>iron-overlay-factory-behavior</code> to overcome stacking context issues, and assign itself as the <code>positionTarget</code>.</p>
+
+    <demo-snippet>
+      <template>
+        <div>
+          <paper-button raised onclick="c1.overlay.open()">open dropdown</paper-button>
+          <template is="overlay-template" id="c1">
+            <iron-dropdown vertical-align="bottom">
+              <paper-listbox class="dropdown-content">
+                <paper-item>Share</paper-item>
+                <paper-item>Settings</paper-item>
+                <paper-item>Help</paper-item>
+              </paper-listbox>
+            </iron-dropdown>
+          </template>
+        </div>
+        <script>
+          c1.overlay.positionTarget = c1.parentNode;
+        </script>
+      </template>
+    </demo-snippet>
+
+    <h3>iron-dropdown in shadowDOM</h3>
+
+    <p>
+      Elements that need an <code>iron-dropdown</code> in their shadowDOM (e.g. <code>paper-menu-button</code>) usually distribute partial content in it.
+      Keeping the same markup would require to detach &amp; attach either the dropdown or its distributed content.
+    </p>
+    <demo-snippet>
+      <template>
+        <paper-menu-button horizontal-align="right">
+          <paper-button raised class="dropdown-trigger">paper-menu-button</paper-button>
+          <!-- This content is attached to paper-menu-button -->
+          <paper-listbox class="dropdown-content">
+            <paper-item>Share</paper-item>
+            <paper-item>Settings</paper-item>
+            <paper-item>Help</paper-item>
+          </paper-listbox>
+        </paper-menu-button>
+      </template>
+    </demo-snippet>
+
+    <p>
+      To avoid this, use <code>iron-overlay-content-template</code> to stamp overlay content; <code>x-menu-button</code> (which implements <code>iron-overlay-host-behavior</code>) will ensure the content is added to the dropdown.
+    </p>
+    <demo-snippet>
+      <template>
+        <x-menu-button horizontal-align="right">
+          <paper-button raised class="dropdown-trigger">x-menu-button</paper-button>
+          <!-- the template gets attached to x-menu-button, the content is stamped into the dropdown -->
+          <template is="overlay-content">
+            <paper-listbox class="dropdown-content">
+              <paper-item>Share</paper-item>
+              <paper-item>Settings</paper-item>
+              <paper-item>Help</paper-item>
+            </paper-listbox>
+          </template>
+        </x-menu-button>
+
+        <dom-module id="x-menu-button">
+          <template>
+            <style>
+              :host {
+                display: inline-block;
+                padding: 8px;
+              }
+            </style>
+            <span on-tap="open">
+              <content select=".dropdown-trigger"></content>
+            </span>
+            <template is="overlay-template">
+              <iron-dropdown horizontal-align="{{horizontalAlign}}" on-iron-select="_onIronSelect"></iron-dropdown>
+            </template>
+            <content></content>
+          </template>
+
+          <script>
+            Polymer({
+              is: 'x-menu-button',
+              properties: {
+                horizontalAlign: String
+              },
+              behaviors: [Polymer.IronOverlayHostBehavior],
+              ready: function() {
+                this.overlay.positionTarget = this;
+              },
+              _onIronSelect: function(event) {
+                this.close();
+              },
+            });
+          </script>
+        </dom-module>
+      </template>
+    </demo-snippet>
+
+    <p>
+      Furthermore, the element author can style the overlay, and define where the content
+      should be distributed in the overlay using the <code>overlay-content-parent</code> attribute.
+    </p>
+    <demo-snippet>
+      <template>
+        <x-select horizontal-align="right">
+          <paper-button raised class="dropdown-trigger">x-select</paper-button>
+          <template is="overlay-content">
+            <paper-item>Share</paper-item>
+            <paper-item>Settings</paper-item>
+            <paper-item>Help</paper-item>
+          </template>
+        </x-select>
+
+        <dom-module id="x-select">
+          <template>
+            <style>
+              :host {
+                display: inline-block;
+                padding: 8px;
+              }
+            </style>
+            <span on-tap="open">
+              <content select=".dropdown-trigger"></content>
+            </span>
+            <template is="overlay-template">
+              <script type="css">
+                .x-select-dropdown .dropdown-content {
+                  border-radius: 10px;
+                  border: 1px solid lightgray;
+                }
+              </script>
+              <iron-dropdown class="x-select-dropdown" horizontal-align="{{horizontalAlign}}" on-iron-select="_onIronSelect">
+                <paper-listbox class="dropdown-content" overlay-content-parent></paper-listbox>
+              </iron-dropdown>
+            </template>
+            <content></content>
+          </template>
+
+          <script>
+            Polymer({
+              is: 'x-select',
+              properties: {
+                horizontalAlign: String
+              },
+              behaviors: [Polymer.IronOverlayHostBehavior],
+              ready: function() {
+                this.overlay.positionTarget = this;
+              },
+              _onIronSelect: function(event) {
+                this.close();
+              },
+            });
+          </script>
+        </dom-module>
+      </template>
+    </demo-snippet>
+
+
+    <h3>Data binding</h3>
+
+    <demo-snippet>
+      <template>
+        <template is="dom-bind">
+          <paper-menu-button horizontal-align="right">
+            <paper-button raised class="dropdown-trigger">paper-menu-button</paper-button>
+            <paper-listbox class="dropdown-content">
+              <template is="dom-repeat" items="{{data}}" as="item">
+                <paper-item>{{item.name}}</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-menu-button>
+
+          <x-menu-button horizontal-align="right">
+            <paper-button raised class="dropdown-trigger">x-menu-button</paper-button>
+            <template is="overlay-content">
+              <paper-listbox class="dropdown-content">
+                <template is="dom-repeat" items="{{data}}" as="item">
+                  <paper-item>{{item.name}}</paper-item>
+                </template>
+              </paper-listbox>
+            </template>
+          </x-menu-button>
+
+          <x-select horizontal-align="right">
+            <paper-button raised class="dropdown-trigger">x-select</paper-button>
+            <template is="overlay-content">
+              <template is="dom-repeat" items="{{data}}" as="item">
+                <paper-item>{{item.name}}</paper-item>
+              </template>
+            </template>
+          </x-select>
+
+          <p>
+            <pre><code>index: {{selectedIndex}}<br> json: {{selectedItem}}</code></pre>
+          </p>
+          <iron-list items="{{data}}" as="item" as="item">
+            <template>
+              <div>
+                <paper-button raised onclick="this.nextElementSibling.overlay.open()">dialog {{index}}</paper-button>
+                <template is="overlay-template">
+                  <paper-dialog with-backdrop>
+                    <h2>dialog {{index}}</h2>
+                    <p>Name: {{item.name}}</p>
+                    <div class="buttons">
+                      <paper-button on-tap="onAction" dialog-dismiss>show</paper-button>
+                    </div>
+                  </paper-dialog>
+                </template>
+
+                <paper-menu-button>
+                  <paper-button raised class="dropdown-trigger">paper-menu-button {{index}}</paper-button>
+                  <paper-listbox class="dropdown-content">
+                    <paper-button on-tap="onAction" dialog-dismiss>show</paper-button>
+                  </paper-listbox>
+                </paper-menu-button>
+
+                <x-select>
+                  <paper-button raised class="dropdown-trigger">x-select {{index}}</paper-button>
+                  <template is="overlay-content">
+                    <paper-button on-tap="onAction" dialog-dismiss data-index="{{index}}" data-item="{{item}}">show</paper-button>
+                  </template>
+                </x-select>
+              </div>
+            </template>
+          </iron-list>
+          <p>
+            <paper-button raised on-tap="addData">Add</paper-button>
+            <paper-button raised on-tap="resetData">Reset</paper-button>
+          </p>
+        </template>
+        <script>
+          var t = document.querySelector('template[is="dom-bind"]');
+          t.addData = function() {
+            t.data = t.data.concat([{
+              name: 'item ' + t.data.length
+            }]);
+          };
+          t.resetData = function() {
+            t.data = [];
+            t.addData();
+            t.addData();
+            t.addData();
+          };
+          t.onAction = function(e) {
+            t.selectedIndex = e.model.index;
+            t.selectedItem = JSON.stringify(e.model.item);
+          };
+          t.resetData();
+        </script>
+      </template>
+    </demo-snippet>
+
+  </div>
+
+
+  <iron-overlay-container type="paper-dialog"></iron-overlay-container>
+
+</body>
+
+</html>

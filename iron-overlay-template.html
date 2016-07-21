@@ -1,0 +1,177 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="iron-overlay-container.html">
+
+<script>
+  /**
+   * `overlay-template` should be used to overcome rendering issues [like this one](http://jsbin.com/lemufe/4/edit?html,output)
+   * caused by [the stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context).
+   *
+   * `overlay-template` stamps the overlay and notifies that the overlay should
+   * be appended by firing the event [`iron-overlay-template-attach`](#overlay-template:event-iron-overlay-template-attach).
+   *
+   * [`iron-overlay-container`](#iron-overlay-container) will listen to this event and
+   * append the overlay as its child. Ensure you declare at least one in your document.
+   *
+   * ### Styling
+   * You can pass styles within the template:
+   *
+   *      <template is="overlay-template">
+   *        <style>
+   *          paper-dialog { background-color: orange; }
+   *        </style>
+   *        <paper-dialog>My dialog</paper-dialog>
+   *      </template>
+   *
+   * @demo demo/template.html
+   */
+  Polymer({
+    is: 'overlay-template',
+    extends: 'template',
+    behaviors: [Polymer.Templatizer],
+    /**
+     * The overlay instance. Read-only.
+     */
+    get overlay() {
+      // Lazy loading.
+      this._ensureStamped();
+      return this._overlay;
+    },
+
+    created: function() {
+      // For lazy loading.
+      this._overlay = null;
+      // The stamped instance.
+      this._root = null;
+      // The instance children, so we can forward bindings.
+      this._children = [];
+      this._host = null;
+    },
+
+    attached: function() {
+      this._ensureAttached();
+      this._host = Polymer.dom(this).getOwnerRoot() || document;
+    },
+
+    detached: function() {
+      this.fire('iron-overlay-template-detach', this._root, {node: this._host});
+      this._host = null;
+    },
+
+    /**
+     * Implements extension point from `Polymer.Templatizer`.
+     * Forward values to the stamped children.
+     */
+    _forwardParentProp: function(prop, value) {
+      for (var i = 0; i < this._children.length; i++) {
+        var inst = this._children[i]._templateInstance;
+        // Might be undefined (e.g. for template elements)
+        if (inst) {
+          inst[prop] = value;
+        }
+      }
+    },
+
+    /**
+     * Ensures the instance is stamped and listens to overlay `opened` changes.
+     * @private
+     */
+    _ensureStamped: function() {
+      if (this._root) {
+        return;
+      }
+      this.templatize(this);
+      this._root = this.stamp().root;
+
+      // Polymer removes styles when included into nested templates.
+      // FIXME(valdrin) remove this when Polymer gets fixed.
+      this._convertScriptsToStyles(this._root);
+
+      this._overlay = this._getOverlay(this._root);
+      // Listen to `opened` changes to delay the attach to when the overlay is opened.
+      this._overlay.addEventListener('opened-changed', this._ensureAttached.bind(this));
+    },
+
+    /**
+     * Finds the overlay within the root children.
+     * @param {!Element} root
+     * @return {Element|undefined}
+     * @private
+     */
+    _getOverlay: function(root) {
+      var children = root.children;
+      for (var i = 0; i < children.length; i++) {
+        var name = children[i].tagName.toLowerCase();
+        if (name !== 'script' && name !== 'style' && name !== 'link') {
+          return children[i];
+        }
+      }
+    },
+
+    /**
+     * Converts <script type="css"> elements to <style> elements.
+     * @param {!Element} root
+     * @private
+     */
+    _convertScriptsToStyles: function(root) {
+      var scripts = root.querySelectorAll('script[type="css"]');
+      for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i];
+        var css = script.textContent;
+        var style = document.createElement('style');
+        if (script.getAttribute('is') === 'custom-style') {
+          style.setAttribute('is', 'custom-style');
+        }
+        if (style.styleSheet){
+          style.styleSheet.cssText = css;
+        } else {
+          style.appendChild(document.createTextNode(css));
+        }
+        root.insertBefore(style, script);
+        root.removeChild(script);
+      }
+    },
+
+    /**
+     * Ensures the overlay gets attached by firing `iron-overlay-template-attach`.
+     * It will create an `iron-overlay-container` if necessary, and append it to
+     * `document.body`.
+     * @private
+     */
+    _ensureAttached: function() {
+      var overlay = this._overlay;
+      // Wait for the template to be attached.
+      // If overlay is already attached, return.
+      // Defer attach for when the overlay is opened.
+      if (!this.isAttached || !overlay || overlay.isAttached || !overlay.opened) {
+        return;
+      }
+      // Copy children in a separate array, as they'll be moved to another root.
+      this._children = Array.prototype.slice.apply(this._root.children);
+      var event = this.fire('iron-overlay-template-attach', this._root, {cancelable: true});
+      // If overlay wasn't attached & the event not prevented, we create an `iron-overlay-container`.
+      if (!event.defaultPrevented && !overlay.isAttached) {
+        var container = document.createElement('iron-overlay-container');
+        container.autoAttach = true;
+        this.fire('iron-overlay-template-attach', this._root, {cancelable: true});
+      }
+    }
+  });
+
+  /**
+   * Fired when the overlay is ready to be attached.
+   * @event iron-overlay-template-attach
+   * @param {Event} event The overlay attach can be prevented
+   * by calling `event.preventDefault()`
+   * @param {Node} event.detail The overlay instance to be attached (the contents of the template).
+   */
+</script>

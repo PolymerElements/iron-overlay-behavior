@@ -46,11 +46,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div>
           <input class="focusable1" placeholder="1 (nested)">
         </div>
-        <a href="#" class="focusable2">1</a>
+        <a href="#" class="focusable2">2</a>
         <button disabled> disabled button</button>
         <input disabled tabindex="0" value="disabled input with tabindex">
         <div tabindex="-1">not focusable</div>
-        <div contenteditable class="focusable3">2</div>
+        <div contenteditable class="focusable3">3</div>
       </div>
     </template>
   </test-fixture>
@@ -59,6 +59,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <div>
         <h2>Focusables (with tabindex)</h2>
+        <div tabindex="0" class="focusable7">7</div>
+        <div tabindex="0" class="focusable8">8</div>
+        <div tabindex="0" class="focusable9">9</div>
+        <div tabindex="0" class="focusable10">10</div>
+        <div tabindex="0" class="focusable11">11</div>
+        <div tabindex="0" class="focusable12">12</div>
         <div tabindex="-1">not focusable</div>
         <div tabindex="3" class="focusable3">3</div>
         <div tabindex="4" class="focusable4">4</div>
@@ -130,13 +136,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('respects the tabindex order', function() {
         var node = fixture('tabindex');
         var focusableNodes = Polymer.IronFocusablesHelper.getTabbableNodes(node);
-        assert.equal(focusableNodes.length, 6, '6 nodes are focusable');
-        assert.equal(focusableNodes[0], Polymer.dom(node).querySelector('.focusable1'));
-        assert.equal(focusableNodes[1], Polymer.dom(node).querySelector('.focusable2'));
-        assert.equal(focusableNodes[2], Polymer.dom(node).querySelector('.focusable3'));
-        assert.equal(focusableNodes[3], Polymer.dom(node).querySelector('.focusable4'));
-        assert.equal(focusableNodes[4], Polymer.dom(node).querySelector('.focusable5'));
-        assert.equal(focusableNodes[5], Polymer.dom(node).querySelector('.focusable6'));
+        assert.equal(focusableNodes.length, 12, '12 nodes are focusable');
+        for (var i = 0; i < 12; i++) {
+          assert.equal(focusableNodes[i], Polymer.dom(node).querySelector('.focusable' + (i + 1)));
+        }
       });
 
       test('includes tabbable elements in the shadow dom', function() {

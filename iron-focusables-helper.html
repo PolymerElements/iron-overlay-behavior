@@ -29,7 +29,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // the final array by tabindex.
         var needsSortByTabIndex = this._collectTabbableNodes(node, result);
         if (needsSortByTabIndex) {
-          result.sort(this._tabIndexSort);
+          return this._sortByTabIndex(result);
         }
         return result;
       },
@@ -80,8 +80,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * Returns the normalized node tabindex. If not focusable, returns -1.
        * It checks for the attribute "tabindex" instead of the element property
        * `tabIndex` since browsers assign different values to it.
-       * e.g. for <div id="elem" contenteditable>
-       * `elem.tabIndex` is `-1` in Firefox, `0` in other browsers.
+       * e.g. in Firefox `<div contenteditable>` has `tabIndex = -1`
        * @param {!Node} node
        * @return {Number}
        * @private
@@ -109,12 +108,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return false;
         }
         var tabIndex = this._normalizedTabIndex(node);
-
-        // TODO(valdrin) uncomment this when delegatesFocus is implemented.
-        // if delegatesFocus and tabindex = -1, should skip its children.
-        // if (tabIndex < 0 && node.delegatesFocus) {
-        //   return false;
-        // }
 
         var needsSortByTabIndex = tabIndex > 0;
         if (tabIndex >= 0) {
@@ -153,21 +146,60 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Sort by tabindex. Move elements with tabindex = 0 to the end to match
-       * browser behavior, e.g. [0, 3, 1, 2] --> [1, 2, 3, 0]
-       * @param {!Node} a
-       * @param {!Node} b
-       * @return {Number}
+       * Sorts an array of nodes by tabindex. Returns a new array.
+       * @param {!Array<Node>} nodes
+       * @return {Array<Node>}
        * @private
        */
-      _tabIndexSort: function(a, b) {
-        // Move tabindex = 0 elements to the end of the list.
-        if (a.tabIndex === 0 || b.tabIndex === 0) {
-          // The one with bigger `tabindex` goes on top of the list.
-          return b.tabIndex - a.tabIndex;
+      _sortByTabIndex: function(nodes) {
+        // Implement a merge sort as Array.prototype.sort does a non-stable sort
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+        var len = nodes.length;
+        if (len < 2) {
+          return nodes;
         }
-        // The one with smaller `tabindex` goes on top of the list.
-        return a.tabIndex - b.tabIndex;
+        var pivot = Math.ceil(len / 2);
+        var left = this._sortByTabIndex(nodes.slice(0, pivot));
+        var right = this._sortByTabIndex(nodes.slice(pivot));
+        return this._mergeSortByTabIndex(left, right);
+      },
+
+      /**
+       * @param {!Array<Node>} left
+       * @param {!Array<Node>} right
+       * @return {Array<Node>}
+       * @private
+       */
+      _mergeSortByTabIndex: function(left, right) {
+        var result = [];
+        while ((left.length > 0) && (right.length > 0)) {
+          if (this._hasLowerTabOrder(left[0], right[0])) {
+            result.push(right.shift());
+          } else {
+            result.push(left.shift());
+          }
+        }
+
+        return result.concat(left, right);
+      },
+
+      /**
+       * Returns if a node has lower tab order compared to another node (both
+       * nodes are assumed to be focusable and tabbable).
+       * Elements with tabindex = 0 have lower tab order compared to elements
+       * with tabindex > 0.
+       * If both have same tabindex, it returns false.
+       * @param {!Node} a
+       * @param {!Node} b
+       * @return {boolean}
+       * @private
+       */
+      _hasLowerTabOrder: function(a, b) {
+        // Normalize tabIndexes
+        // e.g. in Firefox `<div contenteditable>` has `tabIndex = -1`
+        var ati = Math.max(a.tabIndex, 0);
+        var bti = Math.max(b.tabIndex, 0);
+        return (ati === 0 || bti === 0) ? bti > ati : ati > bti;
       }
     };
   })();

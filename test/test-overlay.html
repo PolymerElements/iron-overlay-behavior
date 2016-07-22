@@ -63,9 +63,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _renderOpened: function() {
         if (this.animated) {
-          if (this.withBackdrop) {
-            this.backdropElement.open();
-          }
           this.classList.add('opened');
           this.fire('simple-overlay-open-animation-start');
         } else {
@@ -75,9 +72,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _renderClosed: function() {
         if (this.animated) {
-          if (this.withBackdrop) {
-            this.backdropElement.close();
-          }
           this.classList.remove('opened');
           this.fire('simple-overlay-close-animation-start');
         } else {

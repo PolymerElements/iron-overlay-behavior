@@ -21,7 +21,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * It searches the tabbable nodes in the light and shadow dom of the chidren,
        * sorting the result by tabindex.
        * @param {!Node} node
-       * @return {Array<Node>}
+       * @return {Array<HTMLElement>}
        */
       getTabbableNodes: function(node) {
         var result = [];
@@ -35,11 +35,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Returns if a node is focusable.
-       * @param {!Node} node
+       * Returns if a element is focusable.
+       * @param {!HTMLElement} element
        * @return {boolean}
        */
-      isFocusable: function(node) {
+      isFocusable: function(element) {
         // From http://stackoverflow.com/a/1600194/4228703:
         // There isn't a definite list, it's up to the browser. The only
         // standard we have is DOM Level 2 HTML https://www.w3.org/TR/DOM-Level-2-HTML/html.html,
@@ -47,47 +47,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // HTMLInputElement,  HTMLSelectElement, HTMLTextAreaElement and
         // HTMLAnchorElement. This notably omits HTMLButtonElement and
         // HTMLAreaElement.
-        // Referring to these tests with focusables in different browsers
+        // Referring to these tests with tabbables in different browsers
         // http://allyjs.io/data-tables/focusable.html
 
-        // shadow roots won't have this method.
-        if (!node.hasAttribute) {
-          return false;
-        }
-        var name = node.localName;
+        var name = element.localName;
         // These elements cannot be focused if they have [disabled] attribute.
         if (/^(input|select|textarea|button|object)$/.test(name)) {
-          return !node.disabled;
+          return !element.disabled;
         }
         // These elements can be focused even if they have [disabled] attribute.
         return name === 'iframe' ||
-          (/^(a|area)$/.test(name) && node.hasAttribute('href')) ||
-          node.hasAttribute('tabindex') ||
-          node.hasAttribute('contenteditable');
+          (/^(a|area)$/.test(name) && element.hasAttribute('href')) ||
+          element.hasAttribute('tabindex') ||
+          element.hasAttribute('contenteditable');
       },
 
       /**
-       * Returns if a node is tabbable. To be tabbable, a node must be focusable
+       * Returns if a element is tabbable. To be tabbable, a element must be focusable
        * and visible.
-       * @param {!Node} node
+       * @param {!HTMLElement} element
        * @return {boolean}
        */
-      isTabbable: function(node) {
-        return this._normalizedTabIndex(node) >= 0 && this._isVisible(node);
+      isTabbable: function(element) {
+        return this._normalizedTabIndex(element) >= 0 && this._isVisible(element);
       },
 
       /**
-       * Returns the normalized node tabindex. If not focusable, returns -1.
+       * Returns the normalized element tabindex. If not focusable, returns -1.
        * It checks for the attribute "tabindex" instead of the element property
        * `tabIndex` since browsers assign different values to it.
        * e.g. in Firefox `<div contenteditable>` has `tabIndex = -1`
-       * @param {!Node} node
+       * @param {!HTMLElement} element
        * @return {Number}
        * @private
        */
-      _normalizedTabIndex: function(node) {
-        if (this.isFocusable(node)) {
-          var tabIndex = node.getAttribute('tabindex') || 0;
+      _normalizedTabIndex: function(element) {
+        if (this.isFocusable(element)) {
+          var tabIndex = element.getAttribute('tabindex') || 0;
           return Number(tabIndex);
         }
         return -1;
@@ -98,28 +94,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * Returns if the `result` array needs to be sorted by tabindex.
        * @param {!Node} node The starting point for the search; added to `result`
        * if tabbable.
-       * @param {!Array<Node>} result
+       * @param {!Array<HTMLElement>} result
        * @return {boolean}
        * @private
        */
       _collectTabbableNodes: function(node, result) {
-        // Skip #text nodes. If not visible, no need to explore children.
-        if (node.nodeType === 3 || !this._isVisible(node)) {
+        // If not an element or not visible, no need to explore children.
+        if (node.nodeType !== Node.ELEMENT_NODE || !this._isVisible(node)) {
           return false;
         }
-        var tabIndex = this._normalizedTabIndex(node);
-
+        var element = /** @type {HTMLElement} */ (node);
+        var tabIndex = this._normalizedTabIndex(element);
         var needsSortByTabIndex = tabIndex > 0;
         if (tabIndex >= 0) {
-          result.push(node);
+          result.push(element);
         }
 
         var children;
-        if (node.localName === 'content') {
-          children = Polymer.dom(node).getDistributedNodes();
+        if (element.localName === 'content') {
+          children = Polymer.dom(element).getDistributedNodes();
         } else {
           // Use shadow root if possible, will check for distributed nodes.
-          children = Polymer.dom(node.root || node).children;
+          children = Polymer.dom(element.root || element).children;
         }
         for (var i = 0; i < children.length; i++) {
           // Ensure method is always invoked to collect tabbable children.
@@ -130,44 +126,46 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Returns false if the node has `visibility: hidden` or `display: none`
-       * @param {!Node} node
+       * Returns false if the element has `visibility: hidden` or `display: none`
+       * @param {!HTMLElement} element
        * @return {boolean}
        * @private
        */
-      _isVisible: function(node) {
+      _isVisible: function(element) {
         // Check inline style first to save a re-flow. If looks good, check also
         // computed style.
-        if (node.style.visibility !== 'hidden' && node.style.display !== 'none') {
-          var style = window.getComputedStyle(node);
+        var style = element.style;
+        if (style.visibility !== 'hidden' && style.display !== 'none') {
+          style = window.getComputedStyle(element);
           return (style.visibility !== 'hidden' && style.display !== 'none');
         }
         return false;
       },
 
       /**
-       * Sorts an array of nodes by tabindex. Returns a new array.
-       * @param {!Array<Node>} nodes
-       * @return {Array<Node>}
+       * Sorts an array of tabbable elements by tabindex. Returns a new array.
+       * @param {!Array<HTMLElement>} tabbables
+       * @return {Array<HTMLElement>}
        * @private
        */
-      _sortByTabIndex: function(nodes) {
+      _sortByTabIndex: function(tabbables) {
         // Implement a merge sort as Array.prototype.sort does a non-stable sort
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
-        var len = nodes.length;
+        var len = tabbables.length;
         if (len < 2) {
-          return nodes;
+          return tabbables;
         }
         var pivot = Math.ceil(len / 2);
-        var left = this._sortByTabIndex(nodes.slice(0, pivot));
-        var right = this._sortByTabIndex(nodes.slice(pivot));
+        var left = this._sortByTabIndex(tabbables.slice(0, pivot));
+        var right = this._sortByTabIndex(tabbables.slice(pivot));
         return this._mergeSortByTabIndex(left, right);
       },
 
       /**
-       * @param {!Array<Node>} left
-       * @param {!Array<Node>} right
-       * @return {Array<Node>}
+       * Merge sort iterator, merges the two arrays into one, sorted by tab index.
+       * @param {!Array<HTMLElement>} left
+       * @param {!Array<HTMLElement>} right
+       * @return {Array<HTMLElement>}
        * @private
        */
       _mergeSortByTabIndex: function(left, right) {
@@ -184,13 +182,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Returns if a node has lower tab order compared to another node (both
-       * nodes are assumed to be focusable and tabbable).
+       * Returns if an element has lower tab order compared to another element
+       * (both elements are assumed to be focusable and tabbable).
        * Elements with tabindex = 0 have lower tab order compared to elements
        * with tabindex > 0.
        * If both have same tabindex, it returns false.
-       * @param {!Node} a
-       * @param {!Node} b
+       * @param {!HTMLElement} a
+       * @param {!HTMLElement} b
        * @return {boolean}
        * @private
        */

@@ -14,6 +14,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   (function() {
     'use strict';
 
+    var p = Element.prototype;
+    var matches = p.matches || p.matchesSelector || p.mozMatchesSelector ||
+      p.msMatchesSelector || p.oMatchesSelector || p.webkitMatchesSelector;
+
     Polymer.IronFocusablesHelper = {
 
       /**
@@ -50,26 +54,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // Referring to these tests with tabbables in different browsers
         // http://allyjs.io/data-tables/focusable.html
 
-        var name = element.localName;
-        // These elements cannot be focused if they have [disabled] attribute.
-        if (/^(input|select|textarea|button|object)$/.test(name)) {
-          return !element.disabled;
+        // Elements that cannot be focused if they have [disabled] attribute.
+        if (matches.call(element, 'input, select, textarea, button, object')) {
+          return matches.call(element, ':not([disabled])');
         }
-        // These elements can be focused even if they have [disabled] attribute.
-        return name === 'iframe' ||
-          (/^(a|area)$/.test(name) && element.hasAttribute('href')) ||
-          element.hasAttribute('tabindex') ||
-          element.hasAttribute('contenteditable');
+        // Elements that can be focused even if they have [disabled] attribute.
+        return matches.call(element,
+          'a[href], area[href], iframe, [tabindex], [contentEditable]');
       },
 
       /**
-       * Returns if a element is tabbable. To be tabbable, a element must be focusable
-       * and visible.
+       * Returns if a element is tabbable. To be tabbable, a element must be
+       * focusable, visible, and with a tabindex !== -1.
        * @param {!HTMLElement} element
        * @return {boolean}
        */
       isTabbable: function(element) {
-        return this._normalizedTabIndex(element) >= 0 && this._isVisible(element);
+        return this.isFocusable(element) &&
+          matches.call(element, ':not([tabindex="-1"])') &&
+          this._isVisible(element);
       },
 
       /**

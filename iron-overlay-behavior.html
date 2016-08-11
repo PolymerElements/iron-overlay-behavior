@@ -46,9 +46,7 @@ Set the `with-backdrop` attribute to display a backdrop behind the overlay. The 
 appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
 options.
 
-In addition, `with-backdrop` will wrap the focus within the content in the light DOM.
-Override the [`_focusableNodes` getter](#Polymer.IronOverlayBehavior:property-_focusableNodes)
-to achieve a different behavior.
+In addition, `with-backdrop` will wrap the focus within the overlay.
 
 ### Limitations
 
@@ -157,6 +155,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       /**
        * The node being focused.
        * @type {?Node}
+       * @deprecated
        */
       _focusedChild: {
         type: Object
@@ -181,7 +180,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @type {Node}
      */
     get _focusNode() {
-      return this._focusedChild || Polymer.dom(this).querySelector('[autofocus]') || this;
+      return Polymer.dom(this).querySelector('[autofocus]') || this;
     },
 
     /**
@@ -193,47 +192,10 @@ context. You should place this element as a child of `<body>` whenever possible.
      * you can override this method to return only `[firstFocusable, lastFocusable];`
      * @type {Array<Node>}
      * @protected
+     * @deprecated
      */
     get _focusableNodes() {
-      // Elements that can be focused even if they have [disabled] attribute.
-      var FOCUSABLE_WITH_DISABLED = [
-        'a[href]',
-        'area[href]',
-        'iframe',
-        '[tabindex]',
-        '[contentEditable=true]'
-      ];
-
-      // Elements that cannot be focused if they have [disabled] attribute.
-      var FOCUSABLE_WITHOUT_DISABLED = [
-        'input',
-        'select',
-        'textarea',
-        'button'
-      ];
-
-      // Discard elements with tabindex=-1 (makes them not focusable).
-      var selector = FOCUSABLE_WITH_DISABLED.join(':not([tabindex="-1"]),') +
-        ':not([tabindex="-1"]),' +
-        FOCUSABLE_WITHOUT_DISABLED.join(':not([disabled]):not([tabindex="-1"]),') +
-        ':not([disabled]):not([tabindex="-1"])';
-
-      var focusables = Polymer.dom(this).querySelectorAll(selector);
-      if (this.tabIndex >= 0) {
-        // Insert at the beginning because we might have all elements with tabIndex = 0,
-        // and the overlay should be the first of the list.
-        focusables.splice(0, 0, this);
-      }
-      // Sort by tabindex.
-      return focusables.sort(function (a, b) {
-        if (a.tabIndex === b.tabIndex) {
-          return 0;
-        }
-        if (a.tabIndex === 0 || a.tabIndex > b.tabIndex) {
-          return 1;
-        }
-        return -1;
-      });
+      return [];
     },
 
     ready: function() {
@@ -242,8 +204,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       // with-backdrop needs tabindex to be set in order to trap the focus.
       // If it is not set, IronOverlayBehavior will set it, and remove it if with-backdrop = false.
       this.__shouldRemoveTabIndex = false;
-      // Used for wrapping the focus on TAB / Shift+TAB.
-      this.__firstFocusableNode = this.__lastFocusableNode = null;
       // Used by __onNextAnimationFrame to cancel any previous callback.
       this.__raf = null;
       // Focused node before overlay gets opened. Can be restored on close.
@@ -267,6 +227,9 @@ context. You should place this element as a child of `<body>` whenever possible.
         this.__raf = null;
       }
       this._manager.removeOverlay(this);
+      if (document.$blockingElements) {
+        document.$blockingElements.remove(this);
+      }
     },
 
     /**
@@ -310,10 +273,9 @@ context. You should place this element as a child of `<body>` whenever possible.
     /**
      * Invalidates the cached tabbable nodes. To be called when any of the focusable
      * content changes (e.g. a button is disabled).
+     * @deprecated
      */
-    invalidateTabbables: function() {
-      this.__firstFocusableNode = this.__lastFocusableNode = null;
-    },
+    invalidateTabbables: function() {},
 
     _ensureSetup: function() {
       if (this._overlaySetup) {
@@ -344,6 +306,11 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.__isAnimating = true;
 
+      if (document.$blockingElements) {
+        var isBlocking = this.withBackdrop && this.opened;
+        document.$blockingElements[isBlocking ? 'push' : 'remove'](this);
+      }
+
       // Use requestAnimationFrame for non-blocking rendering.
       this.__onNextAnimationFrame(this.__openedChanged);
     },
@@ -364,6 +331,10 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
       if (this.opened && this.isAttached) {
         this._manager.trackBackdrop();
+        if (document.$blockingElements) {
+          var isBlocking = this.withBackdrop && this.opened;
+          document.$blockingElements[isBlocking ? 'push' : 'remove'](this);
+        }
       }
     },
 
@@ -463,7 +434,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       }
       else {
         this._focusNode.blur();
-        this._focusedChild = null;
         // Restore focus.
         if (this.restoreFocusOnClose && this.__restoreFocusNode) {
           this.__restoreFocusNode.focus();
@@ -494,19 +464,9 @@ context. You should place this element as a child of `<body>` whenever possible.
      * Keeps track of the focused child. If withBackdrop, traps focus within overlay.
      * @param {!Event} event
      * @protected
+     * @deprecated
      */
-    _onCaptureFocus: function (event) {
-      if (!this.withBackdrop) {
-        return;
-      }
-      var path = Polymer.dom(event).path;
-      if (path.indexOf(this) === -1) {
-        event.stopPropagation();
-        this._applyFocus();
-      } else {
-        this._focusedChild = path[0];
-      }
-    },
+    _onCaptureFocus: function (event) {},
 
     /**
      * Handles the ESC key event and cancels (closes) the overlay.
@@ -524,50 +484,9 @@ context. You should place this element as a child of `<body>` whenever possible.
      * Will wrap focus for overlays withBackdrop.
      * @param {!Event} event
      * @protected
+     * @deprecated
      */
-    _onCaptureTab: function(event) {
-      if (!this.withBackdrop) {
-        return;
-      }
-      this.__ensureFirstLastFocusables();
-      // TAB wraps from last to first focusable.
-      // Shift + TAB wraps from first to last focusable.
-      var shift = event.shiftKey;
-      var nodeToCheck = shift ? this.__firstFocusableNode : this.__lastFocusableNode;
-      var nodeToSet = shift ? this.__lastFocusableNode : this.__firstFocusableNode;
-      var shouldWrap = false;
-      if (nodeToCheck === nodeToSet) {
-        // If nodeToCheck is the same as nodeToSet, it means we have an overlay
-        // with 0 or 1 focusables; in either case we still need to trap the
-        // focus within the overlay.
-        shouldWrap = true;
-      } else {
-        // In dom=shadow, the manager will receive focus changes on the main
-        // root but not the ones within other shadow roots, so we can't rely on
-        // _focusedChild, but we should check the deepest active element.
-        var focusedNode = this._manager.deepActiveElement;
-        // If the active element is not the nodeToCheck but the overlay itself,
-        // it means the focus is about to go outside the overlay, hence we
-        // should prevent that (e.g. user opens the overlay and hit Shift+TAB).
-        shouldWrap = (focusedNode === nodeToCheck || focusedNode === this);
-      }
-
-      if (shouldWrap) {
-        // When the overlay contains the last focusable element of the document
-        // and it's already focused, pressing TAB would move the focus outside
-        // the document (e.g. to the browser search bar). Similarly, when the
-        // overlay contains the first focusable element of the document and it's
-        // already focused, pressing Shift+TAB would move the focus outside the
-        // document (e.g. to the browser search bar).
-        // In both cases, we would not receive a focus event, but only a blur.
-        // In order to achieve focus wrapping, we prevent this TAB event and
-        // force the focus. This will also prevent the focus to temporarily move
-        // outside the overlay, which might cause scrolling.
-        event.preventDefault();
-        this._focusedChild = nodeToSet;
-        this._applyFocus();
-      }
-    },
+    _onCaptureTab: function(event) {},
 
     /**
      * Refits if the overlay is opened and not animating.
@@ -586,21 +505,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      */
     _onNodesChange: function() {
       if (this.opened && !this.__isAnimating) {
-        // It might have added focusable nodes, so invalidate cached values.
-        this.invalidateTabbables();
         this.notifyResize();
-      }
-    },
-
-    /**
-     * Will set first and last focusable nodes if any of them is not set.
-     * @private
-     */
-    __ensureFirstLastFocusables: function() {
-      if (!this.__firstFocusableNode || !this.__lastFocusableNode) {
-        var focusableNodes = this._focusableNodes;
-        this.__firstFocusableNode = focusableNodes[0];
-        this.__lastFocusableNode = focusableNodes[focusableNodes.length - 1];
       }
     },
 
@@ -610,6 +515,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      * @private
      */
     __openedChanged: function() {
+
       if (this.opened) {
         // Make overlay visible, then add it to the manager.
         this._prepareRenderOpened();

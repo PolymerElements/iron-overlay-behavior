@@ -672,6 +672,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               // Before tabbing, make lastFocusable non-tabbable. This will make
               // the one before it (focusableNodes.length - 2), the new last focusable node.
               focusableNodes[focusableNodes.length-1].setAttribute('tabindex', '-1');
+              overlay.invalidateTabbables();
               // Simulate Shift+TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-2], document.activeElement, 'focus wrapped correctly');

@@ -972,6 +972,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
       });
+      
+      test('ESC closes only the top overlay w/o noCancelOnEscKey', function(done) {
+        overlay2.noCancelOnEscKey = true;
+        runAfterOpen(overlay1, function() {
+          runAfterOpen(overlay2, function() {
+            MockInteractions.pressAndReleaseKeyOn(document, 27);
+            assert.isFalse(overlay1.opened, 'overlay1 was closed');
+            assert.isTrue(overlay2.opened, 'overlay2 is still opened');
+            done();
+          });
+        });
+      });
+
+      test('tap closes only the top overlay', function(done) {
+        runAfterOpen(overlay1, function() {
+          runAfterOpen(overlay2, function() {
+            MockInteractions.tap(document.body);
+            assert.isFalse(overlay2.opened, 'overlay2 was closed');
+            assert.isTrue(overlay1.opened, 'overlay1 is still opened');
+            done();
+          });
+        });
+      });
+
+      test('tap closes only the top overlay w/o noCancelOnOutsideClick', function(done) {
+        overlay2.noCancelOnOutsideClick = true;
+        runAfterOpen(overlay1, function() {
+          runAfterOpen(overlay2, function() {
+            MockInteractions.tap(document.body);
+            assert.isFalse(overlay1.opened, 'overlay1 was closed');
+            assert.isTrue(overlay2.opened, 'overlay2 is still opened');
+            done();
+          });
+        });
+      });
 
       test('close an overlay in proximity to another overlay', function(done) {
         // Open and close a separate overlay.

@@ -181,8 +181,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @return {Element|undefined}
      */
     currentOverlay: function() {
-      var i = this._overlays.length - 1;
-      return this._overlays[i];
+      return this._topOverlay();
     },
 
     /**
@@ -313,12 +312,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Ensures the click event is delegated to the right overlay.
+     * Delegates the click event to the right overlay.
      * @param {!Event} event
      * @private
      */
     _onCaptureClick: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
+      // Get top overlay that should cancel on outside click.
+      var overlay = /** @type {?} */ (this._topOverlay(function(overlay) {
+        return !overlay.noCancelOnOutsideClick;
+      }));
       // Check if clicked outside of top overlay.
       if (overlay && this._overlayInPath(Polymer.dom(event).path) !== overlay) {
         overlay._onCaptureClick(event);
@@ -326,14 +328,47 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Ensures the focus event is delegated to the right overlay.
+     * Delegates ESC keyboard event to the right overlay.
+     * @param {!Event} event
+     * @private
+     */
+    _onCaptureEsc: function(event) {
+      // Get top overlay that should cancel on esc.
+      var overlay = /** @type {?} */ (this._topOverlay(function(overlay) {
+        return !overlay.noCancelOnEscKey;
+      }));
+      if (overlay) {
+        overlay._onCaptureEsc(event);
+      }
+    },
+
+    /**
+     * Delegates the focus event to the right overlay.
      * @param {!Event} event
      * @private
      */
     _onCaptureFocus: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
+      // Get top overlay with backdrop.
+      var overlay = /** @type {?} */ (this._topOverlay(function(overlay) {
+        return overlay.withBackdrop;
+      }));
       if (overlay) {
         overlay._onCaptureFocus(event);
+      }
+    },
+
+    /**
+     * Delegates TAB keyboard event to the right overlay.
+     * @param {!Event} event
+     * @private
+     */
+    _onCaptureTab: function(event) {
+      // Get top overlay with backdrop.
+      var overlay = /** @type {?} */ (this._topOverlay(function(overlay) {
+        return overlay.withBackdrop;
+      }));
+      if (overlay) {
+        overlay._onCaptureTab(event);
       }
     },
 
@@ -343,12 +378,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @private
      */
     _onCaptureKeyDown: function(event) {
-      var overlay = /** @type {?} */ (this.currentOverlay());
-      if (overlay) {
-        if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'esc')) {
-          overlay._onCaptureEsc(event);
-        } else if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'tab')) {
-          overlay._onCaptureTab(event);
+      if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'esc')) {
+        this._onCaptureEsc(event);
+      } else if (Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(event, 'tab')) {
+        this._onCaptureTab(event);
+      }
+    },
+
+    /**
+     * Returns the top overlay matching the condition.
+     * @param {Function(Element)=} meetsCondition Return `true` if the passed
+     * element meets the desired condition. If null, the top element is returned.
+     * @return {Element|undefined}
+     * @private
+     */
+    _topOverlay: function(meetsCondition) {
+      for (var i = this._overlays.length - 1; i >= 0; i--) {
+        if (!meetsCondition || meetsCondition(this._overlays[i])) {
+          return this._overlays[i];
         }
       }
     },

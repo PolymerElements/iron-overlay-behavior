@@ -41,7 +41,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     // Enable document-wide tap recognizer.
     // v1.0 or v2.0
-    var fnListen = Polymer.Gestures ? Polymer.Gestures.add : Polymer.Element.events.addListener;
+    var fnListen = Polymer.Gestures ? Polymer.Gestures.add.bind(Polymer.Gestures) : Polymer.Element.events.addListener;
     fnListen(document, 'tap', this._onCaptureClick.bind(this));
 
     document.addEventListener('focus', this._onCaptureFocus.bind(this), true);

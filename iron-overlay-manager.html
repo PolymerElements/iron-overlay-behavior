@@ -40,7 +40,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     this._backdropElement = null;
 
     // Enable document-wide tap recognizer.
-    Polymer.Gestures.add(document, 'tap', this._onCaptureClick.bind(this));
+    //Polymer.Gestures.add(document, 'tap', this._onCaptureClick.bind(this));
+    document.addEventListener('click', this._onCaptureClick.bind(this), true);
 
     document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
     document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
@@ -315,6 +316,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Check if clicked outside of top overlay.
       if (overlay && this._overlayInPath(Polymer.dom(event).path) !== overlay) {
         overlay._onCaptureClick(event);
+        event.stopPropagation();
       }
     },
 

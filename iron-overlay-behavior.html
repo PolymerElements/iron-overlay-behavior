@@ -324,30 +324,6 @@ context. You should place this element as a child of `<body>` whenever possible.
       this.style.display = 'none';
     },
 
-    /**
-     * Called when `opened` changes.
-     * @param {boolean=} opened
-     * @protected
-     */
-    _openedChanged: function(opened) {
-      if (opened) {
-        this.removeAttribute('aria-hidden');
-      } else {
-        this.setAttribute('aria-hidden', 'true');
-      }
-
-      // Defer any animation-related code on attached
-      // (_openedChanged gets called again on attached).
-      if (!this.isAttached) {
-        return;
-      }
-
-      this.__isAnimating = true;
-
-      // Use requestAnimationFrame for non-blocking rendering.
-      this.__onNextAnimationFrame(this.__openedChanged);
-    },
-
     _canceledChanged: function() {
       this.closingReason = this.closingReason || {};
       this.closingReason.canceled = this.canceled;

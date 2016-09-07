@@ -27,14 +27,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="test-buttons.html">
     <link rel="import" href="test-menu-button.html">
 
-    <style is="custom-style">
+    <custom-style><style is="custom-style">
       iron-overlay-backdrop {
         /* For quicker tests */
         --iron-overlay-backdrop: {
           transition: none;
         }
       }
-    </style>
+    </style></custom-style>
 
   </head>
 
@@ -803,9 +803,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         setup(function() {
           overlay = fixture('backdrop');
-          // Disable animations.
-          // TODO(valdrin) remove this when mixin works.
-          overlay.backdropElement.style.transition = 'none';
         });
 
         test('backdrop is opened when overlay is opened', function(done) {

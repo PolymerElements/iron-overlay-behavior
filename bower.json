@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "iron-a11y-keys-behavior": "https://github.com/notwaldorf/iron-a11y-keys-behavior.git#2.0-preview",
-    "iron-fit-behavior": "https://github.com/notwaldorf/iron-fit.git#2.0-preview",
-    "iron-resizable-behavior": "https://github.com/notwaldorf/iron-resizable.git#2.0-preview",
+    "iron-fit-behavior": "https://github.com/notwaldorf/iron-fit-behavior.git#2.0-preview",
+    "iron-resizable-behavior": "https://github.com/notwaldorf/iron-resizable-behavior.git#2.0-preview",
     "polymer": "https://github.com/PolymerLabs/alacarte.git#master"
   },
   "devDependencies": {

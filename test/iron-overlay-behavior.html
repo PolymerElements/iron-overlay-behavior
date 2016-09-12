@@ -1145,7 +1145,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay = composed.$.overlay;
           trigger = composed.$.trigger;
           overlay.withBackdrop = true;
-          //TODO(valdrin) remove timeout when PolymerLabs/alacarte#102 is fixed.
+          //TODO(valdrin) remove timeout when Polymer/polymer#3933 is fixed.
           setTimeout(function() {
             overlay.addEventListener('iron-overlay-opened', function() {
               done();

@@ -33,7 +33,7 @@
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0",
     "inert": "WICG/inert#master",
-    "blockingElements": "https://github.com/PolymerLabs/blockingElements.git#with-inert"
+    "blockingElements": "PolymerLabs/blockingElements#issue-2"
   },
   "ignore": []
 }

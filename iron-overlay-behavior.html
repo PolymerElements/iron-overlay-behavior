@@ -247,7 +247,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       // Used by __onNextAnimationFrame to cancel any previous callback.
       this.__raf = null;
       // Focused node before overlay gets opened. Can be restored on close.
-      this.__restoreFocusNode = null;
+      this._restoreFocusNode = null;
       this._ensureSetup();
     },
 
@@ -373,7 +373,7 @@ context. You should place this element as a child of `<body>` whenever possible.
      */
     _prepareRenderOpened: function() {
       // Store focused node.
-      this.__restoreFocusNode = this._manager.deepActiveElement;
+      this._restoreFocusNode = this._manager.deepActiveElement;
 
       // Needed to calculate the size of the overlay so that transitions on its size
       // will have the correct starting points.
@@ -385,7 +385,7 @@ context. You should place this element as a child of `<body>` whenever possible.
       // for the first time, so we make sure to return the focus where it was.
       if (this.noAutoFocus && document.activeElement === this._focusNode) {
         this._focusNode.blur();
-        this.__restoreFocusNode.focus();
+        this._restoreFocusNode.focus();
       }
     },
 
@@ -465,10 +465,10 @@ context. You should place this element as a child of `<body>` whenever possible.
         this._focusNode.blur();
         this._focusedChild = null;
         // Restore focus.
-        if (this.restoreFocusOnClose && this.__restoreFocusNode) {
-          this.__restoreFocusNode.focus();
+        if (this.restoreFocusOnClose && this._restoreFocusNode) {
+          this._restoreFocusToNode(this._restoreFocusNode);
         }
-        this.__restoreFocusNode = null;
+        this._restoreFocusNode = null;
         // If many overlays get closed at the same time, one of them would still
         // be the currentOverlay even if already closed, and would call _applyFocus
         // infinitely, so we check for this not to be the current overlay.
@@ -644,6 +644,10 @@ context. You should place this element as a child of `<body>` whenever possible.
         self.__raf = null;
         callback.call(self);
       });
+    },
+
+    _restoreFocusToNode: function(node) {
+      node.focus();
     }
 
   };

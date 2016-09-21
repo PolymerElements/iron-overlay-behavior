@@ -646,6 +646,10 @@ context. You should place this element as a child of `<body>` whenever possible.
       });
     },
 
+    /**
+     * Restore focus to the indicated node.
+     * This method exists to give the component a chance to refine the behavior.
+     */
     _restoreFocusToNode: function(node) {
       node.focus();
     }

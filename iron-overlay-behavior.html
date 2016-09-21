@@ -466,7 +466,7 @@ context. You should place this element as a child of `<body>` whenever possible.
         this._focusedChild = null;
         // Restore focus.
         if (this.restoreFocusOnClose && this._restoreFocusNode) {
-          this._restoreFocusToNode(this._restoreFocusNode);
+          this._restoreFocusNode.focus();
         }
         this._restoreFocusNode = null;
         // If many overlays get closed at the same time, one of them would still
@@ -644,14 +644,6 @@ context. You should place this element as a child of `<body>` whenever possible.
         self.__raf = null;
         callback.call(self);
       });
-    },
-
-    /**
-     * Restore focus to the indicated node.
-     * This method exists to give the component a chance to refine the behavior.
-     */
-    _restoreFocusToNode: function(node) {
-      node.focus();
     }
 
   };

@@ -716,18 +716,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('Polymer.IronOverlayManager.deepActiveElement', function() {
-        //TODO(valdrin) remove setup when Polymer/web-component-tester#379 is fixed.
-        setup(function(done) {
-          function closeCurrent() {
-            if (Polymer.IronOverlayManager.currentOverlay()) {
-              runAfterClose(Polymer.IronOverlayManager.currentOverlay(), closeCurrent);
-            } else {
-              done();
-            }
-          }
-          closeCurrent();
-        });
-
+        
         test('handles document.body', function () {
           document.body.focus();
           assert.equal(Polymer.IronOverlayManager.deepActiveElement, document.body);

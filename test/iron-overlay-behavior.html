@@ -196,7 +196,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             var spy = sinon.spy(overlay, 'refit');
             overlay.fire('iron-resize');
-            Polymer.dom.flush();
             requestAnimationFrame(function() {
               assert.isTrue(spy.called, 'overlay did refit');
               done();
@@ -207,7 +206,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('closed overlay does not refit on iron-resize', function(done) {
           var spy = sinon.spy(overlay, 'refit');
           overlay.fire('iron-resize');
-          Polymer.dom.flush();
           requestAnimationFrame(function() {
             assert.isFalse(spy.called, 'overlay should not refit');
             done();
@@ -236,14 +234,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('closed overlay does not trigger iron-resize when its content changes', function() {
+        test('closed overlay does not trigger iron-resize when its content changes', function(done) {
           // Ignore iron-resize triggered by window resize.
           var callCount = 0;
           window.addEventListener('resize', function() { callCount--; }, true);
           overlay.addEventListener('iron-resize', function() { callCount++; });
           Polymer.dom(overlay).appendChild(document.createElement('div'));
-          Polymer.dom.flush();
-          assert.equal(callCount, 0, 'iron-resize should not be called');
+          // MutationObserver executed in next microtask, so wait a tick.
+          setTimeout(function() {
+            assert.equal(callCount, 0, 'iron-resize should not be called');
+            done();
+          });
         });
 
         test('open overlay triggers iron-resize when its content changes', function(done) {
@@ -251,9 +252,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             var spy = sinon.stub();
             overlay.addEventListener('iron-resize', spy);
             Polymer.dom(overlay).appendChild(document.createElement('div'));
-            Polymer.dom.flush();
-            assert.equal(spy.callCount, 1, 'iron-resize should be called once');
-            done();
+            // MutationObserver executed in next microtask, so wait a tick.
+            setTimeout(function() {
+              assert.equal(spy.callCount, 1, 'iron-resize should be called once');
+              done();
+            });
           });
         });
 

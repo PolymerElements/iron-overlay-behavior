@@ -1133,14 +1133,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay = composed.$.overlay;
           trigger = composed.$.trigger;
           overlay.withBackdrop = true;
-          //TODO(valdrin) remove timeout when Polymer/polymer#3933 is fixed.
-          setTimeout(function() {
-            overlay.addEventListener('iron-overlay-opened', function() {
-              done();
-            });
-            // Opens the overlay.
-            MockInteractions.tap(trigger);
-          }, 100);
+          overlay.addEventListener('iron-overlay-opened', function() {
+            done();
+          });
+          // Opens the overlay.
+          MockInteractions.tap(trigger);
         });
 
         test('click on overlay content does not close it', function(done) {

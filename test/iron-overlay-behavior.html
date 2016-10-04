@@ -716,7 +716,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('Polymer.IronOverlayManager.deepActiveElement', function() {
-        
+
         test('handles document.body', function () {
           document.body.focus();
           assert.equal(Polymer.IronOverlayManager.deepActiveElement, document.body);
@@ -1094,22 +1094,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        // TODO(valdrin) check what will happen to `tap`
-        // test('tap event handled only by top overlay', function(done) {
-        //   runAfterOpen(overlay1, function() {
-        //     runAfterOpen(overlay2, function() {
-        //       var btn = Polymer.dom(overlay2).querySelector('button');
-        //       btn.addEventListener('tap', overlay2.close.bind(overlay2));
-        //       MockInteractions.tap(btn);
-        //       assert.isFalse(overlay2.opened, 'overlay2 closed');
-        //       assert.isTrue(overlay1.opened, 'overlay1 opened');
-        //       overlay2.addEventListener('iron-overlay-closed', function() {
-        //         assert.isTrue(overlay1.opened, 'overlay1 still opened');
-        //         done();
-        //       });
-        //     });
-        //   });
-        // });
+        test('tap event handled only by top overlay', function(done) {
+          runAfterOpen(overlay1, function() {
+            runAfterOpen(overlay2, function() {
+              var btn = Polymer.dom(overlay2).querySelector('button');
+              btn.addEventListener('tap', overlay2.close.bind(overlay2));
+              MockInteractions.tap(btn);
+              assert.isFalse(overlay2.opened, 'overlay2 closed');
+              assert.isTrue(overlay1.opened, 'overlay1 opened');
+              overlay2.addEventListener('iron-overlay-closed', function() {
+                assert.isTrue(overlay1.opened, 'overlay1 still opened');
+                done();
+              });
+            });
+          });
+        });
 
         test('updating with-backdrop updates z-index', function(done) {
           runAfterOpen(overlay1, function() {

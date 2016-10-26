@@ -677,8 +677,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('with-backdrop: after open, update last focusable node and then Shift+TAB', function(done) {
           overlay.withBackdrop = true;
-          var focusableNodes = overlay._focusableNodes;
           runAfterOpen(overlay, function() {
+            var focusableNodes = overlay._focusableNodes;
             // 1ms timeout needed by IE10 to have proper focus switching.
             Polymer.Base.async(function() {
               // Before tabbing, make lastFocusable non-tabbable. This will make

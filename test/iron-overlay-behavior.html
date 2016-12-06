@@ -561,6 +561,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         setup(function() {
           var f = fixture('focusables');
+          // TODO(valdrin) remove when test-fixture#40 is merged/fixed.
+          window.ShadyDOM && window.ShadyDOM.flush();
           overlay = f[0];
           overlayWithTabIndex = f[1];
           overlayFocusableNodes = f[2];

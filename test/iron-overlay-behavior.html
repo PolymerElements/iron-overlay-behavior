@@ -1248,16 +1248,51 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       suite('animations', function() {
 
-        test('overlay animations correctly triggered', function(done) {
-          var overlay = fixture('basic');
+        var overlay;
+        setup(function() {
+          overlay = fixture('basic');
           overlay.animated = true;
-          overlay.open();
+        });
+
+        test('overlay animations correctly triggered', function(done) {
           overlay.addEventListener('simple-overlay-open-animation-start', function() {
             // Since animated overlay will transition center + 300px to center,
             // we should not find the element at the center when the open animation starts.
             var centerElement = document.elementFromPoint(window.innerWidth/2, window.innerHeight/2);
             assert.notEqual(centerElement, overlay, 'overlay should not be centered already');
             done();
+          });
+          overlay.open();
+        });
+
+        test('overlay detached before closing animation is done', function(done) {
+          var parentNode = Polymer.dom(overlay).parentNode;
+          var closedSpy = sinon.stub();
+          overlay.addEventListener('iron-overlay-closed', closedSpy);
+          // Faster animation, 50ms.
+          overlay.style.transitionDuration = overlay.style.webkitTransitionDuration = '50ms';
+          runAfterOpen(overlay, function() {
+            overlay.close();
+            // After some time, but before close animation is completed...
+            setTimeout(function() {
+              assert.equal(overlay.style.display, '', 'style display ok');
+              assert.notEqual(overlay.style.zIndex, '', 'z-index ok');
+              // Animation is not done yet, but we remove the child already.
+              parentNode.removeChild(overlay);
+              Polymer.dom.flush();
+              assert.isFalse(overlay.opened, 'overlay opened ok');
+              assert.equal(overlay.style.display, 'none', 'style display updated');
+              assert.equal(overlay.style.zIndex, '', 'z-index reset');
+              parentNode.appendChild(overlay);
+              Polymer.dom.flush();
+              assert.isFalse(closedSpy.called, 'iron-overlay-closed not fired');
+              // Wait enough time for animation to complete.
+              setTimeout(function() {
+                assert.isFalse(overlay.opened, 'overlay still opened');
+                assert.isFalse(closedSpy.called, 'iron-overlay-closed never fired');
+                done();
+              }, 80);
+            }, 1);
           });
         });
 

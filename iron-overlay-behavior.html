@@ -187,6 +187,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         window.cancelAnimationFrame(this.__raf);
         this.__raf = null;
       }
+      if (this.__isAnimating) {
+        this.__isAnimating = false;
+        // We got detached while animating, ensure styles are ok
+        // in case we get ever attached again.
+        // NOTE: it's too late to fire iron-overlay-closed as we're already detached.
+        if (!this.opened) {
+          this.style.display = 'none';
+          this.style.zIndex = '';
+        }
+      }
       this._manager.removeOverlay(this);
     },
 

@@ -198,7 +198,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             var spy = sinon.spy(overlay, 'refit');
             overlay.fire('iron-resize');
-            Polymer.RenderStatus.afterNextRender(overlay, function() {
+            Polymer.RenderStatus.afterNextRender(function() {
               assert.isTrue(spy.called, 'overlay did refit');
               done();
             });
@@ -208,7 +208,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('closed overlay does not refit on iron-resize', function(done) {
           var spy = sinon.spy(overlay, 'refit');
           overlay.fire('iron-resize');
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
+          Polymer.RenderStatus.afterNextRender(function() {
             assert.isFalse(spy.called, 'overlay should not refit');
             done();
           });
@@ -243,7 +243,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.addEventListener('iron-resize', function() { callCount++; });
           Polymer.dom(overlay).appendChild(document.createElement('div'));
           // Wait for MutationObserver to be executed.
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
+          Polymer.RenderStatus.afterNextRender(function() {
             assert.equal(callCount, 0, 'iron-resize should not be called');
             done();
           });
@@ -255,7 +255,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.addEventListener('iron-resize', spy);
             Polymer.dom(overlay).appendChild(document.createElement('div'));
             // Wait for MutationObserver to be executed.
-            Polymer.RenderStatus.afterNextRender(overlay, function() {
+            Polymer.RenderStatus.afterNextRender(function() {
               assert.equal(spy.callCount, 1, 'iron-resize should be called once');
               done();
             });

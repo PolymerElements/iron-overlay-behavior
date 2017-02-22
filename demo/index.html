@@ -21,17 +21,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
   <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
-  <link rel="import" href="simple-overlay.html">
   <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
   <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+  <link rel="import" href="simple-overlay.html">
 
-  <style is="custom-style" include="demo-pages-shared-styles">
+  <custom-style><style is="custom-style" include="demo-pages-shared-styles">
     demo-snippet {
       --demo-snippet-code: {
         max-height: 250px;
       }
     }
-  </style>
+  </style></custom-style>
 
 </head>
 
@@ -120,16 +120,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <h3>An element with <code>IronOverlayBehavior</code> can be scrollable or contain scrollable content.</h3>
   <demo-snippet>
     <template>
-      <style is="custom-style">
+      <custom-style><style is="custom-style">
         .with-margin {
           margin: 24px 40px;
         }
         .scrollable {
           border: 1px solid lightgray;
           padding: 24px;
-          @apply(--layout-scroll);
+          @apply --layout-scroll;
         }
-      </style>
+      </style></custom-style>
       <button onclick="scrolling.open()">Scrolling overlay</button>
 
       <simple-overlay id="scrolling" class="with-margin scrollable" tabindex=-1>

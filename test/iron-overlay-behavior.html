@@ -27,14 +27,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <link rel="import" href="test-buttons.html">
     <link rel="import" href="test-menu-button.html">
 
-    <style is="custom-style">
+    <custom-style><style is="custom-style">
       iron-overlay-backdrop {
         /* For quicker tests */
         --iron-overlay-backdrop: {
           transition: none;
+          /* Safari 10 requires prefix */
+          -webkit-transition: none;
         }
       }
-    </style>
+    </style></custom-style>
 
   </head>
 
@@ -154,6 +156,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('_renderOpened called only after is attached', function(done) {
           var overlay = document.createElement('test-overlay');
+          document.body.appendChild(overlay);
+          document.body.removeChild(overlay);
+
           // The overlay is ready at this point, but not yet attached.
           var spy = sinon.spy(overlay, '_renderOpened');
           // This triggers _openedChanged.
@@ -196,8 +201,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             var spy = sinon.spy(overlay, 'refit');
             overlay.fire('iron-resize');
-            Polymer.dom.flush();
-            requestAnimationFrame(function() {
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
               assert.isTrue(spy.called, 'overlay did refit');
               done();
             });
@@ -207,8 +211,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('closed overlay does not refit on iron-resize', function(done) {
           var spy = sinon.spy(overlay, 'refit');
           overlay.fire('iron-resize');
-          Polymer.dom.flush();
-          requestAnimationFrame(function() {
+          Polymer.RenderStatus.afterNextRender(overlay, function() {
             assert.isFalse(spy.called, 'overlay should not refit');
             done();
           });
@@ -236,14 +239,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('closed overlay does not trigger iron-resize when its content changes', function() {
+        test('closed overlay does not trigger iron-resize when its content changes', function(done) {
           // Ignore iron-resize triggered by window resize.
           var callCount = 0;
           window.addEventListener('resize', function() { callCount--; }, true);
           overlay.addEventListener('iron-resize', function() { callCount++; });
           Polymer.dom(overlay).appendChild(document.createElement('div'));
-          Polymer.dom.flush();
-          assert.equal(callCount, 0, 'iron-resize should not be called');
+          // Wait for MutationObserver to be executed.
+          Polymer.RenderStatus.afterNextRender(overlay, function() {
+            assert.equal(callCount, 0, 'iron-resize should not be called');
+            done();
+          });
         });
 
         test('open overlay triggers iron-resize when its content changes', function(done) {
@@ -251,9 +257,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             var spy = sinon.stub();
             overlay.addEventListener('iron-resize', spy);
             Polymer.dom(overlay).appendChild(document.createElement('div'));
-            Polymer.dom.flush();
-            assert.equal(spy.callCount, 1, 'iron-resize should be called once');
-            done();
+            // Wait for MutationObserver to be executed.
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
+              assert.equal(spy.callCount, 1, 'iron-resize should be called once');
+              done();
+            });
           });
         });
 
@@ -937,6 +945,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('no duplicates after attached', function(done) {
           overlay1 = document.createElement('test-overlay');
+          document.body.appendChild(overlay1);
+          document.body.removeChild(overlay1);
           runAfterOpen(overlay1, function() {
             assert.equal(overlays.length, 1, 'correct count after open and attached');
             document.body.removeChild(overlay1);
@@ -1078,25 +1088,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        var clickEvents = ['click', 'tap'];
-        for (var i = 0; i < clickEvents.length; i++) {
-          var eventName = clickEvents[i];
-          test(eventName + ' event handled only by top overlay', function(done) {
-            runAfterOpen(overlay1, function() {
-              runAfterOpen(overlay2, function() {
-                var btn = Polymer.dom(overlay2).querySelector('button');
-                btn.addEventListener(eventName, overlay2.close.bind(overlay2));
-                MockInteractions.tap(btn);
-                assert.isFalse(overlay2.opened, 'overlay2 closed');
-                assert.isTrue(overlay1.opened, 'overlay1 opened');
-                overlay2.addEventListener('iron-overlay-closed', function() {
-                  assert.isTrue(overlay1.opened, 'overlay1 still opened');
-                  done();
-                });
+        test('click event handled only by top overlay', function(done) {
+          runAfterOpen(overlay1, function() {
+            runAfterOpen(overlay2, function() {
+              var btn = Polymer.dom(overlay2).querySelector('button');
+              btn.addEventListener('click', overlay2.close.bind(overlay2));
+              MockInteractions.tap(btn);
+              assert.isFalse(overlay2.opened, 'overlay2 closed');
+              assert.isTrue(overlay1.opened, 'overlay1 opened');
+              overlay2.addEventListener('iron-overlay-closed', function() {
+                assert.isTrue(overlay1.opened, 'overlay1 still opened');
+                done();
               });
             });
           });
-        }
+        });
+
+        test('tap event handled only by top overlay', function(done) {
+          runAfterOpen(overlay1, function() {
+            runAfterOpen(overlay2, function() {
+              var btn = Polymer.dom(overlay2).querySelector('button');
+              btn.addEventListener('tap', overlay2.close.bind(overlay2));
+              MockInteractions.tap(btn);
+              assert.isFalse(overlay2.opened, 'overlay2 closed');
+              assert.isTrue(overlay1.opened, 'overlay1 opened');
+              overlay2.addEventListener('iron-overlay-closed', function() {
+                assert.isTrue(overlay1.opened, 'overlay1 still opened');
+                done();
+              });
+            });
+          });
+        });
 
         test('updating with-backdrop updates z-index', function(done) {
           runAfterOpen(overlay1, function() {

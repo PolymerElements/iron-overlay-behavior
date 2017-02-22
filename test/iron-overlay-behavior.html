@@ -156,6 +156,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('_renderOpened called only after is attached', function(done) {
           var overlay = document.createElement('test-overlay');
+          document.body.appendChild(overlay);
+          document.body.removeChild(overlay);
+
           // The overlay is ready at this point, but not yet attached.
           var spy = sinon.spy(overlay, '_renderOpened');
           // This triggers _openedChanged.
@@ -942,6 +945,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('no duplicates after attached', function(done) {
           overlay1 = document.createElement('test-overlay');
+          document.body.appendChild(overlay1);
+          document.body.removeChild(overlay1);
           runAfterOpen(overlay1, function() {
             assert.equal(overlays.length, 1, 'correct count after open and attached');
             document.body.removeChild(overlay1);

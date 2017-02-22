@@ -216,6 +216,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       this.backdropElement.style.zIndex = this._getZ(overlay) - 1;
       this.backdropElement.opened = !!overlay;
+      document.body.appendChild(this.backdropElement);
+      document.body.removeChild(this.backdropElement);
       this.backdropElement.prepare();
     },
 

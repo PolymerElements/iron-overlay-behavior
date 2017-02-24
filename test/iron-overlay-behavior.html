@@ -1275,24 +1275,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.close();
             // After some time, but before close animation is completed...
             setTimeout(function() {
-              assert.equal(overlay.style.display, '', 'style display ok');
+              assert.equal(closedSpy.callCount, 0, 'iron-overlay-closed not called yet');
+              assert.equal(overlay.style.display, '', 'overlay still displayed');
               assert.notEqual(overlay.style.zIndex, '', 'z-index ok');
-              // Animation is not done yet, but we remove the child already.
+              // Animation is not done yet, but we remove the overlay already.
               parentNode.removeChild(overlay);
               Polymer.dom.flush();
-              assert.isFalse(overlay.opened, 'overlay opened ok');
-              assert.equal(overlay.style.display, 'none', 'style display updated');
-              assert.equal(overlay.style.zIndex, '', 'z-index reset');
+              // ...And we attach it again! Will it fire the closed event?
               parentNode.appendChild(overlay);
               Polymer.dom.flush();
-              assert.isFalse(closedSpy.called, 'iron-overlay-closed not fired');
-              // Wait enough time for animation to complete.
-              setTimeout(function() {
-                assert.isFalse(overlay.opened, 'overlay still opened');
-                assert.isFalse(closedSpy.called, 'iron-overlay-closed never fired');
-                done();
-              }, 80);
-            }, 1);
+              assert.isFalse(overlay.opened, 'overlay still closed');
+              assert.equal(closedSpy.callCount, 1, 'iron-overlay-closed fired');
+              assert.equal(overlay.style.display, 'none', 'overlay hidden');
+              assert.equal(overlay.style.zIndex, '', 'z-index reset');
+              done();
+            }, 10);
           });
         });
 

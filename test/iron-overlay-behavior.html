@@ -1265,31 +1265,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.open();
         });
 
-        test('overlay detached before closing animation is done', function(done) {
-          var parentNode = Polymer.dom(overlay).parentNode;
-          var closedSpy = sinon.stub();
-          overlay.addEventListener('iron-overlay-closed', closedSpy);
-          // Faster animation, 50ms.
-          overlay.style.transitionDuration = overlay.style.webkitTransitionDuration = '50ms';
+        test('overlay detached before opening animation is done', function(done) {
+          // Test will fail if `done` is called more than once.
           runAfterOpen(overlay, function() {
-            overlay.close();
-            // After some time, but before close animation is completed...
-            setTimeout(function() {
-              assert.equal(closedSpy.callCount, 0, 'iron-overlay-closed not called yet');
-              assert.equal(overlay.style.display, '', 'overlay still displayed');
-              assert.notEqual(overlay.style.zIndex, '', 'z-index ok');
-              // Animation is not done yet, but we remove the overlay already.
-              parentNode.removeChild(overlay);
-              Polymer.dom.flush();
-              // ...And we attach it again! Will it fire the closed event?
-              parentNode.appendChild(overlay);
-              Polymer.dom.flush();
-              assert.isFalse(overlay.opened, 'overlay still closed');
-              assert.equal(closedSpy.callCount, 1, 'iron-overlay-closed fired');
+            assert.equal(overlay.style.display, '', 'overlay displayed');
+            assert.notEqual(overlay.style.zIndex, '', 'z-index ok');
+            done(); 
+          });
+          // After some time, but before the animation is completed...
+          setTimeout(function() {
+            // Animation is not done yet, but we remove the overlay already.
+            Polymer.dom(overlay).parentNode.removeChild(overlay);
+          }, 50);
+        });
+
+        test('overlay detached before closing animation is done', function(done) {
+          runAfterOpen(overlay, function() {
+            // Test will fail if `done` is called more than once.
+            runAfterClose(overlay, function() {
               assert.equal(overlay.style.display, 'none', 'overlay hidden');
               assert.equal(overlay.style.zIndex, '', 'z-index reset');
-              done();
-            }, 10);
+              done(); 
+            });
+            // After some time, but before the animation is completed...
+            setTimeout(function() {
+              // Animation is not done yet, but we remove the overlay already.
+              Polymer.dom(overlay).parentNode.removeChild(overlay);
+            }, 50);
           });
         });
 

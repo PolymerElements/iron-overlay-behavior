@@ -176,10 +176,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Call _openedChanged here so that position can be computed correctly.
       if (this.opened) {
         this._openedChanged(this.opened);
-      } else if (this.__isAnimating) {
-        // We got detached while animating, and now we are attached again, so
-        // ensure we finish the rendering tasks we couldn't finish!
-        this._finishRenderClosed();
       }
       this._observer = Polymer.dom(this).observeNodes(this._onNodesChange);
     },
@@ -192,6 +188,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.__raf = null;
       }
       this._manager.removeOverlay(this);
+
+      // We got detached while animating, ensure we show/hide the overlay
+      // and fire iron-overlay-opened/closed event!
+      if (this.__isAnimating) {
+        if (this.opened) {
+          this._finishRenderOpened();
+        } else {
+          this._finishRenderClosed();
+        }
+      }
     },
 
     /**

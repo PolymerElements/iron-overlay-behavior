@@ -30,6 +30,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @type {!Array<Node>}
      */
     var lastScrollableNodes = [];
+    /**
+     * @type {!Array<string>}
+     */
+    var scrollEvents = [
+      // Modern `wheel` event for mouse wheel scrolling.
+      'wheel',
+      // Older, non-standard `mousewheel` event for some FF.
+      'mousewheel', 
+      // IE
+      'DOMMouseScroll',
+        // Save the lastScrollableNodes on touchstart, to be used on touchmove.
+        // Mobile devices can scroll on touch move.
+      'touchstart', 'touchmove'
+    ];
 
     /**
      * The IronScrollManager is intended to provide a central source
@@ -182,7 +196,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return false;
       },
 
-      _scrollInteractionHandler: function(event) {
+      _onScroll: function(event) {
         // Avoid canceling an event with cancelable=false, e.g. scrolling is in
         // progress and cannot be interrupted.
         if (event.cancelable && this._shouldPreventScrolling(event)) {
@@ -197,26 +211,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _lockScrollInteractions: function() {
-        this._boundScrollHandler = this._boundScrollHandler ||
-          this._scrollInteractionHandler.bind(this);
-        // Modern `wheel` event for mouse wheel scrolling:
-        document.addEventListener('wheel', this._boundScrollHandler, true);
-        // Older, non-standard `mousewheel` event for some FF:
-        document.addEventListener('mousewheel', this._boundScrollHandler, true);
-        // IE:
-        document.addEventListener('DOMMouseScroll', this._boundScrollHandler, true);
-        // Save the lastScrollableNodes on touchstart, to be used on touchmove.
-        document.addEventListener('touchstart', this._boundScrollHandler, true);
-        // Mobile devices can scroll on touch move:
-        document.addEventListener('touchmove', this._boundScrollHandler, true);
+        this._boundOnScroll = this._boundOnScroll || this._onScroll.bind(this);
+        for (var i = 0, l = scrollEvents.length; i < l; i++) {
+          document.addEventListener(scrollEvents[i], this._boundOnScroll, {
+            capture: true,
+            passive: false
+          });
+        }
       },
 
       _unlockScrollInteractions: function() {
-        document.removeEventListener('wheel', this._boundScrollHandler, true);
-        document.removeEventListener('mousewheel', this._boundScrollHandler, true);
-        document.removeEventListener('DOMMouseScroll', this._boundScrollHandler, true);
-        document.removeEventListener('touchstart', this._boundScrollHandler, true);
-        document.removeEventListener('touchmove', this._boundScrollHandler, true);
+        for (var i = 0, l = scrollEvents.length; i < l; i++) {
+          document.removeEventListener(scrollEvents[i], this._boundOnScroll, {
+            capture: true,
+            passive: false
+          });
+        }
       },
 
       /**

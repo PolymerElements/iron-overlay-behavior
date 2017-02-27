@@ -1275,6 +1275,76 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
       });
+
+      suite('locking scroll', function() {
+
+        function fireWheel(node, deltaX, deltaY) {
+          // IE 11 doesn't support WheelEvent, use CustomEvent.
+          var event = new CustomEvent('wheel', {
+            cancelable: true,
+            bubbles: true
+          });
+          event.deltaX = deltaX;
+          event.deltaY = deltaY;
+          node.dispatchEvent(event);
+          return event;
+        }
+
+        var overlay;
+
+        setup(function() {
+          overlay = fixture('basic');
+        });
+
+        test('outside scroll allowed by default', function(done) {
+          runAfterOpen(overlay, function() {
+            assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(document.body));
+            assert.isFalse(fireWheel(document.body, 0, 10).defaultPrevented);
+            done();
+          });
+        });
+
+        test('`withBackdrop` locks scroll', function(done) {
+          overlay.withBackdrop = true;
+          runAfterOpen(overlay, function() {
+            assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(document.body));
+            assert.isTrue(fireWheel(document.body, 0, 10).defaultPrevented);
+            done();
+          });
+        });
+
+        test('`allowOutsideScroll = false` locks scroll', function(done) {
+          overlay.allowOutsideScroll = false;
+          runAfterOpen(overlay, function() {
+            assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(document.body));
+            assert.isTrue(fireWheel(document.body, 0, 10).defaultPrevented);
+            done();
+          });
+        });
+
+        test('should lock, only once', function(done) {
+          var openCount = 0;
+          overlay.allowOutsideScroll = false;
+          runAfterOpen(overlay, function() {
+            assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(document.body));
+            assert.isTrue(fireWheel(document.body, 0, 10).defaultPrevented);
+            assert.equal(Polymer.IronScrollManager._lockingElements.length, 1);
+            if (openCount === 0) {
+              // This triggers a second `pushScrollLock` with the same element, however
+              // that should not add the element to the `_lockingElements` stack twice
+              runAfterClose(overlay, function() {
+                assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(overlay));
+                assert.isFalse(fireWheel(document.body, 0, 10).defaultPrevented);
+                overlay.open();
+              });
+            } else {
+              done();
+            }
+            openCount++;
+          });
+        });
+
+      });
     </script>
 
   </body>

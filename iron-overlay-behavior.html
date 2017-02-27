@@ -12,6 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-fit-behavior/iron-fit-behavior.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="iron-overlay-manager.html">
+<link rel="import" href="iron-scroll-manager.html">
 <link rel="import" href="iron-focusables-helper.html">
 
 <script>
@@ -49,7 +50,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        */
       withBackdrop: {
         observer: '_withBackdropChanged',
-        type: Boolean
+        type: Boolean,
+        value: false
       },
 
       /**
@@ -104,6 +106,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
+       * Set to false to prevent scroll outside the overlay.
+       */
+      allowOutsideScroll: {
+        type: Boolean,
+        value: true
+      },
+
+      /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {Polymer.IronOverlayManagerClass}
@@ -126,6 +136,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     listeners: {
       'iron-resize': '_onIronResize'
     },
+
+    observers: [
+      '__lockOutsideScroll(isAttached, opened, withBackdrop, allowOutsideScroll)'
+    ],
 
     /**
      * The backdrop element.
@@ -565,6 +579,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         self.__raf = null;
         callback.call(self);
       });
+    },
+
+    /**
+     * @param {boolean} isAttached
+     * @param {boolean} opened
+     * @param {boolean} withBackdrop
+     * @param {boolean} allowOutsideScroll
+     * @private
+     */
+    __lockOutsideScroll: function(isAttached, opened, withBackdrop, allowOutsideScroll) {
+      if (isAttached && opened && (withBackdrop || !allowOutsideScroll)) {
+        Polymer.IronScrollManager.pushScrollLock(this);
+      } else {
+        Polymer.IronScrollManager.removeScrollLock(this);
+      }
     }
 
   };

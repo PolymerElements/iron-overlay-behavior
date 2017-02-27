@@ -1337,24 +1337,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('default: outside scroll does NOT trigger refit when fitInto is window', function(done) {
           runAfterOpen(overlay, function() {
-            var spy = sinon.spy(overlay, 'refit');
+            // Ignore refits caused by window resize.
+            var winResizespy = sinon.stub();
+            window.addEventListener('resize', winResizespy);
+            var refitSpy = sinon.spy(overlay, 'refit');
             dispatchScroll(scrollTarget, 0, 10);
-            Polymer.RenderStatus.afterNextRender(overlay, function() {
-              assert.equal(spy.callCount, 0, 'did not refit on scroll');
+            setTimeout(function() {
+              assert.equal(refitSpy.callCount - winResizespy.callCount, 0, 'did not refit on scroll');
               done();
-            });
+            }, 50);
           });
         });
 
         test('default: outside scroll triggers refit when fitInto is NOT window', function(done) {
           overlay.fitInto = scrollTarget;
           runAfterOpen(overlay, function() {
-            var spy = sinon.spy(overlay, 'refit');
+            // Ignore refits caused by window resize.
+            var winResizespy = sinon.stub();
+            window.addEventListener('resize', winResizespy);
+            var refitSpy = sinon.spy(overlay, 'refit');
             dispatchScroll(scrollTarget, 0, 10);
-            Polymer.RenderStatus.afterNextRender(overlay, function() {
-              assert.equal(spy.callCount, 1, 'did refit on scroll');
+            setTimeout(function() {
+              assert.equal(refitSpy.callCount - winResizespy.callCount, 1, 'did refit on scroll');
               done();
-            });
+            }, 50);
           });
         });
 
@@ -1387,7 +1393,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.allowOutsideScroll = false;
           runAfterOpen(overlay, function() {
             assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
-            // Fake wheel & scroll.
             assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
             assert.equal(Polymer.IronScrollManager._lockingElements.length, 1);
             if (openCount === 0) {

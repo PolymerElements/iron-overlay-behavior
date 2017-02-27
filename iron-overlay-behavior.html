@@ -138,7 +138,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     observers: [
-      '__lockOutsideScroll(isAttached, opened, withBackdrop, allowOutsideScroll)'
+      '__lockOutsideScroll(isAttached, opened, withBackdrop, allowOutsideScroll)',
+      '__updateScrollListener(isAttached, opened)'
     ],
 
     /**
@@ -183,6 +184,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.__raf = null;
       // Focused node before overlay gets opened. Can be restored on close.
       this.__restoreFocusNode = null;
+      this.__onCaptureScroll = this.__onCaptureScroll.bind(this);
       this._ensureSetup();
     },
 
@@ -594,7 +596,69 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       } else {
         Polymer.IronScrollManager.removeScrollLock(this);
       }
-    }
+    },
+
+    /**
+     * @param {boolean} isAttached
+     * @param {boolean} opened
+     * @private
+     */
+    __updateScrollListener: function(isAttached, opened) {
+      if (isAttached && opened) {
+        this.__saveScrollPosition();
+        document.addEventListener('scroll', this.__onCaptureScroll, {
+          passive: true
+        });
+      } else {
+        document.removeEventListener('scroll', this.__onCaptureScroll, {
+          passive: true
+        });
+      }
+    },
+
+    /**
+     * @private
+     */
+    __onCaptureScroll: function() {
+      if (this.withBackdrop || !this.allowOutsideScroll) {
+        // NOTE: scrolling might happen if a scroll event is not cancellable, or if
+        // user pressed keys that cause scrolling (they're not prevented in order not to
+        // break a11y features like navigate with arrow keys).
+        this.__restoreScrollPosition();
+      } else if (!this.__isAnimating && this.fitInto !== window) {
+        this.__onNextAnimationFrame(this.refit);
+      }
+    },
+
+    /**
+     * Memoizes the scroll position of the outside scrolling element.
+     * @private
+     */
+    __saveScrollPosition: function() {
+      if (document.scrollingElement) {
+        this.__scrollTop = document.scrollingElement.scrollTop;
+        this.__scrollLeft = document.scrollingElement.scrollLeft;
+      } else {
+        // Since we don't know if is the body or html, get max.
+        this.__scrollTop = Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+        this.__scrollLeft = Math.max(document.documentElement.scrollLeft, document.body.scrollLeft);
+      }
+    },
+
+    /**
+     * Resets the scroll position of the outside scrolling element.
+     * @private
+     */
+    __restoreScrollPosition: function() {
+      if (document.scrollingElement) {
+        document.scrollingElement.scrollTop = this.__scrollTop;
+        document.scrollingElement.scrollLeft = this.__scrollLeft;
+      } else {
+        // Since we don't know if is the body or html, set both.
+        document.documentElement.scrollTop = document.body.scrollTop = this.__scrollTop;
+        document.documentElement.scrollLeft = document.body.scrollLeft = this.__scrollLeft;
+      }
+    },
 
   };
 

@@ -345,9 +345,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // do nothing, values are already good.
         }
         // Safari has scroll info in `wheelDeltaX/Y`.
-        else if ('wheelDeltaX' in event) {
+        else if ('wheelDeltaX' in event && 'wheelDeltaY' in event) {
           info.deltaX = -event.wheelDeltaX;
           info.deltaY = -event.wheelDeltaY;
+        }
+        // IE10 has only vertical scroll info in `wheelDelta`.
+        else if ('wheelDelta' in event) {
+          info.deltaX = 0;
+          info.deltaY = -event.wheelDelta;
         }
         // Firefox has scroll info in `detail` and `axis`.
         else if ('axis' in event) {

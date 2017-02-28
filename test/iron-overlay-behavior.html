@@ -155,7 +155,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       function dispatchScroll(target, scrollLeft, scrollTop) {
         target.scrollLeft = scrollLeft;
         target.scrollTop = scrollTop;
-        target.dispatchEvent(new CustomEvent('scroll', { bubbles:true } ));
+        target.dispatchEvent(new CustomEvent('scroll', { bubbles: true } ));
       }
 
       suite('basic overlay', function() {
@@ -1318,6 +1318,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         setup(function() {
           overlay = fixture('basic');
+          // Needed by IE10 to force mutations.
+          Polymer.dom.flush();
         });
 
         teardown(function() {
@@ -1329,38 +1331,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
             assert.isFalse(fireWheel(scrollTarget, 0, 10).defaultPrevented);
             dispatchScroll(scrollTarget, 0, 10);
-            assert.equal(scrollTarget.scrollTop, 10, 'scrollTop ok');
-            assert.equal(scrollTarget.scrollLeft, 0, 'scrollLeft ok');
-            done();
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
+              assert.equal(scrollTarget.scrollTop, 10, 'scrollTop ok');
+              assert.equal(scrollTarget.scrollLeft, 0, 'scrollLeft ok');
+              done();
+            });
           });
         });
 
         test('default: outside scroll does NOT trigger refit when fitInto is window', function(done) {
           runAfterOpen(overlay, function() {
-            // Ignore refits caused by window resize.
-            var winResizespy = sinon.stub();
-            window.addEventListener('resize', winResizespy);
             var refitSpy = sinon.spy(overlay, 'refit');
             dispatchScroll(scrollTarget, 0, 10);
-            setTimeout(function() {
-              assert.equal(refitSpy.callCount - winResizespy.callCount, 0, 'did not refit on scroll');
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
+              assert.equal(refitSpy.callCount, 0, 'did not refit on scroll');
               done();
-            }, 50);
+            });
           });
         });
 
         test('default: outside scroll triggers refit when fitInto is NOT window', function(done) {
           overlay.fitInto = scrollTarget;
           runAfterOpen(overlay, function() {
-            // Ignore refits caused by window resize.
-            var winResizespy = sinon.stub();
-            window.addEventListener('resize', winResizespy);
             var refitSpy = sinon.spy(overlay, 'refit');
             dispatchScroll(scrollTarget, 0, 10);
-            setTimeout(function() {
-              assert.equal(refitSpy.callCount - winResizespy.callCount, 1, 'did refit on scroll');
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
+              assert.equal(refitSpy.callCount, 1, 'did refit on scroll');
               done();
-            }, 50);
+            });
           });
         });
 

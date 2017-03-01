@@ -100,12 +100,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var events;
 
           setup(function() {
-            scrollEvents = [
-              'wheel',
-              'mousewheel',
-              'DOMMouseScroll',
-              'touchmove'
-            ];
+            scrollEvents = [];
+            if ('onwheel' in document) {
+              scrollEvents.push('wheel');
+            } else if ('onmousewheel' in document) {
+              scrollEvents.push('mousewheel');
+            } else {
+              scrollEvents.push('DOMMouseScroll');
+            }
+            if ('ontouchstart' in window) {
+              scrollEvents.push('touchstart');
+              scrollEvents.push('touchmove');
+            }
 
             events = scrollEvents.map(function(scrollEvent) {
               var event = new CustomEvent(scrollEvent, {
@@ -141,6 +147,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
 
           test('touchstart is prevented if dispatched by an element outside the locking element', function() {
+            if (scrollEvents.indexOf('touchstart') === -1) this.skip();
             var event = new CustomEvent('touchstart', {
               bubbles: true,
               cancelable: true
@@ -150,6 +157,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
 
           test('touchstart is not prevented if dispatched by an element inside the locking element', function() {
+            if (scrollEvents.indexOf('touchstart') === -1) this.skip();
             var event = new CustomEvent('touchstart', {
               bubbles: true,
               cancelable: true

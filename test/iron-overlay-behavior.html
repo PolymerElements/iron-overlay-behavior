@@ -339,7 +339,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               assert.equal(event.detail.type, 'keydown');
               done();
             });
-            MockInteractions.pressAndReleaseKeyOn(document, 27);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 27);
           });
         });
 
@@ -349,7 +349,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               assert.isTrue(event.detail.canceled, 'overlay is canceled');
               done();
             });
-            MockInteractions.pressAndReleaseKeyOn(document, 27);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 27);
           });
         });
 
@@ -371,7 +371,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           runAfterOpen(overlay, function() {
             var spy = sinon.stub();
             overlay.addEventListener('iron-overlay-closed', spy);
-            MockInteractions.pressAndReleaseKeyOn(document, 27);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 27);
             Polymer.Base.async(function() {
               assert.isFalse(spy.called, 'iron-overlay-cancel should not fire');
               done();
@@ -407,7 +407,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         suiteSetup(function() {
           // Worst case scenario: listener with useCapture = true that prevents & stops propagation
           // added before the overlay is initialized.
-          document.addEventListener('keydown', preventKeyDown, true);
+          document.documentElement.addEventListener('keydown', preventKeyDown, true);
         });
 
         setup(function() {
@@ -423,7 +423,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.addEventListener('iron-overlay-canceled', function(event) {
               done();
             });
-            MockInteractions.pressAndReleaseKeyOn(document, 27);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 27);
           });
         });
       });
@@ -547,9 +547,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Spy keydown.
               var tabSpy = sinon.spy();
-              document.addEventListener('keydown', tabSpy);
+              document.documentElement.addEventListener('keydown', tabSpy);
               // Simulate TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9);
               assert.equal(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, 'focus stays on button');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
@@ -568,9 +568,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Spy keydown.
               var tabSpy = sinon.spy();
-              document.addEventListener('keydown', tabSpy);
+              document.documentElement.addEventListener('keydown', tabSpy);
               // Simulate TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9);
               assert.equal(overlay, document.activeElement, 'focus stays on overlay');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
@@ -649,14 +649,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               focusableNodes[focusableNodes.length-1].focus();
               // Spy keydown.
               var tabSpy = sinon.spy();
-              document.addEventListener('keydown', tabSpy);
+              document.documentElement.addEventListener('keydown', tabSpy);
               // Simulate TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9);
               assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
               // Simulate Shift+TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
               assert.isTrue(tabSpy.calledTwice, 'keydown spy called again');
               assert.isTrue(tabSpy.getCall(1).args[0].defaultPrevented, 'keydown default prevented again');
@@ -676,10 +676,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               // Go to last element.
               focusableNodes[focusableNodes.length-1].focus();
               // Simulate TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9);
               assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
               // Simulate Shift+TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
               done();
             }, 1);
@@ -694,9 +694,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Spy keydown.
               var tabSpy = sinon.spy();
-              document.addEventListener('keydown', tabSpy);
+              document.documentElement.addEventListener('keydown', tabSpy);
               // Simulate Shift+TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
@@ -718,7 +718,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               focusableNodes[focusableNodes.length-1].setAttribute('tabindex', '-1');
               overlay.invalidateTabbables();
               // Simulate Shift+TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-2], document.activeElement, 'focus wrapped correctly');
               done();
             }, 1);
@@ -732,9 +732,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Spy keydown.
               var tabSpy = sinon.spy();
-              document.addEventListener('keydown', tabSpy);
+              document.documentElement.addEventListener('keydown', tabSpy);
               // Simulate Shift+TAB.
-              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
               assert.equal(overlayFocusableNodes.$.last, Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to last focusable in the shadowDOM');
               assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
               assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
@@ -931,7 +931,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('ESC closes only the top overlay', function(done) {
           runAfterOpen(overlay1, function() {
             runAfterOpen(overlay2, function() {
-              MockInteractions.pressAndReleaseKeyOn(document, 27);
+              MockInteractions.pressAndReleaseKeyOn(document.documentElement, 27);
               assert.isFalse(overlay2.opened, 'overlay2 was closed');
               assert.isTrue(overlay1.opened, 'overlay1 is still opened');
               done();
@@ -1177,14 +1177,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             buttons[buttons.length-1].focus();
             // Spy keydown.
             var tabSpy = sinon.spy();
-            document.addEventListener('keydown', tabSpy);
+            document.documentElement.addEventListener('keydown', tabSpy);
             // Simulate TAB.
-            MockInteractions.pressAndReleaseKeyOn(document, 9);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9);
             assert.equal(buttons[0], Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to first focusable');
             assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
             assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
             // Simulate Shift+TAB.
-            MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+            MockInteractions.pressAndReleaseKeyOn(document.documentElement, 9, ['shift']);
             assert.equal(buttons[buttons.length-1], Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to last focusable');
             assert.isTrue(tabSpy.calledTwice, 'keydown spy called again');
             assert.isTrue(tabSpy.getCall(1).args[0].defaultPrevented, 'keydown default prevented again');

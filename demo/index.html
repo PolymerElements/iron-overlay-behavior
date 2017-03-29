@@ -177,12 +177,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </simple-overlay>
 
       <script>
-        addEventListener('WebComponentsReady', function() {
-          // Don't allow scrolling outside these overlays when they're opened.
-          scrolling.allowOutsideScroll = scrolling2.allowOutsideScroll = false;
-          // .scrollable is the element that determines the size of the overlay.
-          scrolling2.sizingTarget = Polymer.dom(scrolling2).querySelector('.scrollable');  
-        });
+        // .scrollable is the element that determines the size of the overlay.
+        scrolling2.sizingTarget = scrolling2.querySelector('.scrollable');
+        // Don't allow scrolling outside these overlays when they're opened.
+        scrolling.allowOutsideScroll = scrolling2.allowOutsideScroll = false;
       </script>
     </template>
   </demo-snippet>

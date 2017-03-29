@@ -45,8 +45,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // closing of an overlay should be through its APIs.
     Polymer.Gestures.add(document.documentElement, 'tap', null);
     document.documentElement.addEventListener('tap', this._onCaptureClick.bind(this), true);
-    document.documentElement.addEventListener('focus', this._onCaptureFocus.bind(this), true);
-    document.documentElement.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
+    document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
+    document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);
   };
 
   Polymer.IronOverlayManagerClass.prototype = {

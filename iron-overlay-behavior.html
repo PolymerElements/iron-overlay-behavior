@@ -277,7 +277,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _withBackdropChanged: function() {
       // If tabindex is already set, no need to override it.
       if (this.withBackdrop && !this.hasAttribute('tabindex')) {
-        this.setAttribute('tabindex', '-1');
+        this.setAttribute('tabindex', '0');
         this.__shouldRemoveTabIndex = true;
       } else if (this.__shouldRemoveTabIndex) {
         this.removeAttribute('tabindex');

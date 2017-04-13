@@ -25,10 +25,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       getTabbableNodes: function(node) {
         var tabbables = _getFirstLastTabbables(node);
         return tabbables ? _flattenFirstLastTabbables(tabbables) : [];
-      }
+      },
+      isFocusable: isFocusable,
+      isTabbable: isTabbable
     };
 
     var isNativeShadowDOM = !window.ShadyDOM && !!Element.prototype.attachShadow;
+    var p = Element.prototype;
+    var matches = p.matches || p.matchesSelector || p.mozMatchesSelector ||
+      p.msMatchesSelector || p.oMatchesSelector || p.webkitMatchesSelector;
 
     function _getFirstLastTabbables(root) {
       // Handle only Element and DocumentFragments.
@@ -46,9 +51,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var tabbables = [];
         for (var i = 0, l = nodes.length; i < l; i++) {
           var node = nodes[i];
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
           node.__firstLastTabbables = _getFirstLastTabbables(node);
           // Keep reference of this node in the slot's __firstLastTabbables.
-          if (node.tabIndex >= 0 || node.__firstLastTabbables) {
+          if (isTabbable(node) || node.__firstLastTabbables) {
             _updateFirstLast(node, tabbables);
           }
         }
@@ -85,7 +91,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         element.__firstLastTabbables = _getFirstLastTabbables(element);
         return element.__firstLastTabbables ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
       }
-      return element.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      return isTabbable(element) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
     }
 
     function _updateFirstLast(element, result) {
@@ -108,5 +114,73 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         result.splice(1, 1, element);
       }
     }
+
+    /**
+     * Returns if a element is focusable.
+     * @param {!HTMLElement} element
+     * @return {boolean}
+     */
+    function isFocusable(element) {
+      // From http://stackoverflow.com/a/1600194/4228703:
+      // There isn't a definite list, it's up to the browser. The only
+      // standard we have is DOM Level 2 HTML https://www.w3.org/TR/DOM-Level-2-HTML/html.html,
+      // according to which the only elements that have a focus() method are
+      // HTMLInputElement,  HTMLSelectElement, HTMLTextAreaElement and
+      // HTMLAnchorElement. This notably omits HTMLButtonElement and
+      // HTMLAreaElement.
+      // Referring to these tests with tabbables in different browsers
+      // http://allyjs.io/data-tables/focusable.html
+
+      // Elements that cannot be focused if they have [disabled] attribute.
+      if (matches.call(element, 'input, select, textarea, button, object')) {
+        return matches.call(element, ':not([disabled])');
+      }
+      // Elements that can be focused even if they have [disabled] attribute.
+      return matches.call(element,
+        'a[href], area[href], iframe, [tabindex], [contentEditable]');
+    }
+    /**
+     * Returns false if the element has `visibility: hidden` or `display: none`
+     * @param {!HTMLElement} element
+     * @return {boolean}
+     * @private
+     */
+    function _isVisible(element) {
+      // Check inline style first to save a re-flow. If looks good, check also
+      // computed style.
+      var style = element.style;
+      if (style.visibility !== 'hidden' && style.display !== 'none') {
+        style = window.getComputedStyle(element);
+        return (style.visibility !== 'hidden' && style.display !== 'none');
+      }
+      return false;
+    }
+    /**
+     * Returns the normalized element tabindex. If not focusable, returns -1.
+     * It checks for the attribute "tabindex" instead of the element property
+     * `tabIndex` since browsers assign different values to it.
+     * e.g. in Firefox `<div contenteditable>` has `tabIndex = -1`
+     * @param {!HTMLElement} element
+     * @return {!number}
+     * @private
+     */
+    function _normalizedTabIndex(element) {
+      if (isFocusable(element) && _isVisible(element)) {
+        var tabIndex = element.getAttribute('tabindex') || 0;
+        return Number(tabIndex);
+      }
+      return -1;
+    }
+
+    /**
+     * Returns if a element is tabbable. To be tabbable, a element must be
+     * focusable, visible, and with a tabindex !== -1.
+     * @param {!HTMLElement} element
+     * @return {boolean}
+     */
+    function isTabbable(element) {
+      return _normalizedTabIndex(element) >= 0;
+    }
+
   })();
 </script>

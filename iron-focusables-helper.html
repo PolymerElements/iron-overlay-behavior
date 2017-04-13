@@ -23,14 +23,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * @return {Array<HTMLElement>}
        */
       getTabbableNodes: function(node) {
-        var tabbables = _getTabbableNodes(node);
-        return tabbables ? _getFirstLastTabbables(tabbables) : [];
+        var tabbables = _getFirstLastTabbables(node);
+        return tabbables ? _flattenFirstLastTabbables(tabbables) : [];
       }
     };
 
     var isNativeShadowDOM = !window.ShadyDOM && !!Element.prototype.attachShadow;
 
-    function _getTabbableNodes(root) {
+    function _getFirstLastTabbables(root) {
       // Handle only Element and DocumentFragments.
       if (root.nodeType !== Node.ELEMENT_NODE && root.nodeType !== Node.DOCUMENT_FRAGMENT_NODE)
         return null;
@@ -46,9 +46,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var tabbables = [];
         for (var i = 0, l = nodes.length; i < l; i++) {
           var node = nodes[i];
-          node._tabbables = _getTabbableNodes(node);
-          // Keep reference of this node in the slot's _tabbables.
-          if (node.tabIndex >= 0 || node._tabbables) {
+          node.__firstLastTabbables = _getFirstLastTabbables(node);
+          // Keep reference of this node in the slot's __firstLastTabbables.
+          if (node.tabIndex >= 0 || node.__firstLastTabbables) {
             _updateFirstLast(node, tabbables);
           }
         }
@@ -67,23 +67,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return tabbables.length ? tabbables : null;
     }
 
-    function _getFirstLastTabbables(tabbables) {
+    function _flattenFirstLastTabbables(tabbables) {
       // Get deepest first & last tabbables.
       var first = tabbables[0];
-      while (first && first._tabbables) {
-        first = first._tabbables[0];
+      while (first && first.__firstLastTabbables) {
+        first = first.__firstLastTabbables[0];
       }
       var last = tabbables[tabbables.length - 1];
-      while (last && last._tabbables) {
-        last = last._tabbables[last._tabbables.length - 1];
+      while (last && last.__firstLastTabbables) {
+        last = last.__firstLastTabbables[last.__firstLastTabbables.length - 1];
       }
       return last !== first ? [first, last] : [first];
     }
 
     function _shouldAcceptNode(element) {
       if (isNativeShadowDOM && element.shadowRoot || element.tagName === 'SLOT') {
-        element._tabbables = _getTabbableNodes(element);
-        return element._tabbables ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        element.__firstLastTabbables = _getFirstLastTabbables(element);
+        return element.__firstLastTabbables ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
       }
       return element.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
     }
@@ -93,20 +93,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // The last tabbable is the last node with tabindex 0.
       var tabIndex = Math.max(element.tabIndex, 0);
       var first = result[0];
-      var last = result[result.length - 1];
+      var last = result[1];
       if (!first) {
         // First insertion into the result.
         result.push(element);
       } else if (first.tabIndex !== 1 && tabIndex === 1) {
         // A new first!
-        result.splice(0, 0, element);
-      } else if (result.length > 1 && (tabIndex === 0 || (last.tabindex > 0 && last.tabindex < tabIndex))) {
-        // A new last!
+        result.splice(0, 1, element);
+      } else if (!last) {
+        // Second insertion into the result.
         result.push(element);
-      } else {
-        // Insert before last element.
-        // TODO(valdrin) maybe we can skipe these and not pollute the array.
-        result.splice(Math.max(result.length - 1, 1), 0, element);
+      } else if (tabIndex === 0 || (last.tabindex > 0 && last.tabindex < tabIndex)) {
+        // A new last!
+        result.splice(1, 1, element);
       }
     }
   })();

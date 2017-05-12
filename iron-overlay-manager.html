@@ -74,8 +74,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement
       // In case of null, default it to document.body.
       var active = document.activeElement || document.body;
-      while (active.root && Polymer.dom(active.root).activeElement) {
-        active = Polymer.dom(active.root).activeElement;
+      while (active.shadowRoot && active.shadowRoot.activeElement) {
+        active = active.shadowRoot.activeElement;
       }
       return active;
     },

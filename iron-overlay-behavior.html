@@ -305,7 +305,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Safari will apply the focus to the autofocus element when displayed
       // for the first time, so we make sure to return the focus where it was.
       if (this.noAutoFocus && document.activeElement === this._focusNode) {
-        this._focusNode.blur();
+        if (this._focusNode.blur)
+          this._focusNode.blur();
         this.__restoreFocusNode.focus();
       }
     },
@@ -383,7 +384,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
       else {
-        this._focusNode.blur();
+        if (this._focusNode.blur)
+          this._focusNode.blur();
         this._focusedChild = null;
         // Restore focus.
         if (this.restoreFocusOnClose && this.__restoreFocusNode) {

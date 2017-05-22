@@ -147,7 +147,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // IE 11 doesn't support WheelEvent, use CustomEvent.
       var event = new CustomEvent('wheel', {
         cancelable: true,
-        bubbles: true
+        bubbles: true,
+        composed: true,
       });
       event.deltaX = deltaX;
       event.deltaY = deltaY;
@@ -159,7 +160,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       target.scrollLeft = scrollLeft;
       target.scrollTop = scrollTop;
       target.dispatchEvent(new CustomEvent('scroll', {
-        bubbles: true
+        bubbles: true,
+        composed: true
       }));
     }
 
@@ -1384,7 +1386,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('default: outside scroll not prevented', function(done) {
         runAfterOpen(overlay, function() {
-          assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isFalse(fireWheel(scrollTarget, 0, 10).defaultPrevented);
           dispatchScroll(scrollTarget, 0, 10);
           Polymer.RenderStatus.afterNextRender(overlay, function() {
@@ -1421,7 +1422,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('`withBackdrop` locks scroll', function(done) {
         overlay.withBackdrop = true;
         runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
           dispatchScroll(scrollTarget, 0, 10);
           assert.equal(scrollTarget.scrollTop, 0, 'scrollTop ok');
@@ -1433,7 +1433,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('`allowOutsideScroll = false` locks scroll', function(done) {
         overlay.allowOutsideScroll = false;
         runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
           dispatchScroll(scrollTarget, 0, 10);
           assert.equal(scrollTarget.scrollTop, 0, 'scrollTop ok');
@@ -1446,14 +1445,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var openCount = 0;
         overlay.allowOutsideScroll = false;
         runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
           assert.equal(Polymer.IronScrollManager._lockingElements.length, 1);
           if (openCount === 0) {
             // This triggers a second `pushScrollLock` with the same element, however
             // that should not add the element to the `_lockingElements` stack twice
             runAfterClose(overlay, function() {
-              assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(overlay));
               assert.isFalse(fireWheel(scrollTarget, 0, 10).defaultPrevented);
               overlay.open();
             });

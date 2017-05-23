@@ -1419,6 +1419,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      test('default: outside scroll triggers refit when overlay is positioned', function(done) {
+        overlay.horizontalAlign = 'left';
+        runAfterOpen(overlay, function() {
+          var refitSpy = sinon.spy(overlay, 'refit');
+          dispatchScroll(scrollTarget, 0, 10);
+          Polymer.RenderStatus.afterNextRender(overlay, function() {
+            assert.equal(refitSpy.callCount, 1, 'did refit on scroll');
+            done();
+          });
+        });
+      });
+
       test('`withBackdrop` locks scroll', function(done) {
         overlay.withBackdrop = true;
         runAfterOpen(overlay, function() {

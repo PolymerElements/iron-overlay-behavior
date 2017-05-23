@@ -180,8 +180,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.__shouldRemoveTabIndex = false;
       // Used for wrapping the focus on TAB / Shift+TAB.
       this.__firstFocusableNode = this.__lastFocusableNode = null;
-      // Used by __onNextAnimationFrame to cancel any previous callback.
-      this.__raf = null;
+      // Used by to keep track of the RAF callbacks.
+      this.__rafs = {};
       // Focused node before overlay gets opened. Can be restored on close.
       this.__restoreFocusNode = null;
       this.__onCaptureScroll = this.__onCaptureScroll.bind(this);
@@ -199,10 +199,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     detached: function() {
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
-      if (this.__raf) {
-        window.cancelAnimationFrame(this.__raf);
-        this.__raf = null;
+      for (var cb in this.__rafs) {
+        this.__rafs[cb] && cancelAnimationFrame(this.__rafs[cb]);
       }
+      this.__rafs = {};
       this._manager.removeOverlay(this);
     },
 
@@ -281,8 +281,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       this.__isAnimating = true;
 
-      // Use requestAnimationFrame for non-blocking rendering.
-      this.__onNextAnimationFrame(this.__openedChanged);
+      // Deraf for non-blocking rendering.
+      this.__deraf('__openedChanged');
     },
 
     _canceledChanged: function() {
@@ -512,7 +512,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     _onIronResize: function() {
       if (this.opened && !this.__isAnimating) {
-        this.__onNextAnimationFrame(this.refit);
+        this.__deraf('refit');
       }
     },
 
@@ -565,21 +565,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
-     * Executes a callback on the next animation frame, overriding any previous
-     * callback awaiting for the next animation frame. e.g.
-     * `__onNextAnimationFrame(callback1) && __onNextAnimationFrame(callback2)`;
-     * `callback1` will never be invoked.
-     * @param {!Function} callback Its `this` parameter is the overlay itself.
+     * Delays the execution of a callback to the next animation frame.
+     * @param {!string} callbackName
      * @private
      */
-    __onNextAnimationFrame: function(callback) {
-      if (this.__raf) {
-        window.cancelAnimationFrame(this.__raf);
-      }
-      var self = this;
-      this.__raf = window.requestAnimationFrame(function nextAnimationFrame() {
-        self.__raf = null;
-        callback.call(self);
+    __deraf: function(callbackName) {
+      var rafs = this.__rafs;
+      rafs[callbackName] && cancelAnimationFrame(rafs[callbackName]);
+      var callback = this[callbackName].bind(this);
+      rafs[callbackName] = requestAnimationFrame(function nextAnimationFrame() {
+        rafs[callbackName] = null;
+        callback();
       });
     },
 
@@ -606,11 +602,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     __updateScrollListener: function(isAttached, opened) {
       if (isAttached && opened) {
         this.__saveScrollPosition();
-        document.addEventListener('scroll', this.__onCaptureScroll, {
+        // Safari sends scroll events with target == document, so skip those by listening on `<html>`.
+        document.documentElement.addEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       } else {
-        document.removeEventListener('scroll', this.__onCaptureScroll, {
+        document.documentElement.removeEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       }
@@ -619,14 +616,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /**
      * @private
      */
-    __onCaptureScroll: function() {
+    __onCaptureScroll: function(event) {
       if (this.withBackdrop || !this.allowOutsideScroll) {
         // NOTE: scrolling might happen if a scroll event is not cancellable, or if
         // user pressed keys that cause scrolling (they're not prevented in order not to
         // break a11y features like navigate with arrow keys).
         this.__restoreScrollPosition();
-      } else if (!this.__isAnimating && this.fitInto !== window) {
-        this.__onNextAnimationFrame(this.refit);
+      } else if (!this.__isAnimating && this.fitInto !== window || this.horizontalAlign || this.verticalAlign) {
+        // Refit if not animating and if makes sense to refit (e.g. different fitInto or when positioned).
+        this.__deraf('refit');
       }
     },
 

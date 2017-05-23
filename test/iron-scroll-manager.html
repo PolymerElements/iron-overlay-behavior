@@ -57,85 +57,126 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('constraining scroll in the DOM', function() {
-
-        var events;
         setup(function() {
           Polymer.IronScrollManager.pushScrollLock(childOne);
-          events = scrollEvents.map(function(scrollEvent) {
-            var event = new CustomEvent(scrollEvent, {
-              bubbles: true,
-              cancelable: true,
-              composed: true,
-            });
-            event.deltaX = 0;
-            event.deltaY = 10;
-            return event;
-          });
         });
 
         teardown(function() {
           Polymer.IronScrollManager.removeScrollLock(childOne);
         });
 
-        test('prevents wheel events from locked elements', function() {
-          events.forEach(function(event) {
-            childTwo.dispatchEvent(event);
-            assert.isTrue(event.defaultPrevented, event.type + ' not prevented');
-          });
+        test('recognizes sibling as locked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(childTwo))
+            .to.be.equal(true);
         });
 
-        test('allows wheel events when there are no locking elements', function() {
+        test('recognizes neice as locked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(grandChildTwo))
+            .to.be.equal(true);
+        });
+
+        test('recognizes parent as locked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(parent))
+            .to.be.equal(true);
+        });
+
+        test('recognizes ancestor as locked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(ancestor))
+            .to.be.equal(true);
+        });
+
+        test('recognizes locking child as unlocked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(childOne))
+            .to.be.equal(false);
+        });
+
+        test('recognizes descendant of locking child as unlocked', function() {
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(grandChildOne))
+            .to.be.equal(false);
+        });
+
+        test('unlocks locked elements when there are no locking elements', function() {
           Polymer.IronScrollManager.removeScrollLock(childOne);
-          events.forEach(function(event) {
+
+          expect(Polymer.IronScrollManager.elementIsScrollLocked(parent))
+            .to.be.equal(false);
+        });
+
+        suite('various scroll events', function() {
+          var events;
+          setup(function() {
+            events = scrollEvents.map(function(scrollEvent) {
+              var event = new CustomEvent(scrollEvent, {
+                bubbles: true,
+                cancelable: true,
+                composed: true
+              });
+              event.deltaX = 0;
+              event.deltaY = 10;
+              return event;
+            });
+          });
+
+          test('prevents wheel events from locked elements', function() {
+            events.forEach(function(event) {
+              childTwo.dispatchEvent(event);
+              assert.isTrue(event.defaultPrevented, event.type + ' ok');
+            });
+          });
+
+          test('allows wheel events when there are no locking elements', function() {
+            Polymer.IronScrollManager.removeScrollLock(childOne);
+            events.forEach(function(event) {
+              childTwo.dispatchEvent(event);
+              assert.isFalse(event.defaultPrevented, event.type + ' ok');
+            });
+          });
+
+          test('allows wheel events from unlocked elements', function() {
+            events.forEach(function(event) {
+              childOne.dispatchEvent(event);
+              assert.isFalse(event.defaultPrevented, event.type + ' ok');
+            });
+          });
+
+          test('touchstart is prevented if dispatched by an element outside the locking element', function() {
+            var event = new CustomEvent('touchstart', {
+              bubbles: true,
+              cancelable: true,
+              composed: true
+            });
             childTwo.dispatchEvent(event);
-            assert.isFalse(event.defaultPrevented, event.type + ' prevented');
+            assert.isTrue(event.defaultPrevented, event.type + ' ok');
           });
-        });
 
-        test('allows wheel events from unlocked elements', function() {
-          events.forEach(function(event) {
-            childOne.dispatchEvent(event);
-            assert.isFalse(event.defaultPrevented, event.type + ' prevented');
+          test('touchstart is not prevented if dispatched by an element inside the locking element', function() {
+            var event = new CustomEvent('touchstart', {
+              bubbles: true,
+              cancelable: true,
+              composed: true
+            });
+            grandChildOne.dispatchEvent(event);
+            assert.isFalse(event.defaultPrevented, event.type + ' ok');
           });
-        });
 
-        test('touchstart is prevented if dispatched by an element outside the locking element', function() {
-          var event = new CustomEvent('touchstart', {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
+          test('arrow keyboard events not prevented by manager', function() {
+            // Even if these events might cause scrolling, they should not be
+            // prevented because they might cause a11y issues (e.g. arrow keys
+            // used for navigating the content). iron-dropdown is capable of
+            // restoring the scroll position of the document if necessary.
+            var left = MockInteractions.keyboardEventFor('keydown', 37);
+            var up = MockInteractions.keyboardEventFor('keydown', 38);
+            var right = MockInteractions.keyboardEventFor('keydown', 39);
+            var down = MockInteractions.keyboardEventFor('keydown', 40);
+            grandChildOne.dispatchEvent(left);
+            grandChildOne.dispatchEvent(up);
+            grandChildOne.dispatchEvent(right);
+            grandChildOne.dispatchEvent(down);
+            assert.isFalse(left.defaultPrevented, 'left ok');
+            assert.isFalse(up.defaultPrevented, 'up ok');
+            assert.isFalse(right.defaultPrevented, 'right ok');
+            assert.isFalse(down.defaultPrevented, 'down ok');
           });
-          childTwo.dispatchEvent(event);
-          assert.isTrue(event.defaultPrevented, event.type + ' not prevented');
-        });
-
-        test('touchstart is not prevented if dispatched by an element inside the locking element', function() {
-          var event = new CustomEvent('touchstart', {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
-          });
-          grandChildOne.dispatchEvent(event);
-          assert.isFalse(event.defaultPrevented, event.type + ' prevented');
-        });
-
-        test('arrow keyboard events not prevented by manager', function() {
-          // Even if these events might cause scrolling, they should not be
-          // prevented because they might cause a11y issues (e.g. arrow keys
-          // used for navigating the content). iron-dropdown is capable of
-          // restoring the scroll position of the document if necessary.
-          var left = MockInteractions.keyboardEventFor('keydown', 37);
-          var up = MockInteractions.keyboardEventFor('keydown', 38);
-          var right = MockInteractions.keyboardEventFor('keydown', 39);
-          var down = MockInteractions.keyboardEventFor('keydown', 40);
-          grandChildOne.dispatchEvent(left);
-          grandChildOne.dispatchEvent(up);
-          grandChildOne.dispatchEvent(right);
-          grandChildOne.dispatchEvent(down);
-          expect(left.defaultPrevented).to.be.eql(false);
-          expect(up.defaultPrevented).to.be.eql(false);
-          expect(right.defaultPrevented).to.be.eql(false);
-          expect(down.defaultPrevented).to.be.eql(false);
         });
       });
     });

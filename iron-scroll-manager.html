@@ -34,23 +34,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /**
      * @type {!Array<string>}
      */
-    var scrollEvents = [];
-    if ('onwheel' in document) {
+    var scrollEvents = [
       // Modern `wheel` event for mouse wheel scrolling.
-      scrollEvents.push('wheel');
-    } else if ('onmousewheel' in document) {
+      'wheel',
       // Older, non-standard `mousewheel` event for some FF.
-      scrollEvents.push('mousewheel');
-    } else {
+      'mousewheel',
       // IE, older FF.
-      scrollEvents.push('DOMMouseScroll');
-    }
-    if ('ontouchstart' in window) {
+      'DOMMouseScroll',
       // Save the lastScrollableNodes on touchstart, to be used on touchmove.
       // Mobile devices can scroll on touch move.
-      scrollEvents.push('touchstart');
-      scrollEvents.push('touchmove');
-    }
+      'touchstart',
+      'touchmove',
+    ];
 
     /**
      * The IronScrollManager is intended to provide a central source

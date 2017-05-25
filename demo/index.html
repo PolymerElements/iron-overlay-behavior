@@ -140,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </custom-style>
       <button onclick="scrolling.open()">Scrolling overlay</button>
 
-      <simple-overlay id="scrolling" class="with-margin scrollable">
+      <simple-overlay id="scrolling" class="with-margin scrollable" no-outside-scroll>
         <h2>This overlay scrolls internally.</h2>
         <p>
           Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -205,7 +205,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       <button onclick="scrolling2.open()">Scrolling content</button>
 
-      <simple-overlay id="scrolling2" class="with-margin">
+      <simple-overlay id="scrolling2" class="with-margin" no-outside-scroll>
         <h2>This overlay has a scrolling child.</h2>
         <p class="scrollable" tabindex="0" autofocus>
           Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -271,8 +271,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <script>
         // .scrollable is the element that determines the size of the overlay.
         scrolling2.sizingTarget = scrolling2.querySelector('.scrollable');
-        // Don't allow scrolling outside these overlays when they're opened.
-        scrolling.allowOutsideScroll = scrolling2.allowOutsideScroll = false;
       </script>
     </template>
   </demo-snippet>

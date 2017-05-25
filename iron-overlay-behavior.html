@@ -80,6 +80,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
+       * Set to true to prevent scroll outside the overlay.
+       */
+      noOutsideScroll: {
+        type: Boolean
+      },
+
+      /**
+       * Set to true to reposition the overlay on scroll.
+       */
+      refitOnScroll: {
+        type: Boolean
+      },
+
+      /**
        * Contains the reason(s) this overlay was last closed (see `iron-overlay-closed`).
        * `IronOverlayBehavior` provides the `canceled` reason; implementers of the
        * behavior can provide other reasons in addition to `canceled`.
@@ -103,14 +117,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        */
       alwaysOnTop: {
         type: Boolean
-      },
-
-      /**
-       * Set to false to prevent scroll outside the overlay.
-       */
-      allowOutsideScroll: {
-        type: Boolean,
-        value: true
       },
 
       /**
@@ -138,8 +144,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     observers: [
-      '__lockOutsideScroll(isAttached, opened, withBackdrop, allowOutsideScroll)',
-      '__updateScrollListener(isAttached, opened)'
+      '__updateScrollObservers(isAttached, opened, noOutsideScroll, refitOnScroll)'
     ],
 
     /**
@@ -184,6 +189,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.__rafs = {};
       // Focused node before overlay gets opened. Can be restored on close.
       this.__restoreFocusNode = null;
+      // Scroll info to be restored.
+      this.__scrollTop = this.__scrollLeft = null;
       this.__onCaptureScroll = this.__onCaptureScroll.bind(this);
       this._ensureSetup();
     },
@@ -582,32 +589,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /**
      * @param {boolean} isAttached
      * @param {boolean} opened
-     * @param {boolean} withBackdrop
-     * @param {boolean} allowOutsideScroll
+     * @param {boolean} noOutsideScroll
+     * @param {boolean} refitOnScroll
      * @private
      */
-    __lockOutsideScroll: function(isAttached, opened, withBackdrop, allowOutsideScroll) {
-      if (isAttached && opened && (withBackdrop || !allowOutsideScroll)) {
-        Polymer.IronScrollManager.pushScrollLock(this);
-      } else {
-        Polymer.IronScrollManager.removeScrollLock(this);
-      }
-    },
-
-    /**
-     * @param {boolean} isAttached
-     * @param {boolean} opened
-     * @private
-     */
-    __updateScrollListener: function(isAttached, opened) {
-      if (isAttached && opened) {
+    __updateScrollObservers: function(isAttached, opened, noOutsideScroll, refitOnScroll) {
+      if (isAttached && opened && (noOutsideScroll || refitOnScroll)) {
         this.__saveScrollPosition();
-        // Safari sends scroll events with target == document, so skip those by listening on `<html>`.
-        document.documentElement.addEventListener('scroll', this.__onCaptureScroll, {
+        if (noOutsideScroll)
+          Polymer.IronScrollManager.pushScrollLock(this);
+        document.addEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       } else {
-        document.documentElement.removeEventListener('scroll', this.__onCaptureScroll, {
+        Polymer.IronScrollManager.removeScrollLock(this);
+        document.removeEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       }
@@ -617,12 +613,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @private
      */
     __onCaptureScroll: function(event) {
-      if (this.withBackdrop || !this.allowOutsideScroll) {
+      if (this.noOutsideScroll) {
         // NOTE: scrolling might happen if a scroll event is not cancellable, or if
         // user pressed keys that cause scrolling (they're not prevented in order not to
         // break a11y features like navigate with arrow keys).
         this.__restoreScrollPosition();
-      } else if (!this.__isAnimating && this.fitInto !== window || this.horizontalAlign || this.verticalAlign) {
+      } else if (!this.__isAnimating && this.refitOnScroll) {
         // Refit if not animating and if makes sense to refit (e.g. different fitInto or when positioned).
         this.__deraf('refit');
       }

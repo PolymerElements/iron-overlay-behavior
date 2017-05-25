@@ -1397,7 +1397,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
-      test('default: outside scroll does NOT trigger refit when fitInto is window', function(done) {
+      test('default: outside scroll does NOT trigger refit', function(done) {
         runAfterOpen(overlay, function() {
           var refitSpy = sinon.spy(overlay, 'refit');
           dispatchScroll(scrollTarget, 0, 10);
@@ -1408,44 +1408,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
-      test('default: outside scroll triggers refit when fitInto is NOT window', function(done) {
-        overlay.fitInto = scrollTarget;
+      test('`refitOnScroll` refits the overlay', function(done) {
+        overlay.refitOnScroll = true;
         runAfterOpen(overlay, function() {
           var refitSpy = sinon.spy(overlay, 'refit');
           dispatchScroll(scrollTarget, 0, 10);
           Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.equal(refitSpy.callCount, 1, 'did refit on scroll');
+            assert.notEqual(refitSpy.callCount, 0, 'did refit on scroll');
             done();
           });
         });
       });
 
-      test('default: outside scroll triggers refit when overlay is positioned', function(done) {
-        overlay.horizontalAlign = 'left';
-        runAfterOpen(overlay, function() {
-          var refitSpy = sinon.spy(overlay, 'refit');
-          dispatchScroll(scrollTarget, 0, 10);
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.equal(refitSpy.callCount, 1, 'did refit on scroll');
-            done();
-          });
-        });
-      });
-
-      test('`withBackdrop` locks scroll', function(done) {
-        overlay.withBackdrop = true;
-        runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
-          assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
-          dispatchScroll(scrollTarget, 0, 10);
-          assert.equal(scrollTarget.scrollTop, 0, 'scrollTop ok');
-          assert.equal(scrollTarget.scrollLeft, 0, 'scrollLeft ok');
-          done();
-        });
-      });
-
-      test('`allowOutsideScroll = false` locks scroll', function(done) {
-        overlay.allowOutsideScroll = false;
+      test('`noOutsideScroll` locks scroll', function(done) {
+        overlay.noOutsideScroll = true;
         runAfterOpen(overlay, function() {
           assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
@@ -1458,7 +1434,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('should lock, only once', function(done) {
         var openCount = 0;
-        overlay.allowOutsideScroll = false;
+        overlay.noOutsideScroll = true;
         runAfterOpen(overlay, function() {
           assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
           assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);

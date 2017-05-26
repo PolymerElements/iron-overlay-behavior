@@ -143,28 +143,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       overlay.close();
     }
 
-    function fireWheel(node, deltaX, deltaY) {
-      // IE 11 doesn't support WheelEvent, use CustomEvent.
-      var event = new CustomEvent('wheel', {
-        cancelable: true,
-        bubbles: true,
-        composed: true,
-      });
-      event.deltaX = deltaX;
-      event.deltaY = deltaY;
-      node.dispatchEvent(event);
-      return event;
-    }
-
-    function dispatchScroll(target, scrollLeft, scrollTop) {
-      target.scrollLeft = scrollLeft;
-      target.scrollTop = scrollTop;
-      target.dispatchEvent(new CustomEvent('scroll', {
-        bubbles: true,
-        composed: true
-      }));
-    }
-
     suite('basic overlay', function() {
       var overlay;
 
@@ -1348,110 +1326,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.isFalse(overlay.hasAttribute('aria-hidden'), 'overlay does not have aria-hidden attribute');
         overlay.close();
         assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
-      });
-
-    });
-
-    suite('locking scroll', function() {
-
-      var overlay, bigDiv, scrollTarget;
-      suiteSetup(function() {
-        bigDiv = document.createElement('div');
-        bigDiv.style.width = bigDiv.style.height = '150vmax';
-        document.body.appendChild(bigDiv);
-        // Need to discover if html or body is scrollable.
-        // Here we are sure the page is scrollable.
-        document.documentElement.scrollTop = 1;
-        if (document.documentElement.scrollTop === 1) {
-          document.documentElement.scrollTop = 0;
-          scrollTarget = document.documentElement;
-        } else {
-          scrollTarget = document.body;
-        }
-      });
-
-      suiteTeardown(function() {
-        document.body.removeChild(bigDiv);
-      });
-
-      setup(function() {
-        overlay = fixture('basic');
-        // Needed by IE10 to force mutations.
-        Polymer.dom.flush();
-      });
-
-      teardown(function() {
-        dispatchScroll(scrollTarget, 0, 0);
-      });
-
-      test('default: outside scroll not prevented', function(done) {
-        runAfterOpen(overlay, function() {
-          assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
-          assert.isFalse(fireWheel(scrollTarget, 0, 10).defaultPrevented);
-          dispatchScroll(scrollTarget, 0, 10);
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.equal(scrollTarget.scrollTop, 10, 'scrollTop ok');
-            assert.equal(scrollTarget.scrollLeft, 0, 'scrollLeft ok');
-            done();
-          });
-        });
-      });
-
-      test('default: outside scroll does NOT trigger refit', function(done) {
-        runAfterOpen(overlay, function() {
-          var refitSpy = sinon.spy(overlay, 'refit');
-          dispatchScroll(scrollTarget, 0, 10);
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.equal(refitSpy.callCount, 0, 'did not refit on scroll');
-            done();
-          });
-        });
-      });
-
-      test('`refitOnScroll` refits the overlay', function(done) {
-        overlay.refitOnScroll = true;
-        runAfterOpen(overlay, function() {
-          var refitSpy = sinon.spy(overlay, 'refit');
-          dispatchScroll(scrollTarget, 0, 10);
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.notEqual(refitSpy.callCount, 0, 'did refit on scroll');
-            done();
-          });
-        });
-      });
-
-      test('`noOutsideScroll` locks scroll', function(done) {
-        overlay.noOutsideScroll = true;
-        runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
-          assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
-          dispatchScroll(scrollTarget, 0, 10);
-          assert.equal(scrollTarget.scrollTop, 0, 'scrollTop ok');
-          assert.equal(scrollTarget.scrollLeft, 0, 'scrollLeft ok');
-          done();
-        });
-      });
-
-      test('should lock, only once', function(done) {
-        var openCount = 0;
-        overlay.noOutsideScroll = true;
-        runAfterOpen(overlay, function() {
-          assert.isTrue(Polymer.IronScrollManager.elementIsScrollLocked(scrollTarget));
-          assert.isTrue(fireWheel(scrollTarget, 0, 10).defaultPrevented);
-          assert.equal(Polymer.IronScrollManager._lockingElements.length, 1);
-          if (openCount === 0) {
-            // This triggers a second `pushScrollLock` with the same element, however
-            // that should not add the element to the `_lockingElements` stack twice
-            runAfterClose(overlay, function() {
-              assert.isFalse(Polymer.IronScrollManager.elementIsScrollLocked(overlay));
-              assert.isFalse(fireWheel(scrollTarget, 0, 10).defaultPrevented);
-              overlay.open();
-            });
-          } else {
-            done();
-          }
-          openCount++;
-        });
       });
 
     });

@@ -50,8 +50,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        */
       withBackdrop: {
         observer: '_withBackdropChanged',
-        type: Boolean,
-        value: false
+        type: Boolean
       },
 
       /**
@@ -77,20 +76,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       noCancelOnOutsideClick: {
         type: Boolean,
         value: false
-      },
-
-      /**
-       * Set to true to prevent scroll outside the overlay.
-       */
-      noOutsideScroll: {
-        type: Boolean
-      },
-
-      /**
-       * Set to true to reposition the overlay on scroll.
-       */
-      refitOnScroll: {
-        type: Boolean
       },
 
       /**
@@ -120,6 +105,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
+       * Determines which action to perform when scroll outside an opened overlay happens.
+       * Possible values:
+       * lock - blocks scrolling from happening,
+       * refit - computes the new position on the overlay
+       * cancel - causes the overlay to close
+       */
+      scrollAction: {
+        type: String
+      },
+
+      /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {Polymer.IronOverlayManagerClass}
@@ -144,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     observers: [
-      '__updateScrollObservers(isAttached, opened, noOutsideScroll, refitOnScroll)'
+      '__updateScrollObservers(isAttached, opened, scrollAction)'
     ],
 
     /**
@@ -207,7 +203,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
       for (var cb in this.__rafs) {
-        this.__rafs[cb] && cancelAnimationFrame(this.__rafs[cb]);
+        if (this.__rafs[cb]) {
+          cancelAnimationFrame(this.__rafs[cb]);
+        }
       }
       this.__rafs = {};
       this._manager.removeOverlay(this);
@@ -289,7 +287,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.__isAnimating = true;
 
       // Deraf for non-blocking rendering.
-      this.__deraf('__openedChanged');
+      this.__deraf('__openedChanged', this.__openedChanged);
     },
 
     _canceledChanged: function() {
@@ -519,7 +517,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     _onIronResize: function() {
       if (this.opened && !this.__isAnimating) {
-        this.__deraf('refit');
+        this.__deraf('refit', this.refit);
       }
     },
 
@@ -573,54 +571,80 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     /**
      * Delays the execution of a callback to the next animation frame.
-     * @param {!string} callbackName
+     * To cancel a previous job, pass callback = undefined
+     * @param {!string} jobname
+     * @param {Function=} callback Always bound to `this`
      * @private
      */
-    __deraf: function(callbackName) {
+    __deraf: function(jobname, callback) {
       var rafs = this.__rafs;
-      rafs[callbackName] && cancelAnimationFrame(rafs[callbackName]);
-      var callback = this[callbackName].bind(this);
-      rafs[callbackName] = requestAnimationFrame(function nextAnimationFrame() {
-        rafs[callbackName] = null;
-        callback();
-      });
+      if (rafs[jobname]) {
+        cancelAnimationFrame(rafs[jobname]);
+      }
+      if (callback) {
+        rafs[jobname] = requestAnimationFrame(function nextAnimationFrame() {
+          rafs[jobname] = null;
+          callback.call(this);
+        }.bind(this));
+      } else {
+        rafs[jobname] = null;
+      }
     },
 
     /**
      * @param {boolean} isAttached
      * @param {boolean} opened
-     * @param {boolean} noOutsideScroll
-     * @param {boolean} refitOnScroll
+     * @param {string=} scrollAction
      * @private
      */
-    __updateScrollObservers: function(isAttached, opened, noOutsideScroll, refitOnScroll) {
-      if (isAttached && opened && (noOutsideScroll || refitOnScroll)) {
-        this.__saveScrollPosition();
-        if (noOutsideScroll)
-          Polymer.IronScrollManager.pushScrollLock(this);
-        document.addEventListener('scroll', this.__onCaptureScroll, {
+    __updateScrollObservers: function(isAttached, opened, scrollAction) {
+      if (!isAttached || !opened || !this.__isValidScrollAction(scrollAction)) {
+        Polymer.IronScrollManager.removeScrollLock(this);
+        document.removeEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       } else {
-        Polymer.IronScrollManager.removeScrollLock(this);
-        document.removeEventListener('scroll', this.__onCaptureScroll, {
+        if (scrollAction === 'lock') {
+          this.__saveScrollPosition();
+          Polymer.IronScrollManager.pushScrollLock(this);
+        }
+        document.addEventListener('scroll', this.__onCaptureScroll, {
           passive: true
         });
       }
     },
 
     /**
+     * @param {string=} scrollAction
+     * @return {boolean}
+     * @private
+     */
+    __isValidScrollAction: function(scrollAction) {
+      return scrollAction === 'lock' ||
+             scrollAction === 'refit' ||
+             scrollAction === 'cancel';
+    },
+
+    /**
      * @private
      */
     __onCaptureScroll: function(event) {
-      if (this.noOutsideScroll) {
-        // NOTE: scrolling might happen if a scroll event is not cancellable, or if
-        // user pressed keys that cause scrolling (they're not prevented in order not to
-        // break a11y features like navigate with arrow keys).
-        this.__restoreScrollPosition();
-      } else if (!this.__isAnimating && this.refitOnScroll) {
-        // Refit if not animating and if makes sense to refit (e.g. different fitInto or when positioned).
-        this.__deraf('refit');
+      if (this.__isAnimating) {
+        return;
+      }
+      switch (this.scrollAction) {
+        case 'lock':
+          // NOTE: scrolling might happen if a scroll event is not cancellable, or if
+          // user pressed keys that cause scrolling (they're not prevented in order not to
+          // break a11y features like navigate with arrow keys).
+          this.__restoreScrollPosition();
+          break;
+        case 'refit':
+          this.__deraf('refit', this.refit);
+          break;
+        case 'cancel':
+          this.cancel(event);
+          break;
       }
     },
 

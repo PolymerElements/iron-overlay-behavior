@@ -195,6 +195,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.opened) {
           this._finishRenderOpened();
         } else {
+          // Restore the focus if necessary.
+          this._applyFocus();
           this._finishRenderClosed();
         }
       }

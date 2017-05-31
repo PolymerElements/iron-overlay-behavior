@@ -847,6 +847,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      test('focus restored if overlay detached before closing is done', function(done) {
+        var focusable = document.getElementById('focusInput');
+        focusable.focus();
+        runAfterOpen(overlay, function() {
+          // Close overlay and remove it from the DOM.
+          runAfterClose(overlay, function() {
+            assert.equal(Polymer.IronOverlayManager.deepActiveElement, focusable,
+              'focus restored to focusable');
+            done();
+          });
+          Polymer.dom(overlay).parentNode.removeChild(overlay);
+        });
+      });
+
     });
 
     suite('overlay with backdrop', function() {

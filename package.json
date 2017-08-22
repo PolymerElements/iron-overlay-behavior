@@ -1,0 +1,28 @@
+{
+  "name": "@polymer/iron-overlay-behavior",
+  "flat": true,
+  "version": "3.0.0-pre.1",
+  "description": "Provides a behavior for making an element an overlay",
+  "contributors": [
+    "The Polymer Authors"
+  ],
+  "keywords": [
+    "web-components",
+    "polymer",
+    "behavior",
+    "overlay"
+  ],
+  "main": "iron-overlay-behavior.html",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/PolymerElements/iron-overlay-behavior.git"
+  },
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "dependencies": {
+    "@polymer/iron-a11y-keys-behavior": "^3.0.0-pre.1",
+    "@polymer/iron-fit-behavior": "^3.0.0-pre.1",
+    "@polymer/iron-resizable-behavior": "^3.0.0-pre.1",
+    "@polymer/polymer": "^3.0.0-pre.1"
+  },
+  "devDependencies": {}
+}

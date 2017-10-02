@@ -988,6 +988,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         })
       });
 
+      test('allow-click-through allows overlay below to handle click', function(done) {
+        overlay2.allowClickThrough = true;
+        runAfterOpen(overlay1, function() {
+          runAfterOpen(overlay2, function() {
+            MockInteractions.tap(document.body);
+            assert.isFalse(overlay1.opened, 'overlay1 was closed');
+            assert.isFalse(overlay2.opened, 'overlay2 was closed');
+            done();
+          });
+        });
+      });
+
+      test('allow-click-through and no-cancel-on-outside-click combo', function(done) {
+        overlay2.allowClickThrough = true;
+        overlay2.noCancelOnOutsideClick = true;
+        runAfterOpen(overlay1, function() {
+          runAfterOpen(overlay2, function() {
+            MockInteractions.tap(document.body);
+            assert.isTrue(overlay2.opened, 'overlay2 still open');
+            assert.isFalse(overlay1.opened, 'overlay1 was closed');
+            done();
+          });
+        });
+      });
+
     });
 
     suite('Manager overlays in sync', function() {

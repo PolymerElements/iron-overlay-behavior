@@ -259,7 +259,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       // Defer any animation-related code on attached
       // (_openedChanged gets called again on attached).
-      if (!this.isAttached) {
+      if (this.isAttached === undefined) {
         return;
       }
 

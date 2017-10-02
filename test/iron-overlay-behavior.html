@@ -871,7 +871,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               'focus restored to focusable');
             done();
           });
-          Polymer.dom(overlay).parentNode.removeChild(overlay);
+          overlay.parentNode.removeChild(overlay);
         });
       });
 
@@ -916,7 +916,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('backdrop is removed when the element is removed from DOM', function(done) {
         runAfterOpen(overlay, function() {
-          Polymer.dom(overlay).parentNode.removeChild(overlay);
+          overlay.parentNode.removeChild(overlay);
           // Ensure detached is executed.
           Polymer.dom.flush();
           assert.isFalse(overlay.backdropElement.opened, 'backdrop is closed');
@@ -1357,7 +1357,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // After some time, but before the animation is completed...
         setTimeout(function() {
           // Animation is not done yet, but we remove the overlay already.
-          Polymer.dom(overlay).parentNode.removeChild(overlay);
+          overlay.parentNode.removeChild(overlay);
         }, 50);
       });
 
@@ -1372,7 +1372,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // After some time, but before the animation is completed...
           setTimeout(function() {
             // Animation is not done yet, but we remove the overlay already.
-            Polymer.dom(overlay).parentNode.removeChild(overlay);
+            overlay.parentNode.removeChild(overlay);
           }, 50);
         });
       });

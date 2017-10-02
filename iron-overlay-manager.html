@@ -13,7 +13,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="iron-overlay-backdrop.html">
 
 <script>
-
   /**
    * @struct
    * @constructor
@@ -70,10 +69,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @type {!Element} activeElement the active element
      */
     get deepActiveElement() {
+      var active = document.activeElement;
       // document.activeElement can be null
       // https://developer.mozilla.org/en-US/docs/Web/API/Document/activeElement
-      // In case of null, default it to document.body.
-      var active = document.activeElement || document.body;
+      // In IE 11, it can also be an object when operating in iframes.
+      // In these cases, default it to document.body.
+      if (!active || active instanceof Element === false) {
+        active = document.body;
+      }
       while (active.root && Polymer.dom(active.root).activeElement) {
         active = Polymer.dom(active.root).activeElement;
       }

@@ -188,6 +188,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.__raf = null;
       }
       this._manager.removeOverlay(this);
+
+      // We got detached while animating, ensure we show/hide the overlay
+      // and fire iron-overlay-opened/closed event!
+      if (this.__isAnimating) {
+        if (this.opened) {
+          this._finishRenderOpened();
+        } else {
+          // Restore the focus if necessary.
+          this._applyFocus();
+          this._finishRenderClosed();
+        }
+      }
     },
 
     /**

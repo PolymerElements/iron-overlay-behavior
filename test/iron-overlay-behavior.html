@@ -1196,9 +1196,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             var style1Z = parseInt(window.getComputedStyle(overlay1).zIndex, 10);
             var style2Z = parseInt(window.getComputedStyle(overlay2).zIndex, 10);
             var bgStyleZ = parseInt(window.getComputedStyle(overlay1.backdropElement).zIndex, 10);
-            assert.isAbove(style2Z, style1Z, 'overlay1 above overlay2');
-            assert.isAbove(style2Z, bgStyleZ, 'backdrop above overlay2');
-            assert.isBelow(style1Z, bgStyleZ, 'backdrop below overlay1');
+            assert.isAbove(style2Z, style1Z, 'overlay2 above overlay1');
+            assert.isAbove(style2Z, bgStyleZ, 'overlay2 above backdrop');
+            assert.isBelow(style1Z, bgStyleZ, 'overlay1 below backdrop');
             done();
           });
         });
@@ -1211,8 +1211,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             var style1Z = parseInt(window.getComputedStyle(overlay1).zIndex, 10);
             var style2Z = parseInt(window.getComputedStyle(overlay2).zIndex, 10);
             var bgStyleZ = parseInt(window.getComputedStyle(overlay1.backdropElement).zIndex, 10);
-            assert.isAbove(style2Z, bgStyleZ, 'backdrop above overlay2');
-            assert.isAbove(style1Z, bgStyleZ, 'backdrop below overlay1');
+            assert.isAbove(style2Z, bgStyleZ, 'overlay2 above backdrop');
+            assert.isAbove(style1Z, bgStyleZ, 'overlay1 below backdrop');
             done();
           });
         });

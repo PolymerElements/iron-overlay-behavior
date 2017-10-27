@@ -203,7 +203,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       Polymer.dom(this).unobserveNodes(this._observer);
       this._observer = null;
       for (var cb in this.__rafs) {
-        if (this.__rafs[cb]) {
+        if (this.__rafs[cb] !== null) {
           cancelAnimationFrame(this.__rafs[cb]);
         }
       }
@@ -571,24 +571,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     /**
      * Delays the execution of a callback to the next animation frame.
-     * To cancel a previous job, pass callback = undefined
      * @param {!string} jobname
-     * @param {Function=} callback Always bound to `this`
+     * @param {!Function} callback Always bound to `this`
      * @private
      */
     __deraf: function(jobname, callback) {
       var rafs = this.__rafs;
-      if (rafs[jobname]) {
+      if (rafs[jobname] !== null) {
         cancelAnimationFrame(rafs[jobname]);
       }
-      if (callback) {
-        rafs[jobname] = requestAnimationFrame(function nextAnimationFrame() {
-          rafs[jobname] = null;
-          callback.call(this);
-        }.bind(this));
-      } else {
+      rafs[jobname] = requestAnimationFrame(function nextAnimationFrame() {
         rafs[jobname] = null;
-      }
+        callback.call(this);
+      }.bind(this));
     },
 
     /**

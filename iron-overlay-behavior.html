@@ -643,16 +643,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     __addScrollListeners: function() {
       if (!this.__rootNodes) {
         this.__rootNodes = [];
-        // Listen for scroll events in all shadowRoots hosting this overlay.
-        var node = this;
-        while (node) {
-          if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-            if (node.host) {
+        // Listen for scroll events in all shadowRoots hosting this overlay only
+        // when in native ShadowDOM.
+        if ('attachShadow' in Element.prototype && 'getRootNode' in Element.prototype) {
+          var node = this;
+          while (node) {
+            if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && node.host) {
               this.__rootNodes.push(node);
             }
-            node = node.host;
-          } else {
-            node = node.assignedSlot || node.parentNode;
+            node = node.host || node.assignedSlot || node.parentNode;
           }
         }
         this.__rootNodes.push(document);

@@ -146,11 +146,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('refit scrollAction does NOT refit the overlay on scroll inside', function(done) {
         overlay.scrollAction = 'refit';
         runAfterOpen(overlay, function() {
-          var refitSpy = sinon.spy(overlay, 'refit');
-          dispatchScroll(overlay, 0, 10);
-          Polymer.RenderStatus.afterNextRender(overlay, function() {
-            assert.equal(refitSpy.callCount, 0, 'did not refit on scroll inside');
-            done();
+          // Wait a tick, otherwise this fails in FF/Safari.
+          setTimeout(function() {
+            var refitSpy = sinon.spy(overlay, 'refit');
+            dispatchScroll(overlay, 0, 10);
+            Polymer.RenderStatus.afterNextRender(overlay, function() {
+              assert.equal(refitSpy.callCount, 0, 'did not refit on scroll inside');
+              done();
+            });
           });
         });
       });
@@ -182,9 +185,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlay.addEventListener('iron-overlay-canceled', function(event) {
             assert.equal(event.detail.type, 'scroll', 'detail contains original event');
             assert.equal(event.detail.target, scrollTarget, 'original scroll event target ok');
-          });
-          overlay.addEventListener('iron-overlay-closed', function() {
-            done();
+            overlay.addEventListener('iron-overlay-closed', function() {
+              done();
+            });
           });
           dispatchScroll(scrollTarget, 0, 10);
         });
@@ -273,10 +276,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         runAfterOpen(overlay, function() {
           overlay.addEventListener('iron-overlay-canceled', function(event) {
             assert.equal(event.detail.type, 'scroll', 'detail contains original event');
-            assert.equal(event.detail.target, scrollable, 'original scroll event target ok');
-          });
-          overlay.addEventListener('iron-overlay-closed', function() {
-            done();
+            // In Polymer 1.x with dom=shadow, triggering a scroll event on a node inside a shadowRoot
+            // doesn't set the correct target, so we skip this check. 
+            if (Polymer.Element || !Polymer.Settings.useShadow) {
+              assert.equal(event.detail.target, scrollable, 'original scroll event target ok');
+            }
+            overlay.addEventListener('iron-overlay-closed', function() {
+              done();
+            });
           });
           dispatchScroll(scrollable, 0, 10);
         });

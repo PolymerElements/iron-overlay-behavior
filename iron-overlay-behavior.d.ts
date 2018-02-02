@@ -92,12 +92,12 @@ declare namespace Polymer {
     /**
      * The backdrop element.
      */
-    backdropElement(): any;
+    backdropElement(): Element;
 
     /**
      * Returns the node to give focus to.
      */
-    _focusNode(): any;
+    _focusNode(): Node;
 
     /**
      * Array of nodes that can receive focus (overlay included), ordered by `tabindex`.
@@ -107,7 +107,7 @@ declare namespace Polymer {
      * If you know what is your content (specifically the first and last focusable children),
      * you can override this method to return only `[firstFocusable, lastFocusable];`
      */
-    _focusableNodes(): any;
+    _focusableNodes(): Node[];
     ready(): any;
     attached(): any;
     detached(): any;

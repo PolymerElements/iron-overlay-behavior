@@ -127,7 +127,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       /**
        * Shortcut to access to the overlay manager.
        * @private
-       * @type {Polymer.IronOverlayManagerClass}
+       * @type {!Polymer.IronOverlayManagerClass}
        */
       _manager: {
         type: Object,
@@ -154,7 +154,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     /**
      * The backdrop element.
-     * @type {Element}
+     * @return {!Element}
      */
     get backdropElement() {
       return this._manager.backdropElement;
@@ -162,7 +162,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     /**
      * Returns the node to give focus to.
-     * @type {Node}
+     * @return {!Node}
      */
     get _focusNode() {
       return this._focusedChild || Polymer.dom(this).querySelector('[autofocus]') || this;
@@ -175,7 +175,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      *
      * If you know what is your content (specifically the first and last focusable children),
      * you can override this method to return only `[firstFocusable, lastFocusable];`
-     * @type {Array<Node>}
+     * @return {!Array<!Node>}
      * @protected
      */
     get _focusableNodes() {

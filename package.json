@@ -1,0 +1,10 @@
+{
+  "name": "@polymer/iron-overlay-behavior",
+  "private": true,
+  "description": "Provides a behavior for making an element an overlay",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/PolymerElements/iron-overlay-behavior.git"
+  },
+  "license": "http://polymer.github.io/LICENSE.txt"
+}

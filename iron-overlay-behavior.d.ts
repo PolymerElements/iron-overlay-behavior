@@ -256,7 +256,7 @@ declare namespace Polymer {
    *
    *   
    */
-  interface IronOverlayBehavior {
+  interface IronOverlayBehavior extends Polymer.IronFitBehavior, Polymer.IronResizableBehavior, Polymer.IronOverlayBehaviorImpl {
   }
 
   const IronOverlayBehavior: object;

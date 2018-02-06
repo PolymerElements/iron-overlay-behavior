@@ -3,6 +3,8 @@ sudo: required
 before_script:
   - npm install -g polymer-cli
   - polymer install --variants
+  - npm run update-types
+  - git diff --exit-code
 env:
   global:
     - secure: >-

@@ -25,7 +25,7 @@
  * `--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                      | {}
  * `--iron-overlay-backdrop-opened`           | Mixin applied to `iron-overlay-backdrop` when it is displayed | {}
  */
-interface IronOverlayBackdropElement extends Polymer.Element {
+interface IronOvelayBackdropElement extends Polymer.Element {
 
   /**
    * Returns true if the backdrop is opened.

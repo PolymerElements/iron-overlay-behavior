@@ -4,7 +4,7 @@ before_script:
   - npm install -g polymer-cli
   - polymer install --variants
   - npm run update-types
-  - git diff --exit-code || (echo "Please run `npm run update-types`." && false)
+  - git diff --exit-code || (echo 'Please run "npm run update-types".' && false)
 env:
   global:
     - secure: >-

@@ -49,13 +49,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * The IronScrollManager is intended to provide a central source
      * of authority and control over which elements in a document are currently
      * allowed to scroll.
+     *
+     * @namespace
+     * @memberof Polymer
      */
-
     Polymer.IronScrollManager = {
 
       /**
        * The current element that defines the DOM boundaries of the
        * scroll lock. This is always the most recently locking element.
+       *
+       * @memberof Polymer.IronScrollManager
        * @return {!Node|undefined}
        */
       get currentLockingElement() {
@@ -66,6 +70,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * Returns true if the provided element is "scroll locked", which is to
        * say that it cannot be scrolled via pointer or keyboard interactions.
        *
+       * @memberof Polymer.IronScrollManager
        * @param {!HTMLElement} element An HTML element instance which may or may
        * not be scroll locked.
        */
@@ -106,6 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * Scroll locking is implemented as a stack so that cases such as
        * dropdowns within dropdowns are handled well.
        *
+       * @memberof Polymer.IronScrollManager
        * @param {!HTMLElement} element The element that should lock scroll.
        */
       pushScrollLock: function(element) {
@@ -130,6 +136,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * the scroll lock constraints only change when the most recently pushed
        * element is removed.
        *
+       * @memberof Polymer.IronScrollManager
        * @param {!HTMLElement} element The element to remove from the scroll
        * lock stack.
        */

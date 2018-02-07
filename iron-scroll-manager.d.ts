@@ -10,3 +10,47 @@
 
 /// <reference path="../polymer/types/polymer.d.ts" />
 
+declare namespace Polymer {
+
+  /**
+   * The IronScrollManager is intended to provide a central source
+   * of authority and control over which elements in a document are currently
+   * allowed to scroll.
+   */
+  namespace IronScrollManager {
+
+
+    /**
+     * The current element that defines the DOM boundaries of the
+     * scroll lock. This is always the most recently locking element.
+     */
+    function currentLockingElement(): Node|undefined;
+
+
+    /**
+     * Returns true if the provided element is "scroll locked", which is to
+     * say that it cannot be scrolled via pointer or keyboard interactions.
+     */
+    function elementIsScrollLocked(element: HTMLElement): any;
+
+
+    /**
+     * Push an element onto the current scroll lock stack. The most recently
+     * pushed element and its children will be considered scrollable. All
+     * other elements will not be scrollable.
+     *
+     * Scroll locking is implemented as a stack so that cases such as
+     * dropdowns within dropdowns are handled well.
+     */
+    function pushScrollLock(element: HTMLElement): any;
+
+
+    /**
+     * Remove an element from the scroll lock stack. The element being
+     * removed does not need to be the most recently pushed element. However,
+     * the scroll lock constraints only change when the most recently pushed
+     * element is removed.
+     */
+    function removeScrollLock(element: HTMLElement): any;
+  }
+}

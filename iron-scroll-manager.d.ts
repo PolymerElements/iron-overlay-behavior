@@ -21,13 +21,6 @@ declare namespace Polymer {
 
 
     /**
-     * The current element that defines the DOM boundaries of the
-     * scroll lock. This is always the most recently locking element.
-     */
-    function currentLockingElement(): Node|undefined;
-
-
-    /**
      * Returns true if the provided element is "scroll locked", which is to
      * say that it cannot be scrolled via pointer or keyboard interactions.
      */

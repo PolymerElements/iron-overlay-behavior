@@ -56,7 +56,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       /**
        * The current element that defines the DOM boundaries of the
        * scroll lock. This is always the most recently locking element.
-       * @return {!Node}
+       * @return {!Node|undefined}
        */
       get currentLockingElement() {
         return this._lockingElements[this._lockingElements.length - 1];

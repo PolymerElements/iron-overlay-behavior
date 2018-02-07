@@ -21,7 +21,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   Polymer.IronOverlayManagerClass = function() {
     /**
      * Used to keep track of the opened overlays.
-     * @private {Array<Element>}
+     * @private {!Array<!Element>}
      */
     this._overlays = [];
 
@@ -325,7 +325,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _onCaptureClick: function(event) {
       var i = this._overlays.length - 1;
       if (i === -1) return;
-      var path = Polymer.dom(event).path;
+      var path = /** @type {!Array<!EventTarget>} */ (Polymer.dom(event).path);
       var overlay;
       // Check if clicked outside of overlay.
       while ((overlay = /** @type {?} */ (this._overlays[i])) && this._overlayInPath(path) !== overlay) {

@@ -106,7 +106,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (node.nodeType !== Node.ELEMENT_NODE || !this._isVisible(node)) {
           return false;
         }
-        var element = /** @type {HTMLElement} */ (node);
+        var element = /** @type {!HTMLElement} */ (node);
         var tabIndex = this._normalizedTabIndex(element);
         var needsSort = tabIndex > 0;
         if (tabIndex >= 0) {

@@ -98,7 +98,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       /**
-       * Set to true to allow clicks to go through overlays. 
+       * Set to true to allow clicks to go through overlays.
        * When the user clicks outside this overlay, the click may
        * close the overlay below.
        */
@@ -636,7 +636,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.__addScrollListeners();
       }
     },
-    
+
     /**
      * @private
      */
@@ -645,7 +645,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.__rootNodes = [];
         // Listen for scroll events in all shadowRoots hosting this overlay only
         // when in native ShadowDOM.
-        if ('attachShadow' in Element.prototype && 'getRootNode' in Element.prototype) {
+        if (Polymer.Settings.useShadow) {
           var node = this;
           while (node) {
             if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && node.host) {
@@ -663,7 +663,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       }, this);
     },
-    
+
     /**
      * @private
      */

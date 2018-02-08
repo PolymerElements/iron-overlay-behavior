@@ -64,7 +64,7 @@ declare namespace Polymer {
     restoreFocusOnClose: boolean|null|undefined;
 
     /**
-     * Set to true to allow clicks to go through overlays. 
+     * Set to true to allow clicks to go through overlays.
      * When the user clicks outside this overlay, the click may
      * close the overlay below.
      */

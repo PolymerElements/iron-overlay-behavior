@@ -182,6 +182,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return Polymer.IronFocusablesHelper.getTabbableNodes(this);
     },
 
+    /**
+     * @return {void}
+     */
     ready: function() {
       // Used to skip calls to notifyResize and refit while the overlay is animating.
       this.__isAnimating = false;

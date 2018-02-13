@@ -108,7 +108,7 @@ declare namespace Polymer {
      * you can override this method to return only `[firstFocusable, lastFocusable];`
      */
     _focusableNodes(): Node[];
-    ready(): any;
+    ready(): void;
     attached(): any;
     detached(): any;
 

@@ -462,9 +462,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * @protected
      */
     _onCaptureClick: function(event) {
-      if (!this.noCancelOnOutsideClick) {
-        this.cancel(event);
-      }
+      // use async to make delay for prevent open again when click on dropdown-trigger!
+      this.async(() => { 
+        if (!this.noCancelOnOutsideClick) {
+          this.cancel(event);
+        }
+      });
     },
 
     /**

@@ -430,8 +430,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
       else {
-        this._focusNode.blur();
-        this._focusedChild = null;
         // Restore focus.
         if (this.restoreFocusOnClose && this.__restoreFocusNode) {
           // If the activeElement is `<body>` or inside the overlay,
@@ -446,13 +444,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
         }
         this.__restoreFocusNode = null;
-        // If many overlays get closed at the same time, one of them would still
-        // be the currentOverlay even if already closed, and would call _applyFocus
-        // infinitely, so we check for this not to be the current overlay.
-        var currentOverlay = this._manager.currentOverlay();
-        if (currentOverlay && this !== currentOverlay) {
-          currentOverlay._applyFocus();
-        }
+        this._focusNode.blur();
+        this._focusedChild = null;
       }
     },
 

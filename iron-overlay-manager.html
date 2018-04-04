@@ -218,10 +218,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * Updates the backdrop z-index.
      */
     trackBackdrop: function() {
-      var overlays = this._overlays.filter(function(overlay) {
-        return overlay.withBackdrop;
-      });
-      var overlay = overlays.pop();
+      var overlay = this._overlayWithBackdrop();
       // Avoid creating the backdrop if there is no overlay with backdrop.
       if (!overlay && !this._backdropElement) {
         return;
@@ -234,7 +231,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Insert the backdropElement in the dialog with backdrop below it
       // in order to support nested overlays.
       if (overlay) {
-        this.backdropElement.prepare(overlays.pop());
+        var parentOverlay = this._overlays.filter(function(candidate) {
+          return candidate !== overlay &&
+                 candidate.withBackdrop &&
+                 Polymer.dom(candidate).deepContains(overlay);
+        }).pop();
+        this.backdropElement.prepare(parentOverlay);
       }
     },
 

@@ -218,7 +218,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * Updates the backdrop z-index.
      */
     trackBackdrop: function() {
-      var overlay = this._overlayWithBackdrop();
+      var overlays = this._overlays.filter(function(overlay) {
+        return overlay.withBackdrop;
+      });
+      var overlay = overlays.pop();
       // Avoid creating the backdrop if there is no overlay with backdrop.
       if (!overlay && !this._backdropElement) {
         return;
@@ -228,7 +231,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // Property observers are not fired until element is attached
       // in Polymer 2.x, so we ensure element is attached if needed.
       // https://github.com/Polymer/polymer/issues/4526
-      this.backdropElement.prepare();
+      // Insert the backdropElement in the dialog with backdrop below it
+      // in order to support nested overlays.
+      if (overlay) {
+        this.backdropElement.prepare(overlays.pop());
+      }
     },
 
     /**

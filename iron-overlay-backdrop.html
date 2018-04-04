@@ -89,10 +89,12 @@ Custom property | Description | Default
 
     /**
      * Appends the backdrop to document body if needed.
+     * @param {Node=} parentNode
      */
-    prepare: function() {
-      if (this.opened && !this.parentNode) {
-        Polymer.dom(document.body).appendChild(this);
+    prepare: function(parentNode) {
+      parentNode = parentNode || document.body;
+      if (this.opened && parentNode !== this.parentNode) {
+        Polymer.dom(parentNode).appendChild(this);
       }
     },
 
@@ -131,8 +133,8 @@ Custom property | Description | Default
      */
     _openedChanged: function(opened) {
       if (opened) {
-        // Auto-attach.
-        this.prepare();
+        // Auto-attach, keep current parent.
+        this.prepare(this.parentNode);
       } else {
         // Animation might be disabled via the mixin or opacity custom property.
         // If it is disabled in other ways, it's up to the user to call complete.

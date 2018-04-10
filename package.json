@@ -10,7 +10,7 @@
   "devDependencies": {
     "@polymer/gen-typescript-declarations": "^1.2.0",
     "bower": "^1.8.0",
-    "webmat": "^0.1.2"
+    "webmat": "^0.2.0"
   },
   "scripts": {
     "update-types": "bower install && gen-typescript-declarations --deleteExisting --outDir .",

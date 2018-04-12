@@ -43,6 +43,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
   // must be defined for modulizer
   var _boundScrollHandler;
+  if (!window.Polymer) {
+    window.Polymer = {};
+  }
 
   /**
    * The IronScrollManager is intended to provide a central source

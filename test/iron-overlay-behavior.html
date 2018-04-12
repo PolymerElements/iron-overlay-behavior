@@ -1009,7 +1009,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       test('backdrop appears behind the overlay', function(done) {
         runAfterOpen(overlay, function() {
           var styleZ = parseInt(window.getComputedStyle(overlay).zIndex, 10);
-          backdropStyleZ =
+          var backdropStyleZ =
               parseInt(window.getComputedStyle(overlay.backdropElement).zIndex, 10);
           assert.isTrue(
               styleZ > backdropStyleZ, 'overlay has higher z-index than backdrop');

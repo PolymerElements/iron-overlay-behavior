@@ -43,6 +43,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
   // must be defined for modulizer
   var _boundScrollHandler;
+  if (!Polymer) {
+    Polymer = {};
+  };
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -52,9 +55,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * @namespace
    * @memberof Polymer
    */
-  Polymer.IronScrollManager = {
-
-    /**
+  Polymer['IronScrollManager'] = {
+      /**
      * The current element that defines the DOM boundaries of the
      * scroll lock. This is always the most recently locking element.
      *
@@ -238,10 +240,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _boundScrollHandler: undefined,
 
     _lockScrollInteractions: function() {
-      if (!Polymer) {
-        Polymer = {};
-      }
-
       this._boundScrollHandler =
           this._boundScrollHandler || this._scrollInteractionHandler.bind(this);
       for (var i = 0, l = scrollEvents.length; i < l; i++) {

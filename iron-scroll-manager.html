@@ -43,6 +43,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
   // must be defined for modulizer
   var _boundScrollHandler;
+  var scope;
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -52,7 +53,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * @namespace
    * @memberof Polymer
    */
-  IronScrollManager = {
+  Polymer.IronScrollManager = {
 
     /**
      * The current element that defines the DOM boundaries of the
@@ -218,17 +219,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return false;
     },
 
-    _scrollInteractionHandler: function(event) {
-      // Avoid canceling an event with cancelable=false, e.g. scrolling is in
-      // progress and cannot be interrupted.
-      if (event.cancelable && this._shouldPreventScrolling(event)) {
-        event.preventDefault();
-      }
-      // If event has targetTouches (touch event), update last touch position.
-      if (event.targetTouches) {
-        var touch = event.targetTouches[0];
-        lastTouchPosition.pageX = touch.pageX;
-        lastTouchPosition.pageY = touch.pageY;
+    getScrollHandler: function(shouldPreventScrolling) {
+      return function(event) {
+        // Avoid canceling an event with cancelable=false, e.g. scrolling is in
+        // progress and cannot be interrupted.
+        if (event.cancelable && shouldPreventScrolling(event)) {
+          event.preventDefault();
+        }
+        // If event has targetTouches (touch event), update last touch position.
+        if (event.targetTouches) {
+          var touch = event.targetTouches[0];
+          lastTouchPosition.pageX = touch.pageX;
+          lastTouchPosition.pageY = touch.pageY;
+        }
       }
     },
 
@@ -239,7 +242,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     _lockScrollInteractions: function() {
       this._boundScrollHandler =
-          this._boundScrollHandler || this._scrollInteractionHandler.bind(this);
+          this._boundScrollHandler || this.getScrollHandler(this._shouldPreventScrolling);
       for (var i = 0, l = scrollEvents.length; i < l; i++) {
         // NOTE: browsers that don't support objects as third arg will
         // interpret it as boolean, hence useCapture = true in this case.
@@ -402,6 +405,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
   };
 
-  Polymer.IronScrollManager = IronScrollManager;
+  scope = Polymer.IronScrollManager;
   })();
 </script>

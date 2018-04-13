@@ -43,7 +43,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
   // must be defined for modulizer
   var _boundScrollHandler;
-  var scope;
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -238,12 +237,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _boundScrollHandler: undefined,
 
     _lockScrollInteractions: function() {
-      try {
-        this._boundScrollHandler = this._boundScrollHandler ||
-            this._scrollInteractionHandler.bind(scope);
-      } catch (e) {
-        this._boundScrollHandler =
-            this._boundScrollHandler || this._scrollInteractionHandler;
+      // workaround for modulizer not handling bind properly
+      if (!this._boundScrollHandler) {
+        try {
+          this._boundScrollHandler = this._scrollInteractionHandler.bind(this);
+        } catch (e) {
+          this._boundScrollHandler = this._scrollInteractionHandler;
+        }
       }
       for (var i = 0, l = scrollEvents.length; i < l; i++) {
         // NOTE: browsers that don't support objects as third arg will
@@ -406,7 +406,5 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return info;
     }
   };
-
-  scope = Polymer.IronScrollManager;
   })();
 </script>

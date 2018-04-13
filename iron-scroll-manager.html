@@ -43,9 +43,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
   // must be defined for modulizer
   var _boundScrollHandler;
-  if (!window.Polymer) {
-    window.Polymer = {};
-  }
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -68,6 +65,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     },
 
     /**
+     * The current element that defines the DOM boundaries of the
+     * scroll lock. This is always the most recently locking element.
+     * Required for modulizer
+     *
+     * @return {!Node|undefined}
+     */
+    getCurrentLockingElement: function() {
+      return this._lockingElements[this._lockingElements.length - 1];
+    },
+
+    /**
      * Returns true if the provided element is "scroll locked", which is to
      * say that it cannot be scrolled via pointer or keyboard interactions.
      *
@@ -76,10 +84,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * not be scroll locked.
      */
     elementIsScrollLocked: function(element) {
-      var currentLockingElement = this.currentLockingElement;
+      var lockingElement = this.getCurrentLockingElement();
 
-      if (currentLockingElement === undefined)
+      if (lockingElement === undefined) {
         return false;
+      }
 
       var scrollLocked;
 
@@ -91,9 +100,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return false;
       }
 
-      scrollLocked = !!currentLockingElement &&
-          currentLockingElement !== element &&
-          !this._composedTreeContains(currentLockingElement, element);
+      scrollLocked = !!lockingElement &&
+          lockingElement !== element &&
+          !this._composedTreeContains(lockingElement, element);
 
       if (scrollLocked) {
         this._lockedElementCache.push(element);
@@ -294,7 +303,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      */
     _getScrollableNodes: function(nodes) {
       var scrollables = [];
-      var lockingIndex = nodes.indexOf(this.currentLockingElement);
+      var lockingIndex = nodes.indexOf(this.getCurrentLockingElement());
       // Loop from root target to locking element (included).
       for (var i = 0; i <= lockingIndex; i++) {
         // Skip non-Element nodes.

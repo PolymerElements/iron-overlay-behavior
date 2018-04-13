@@ -101,8 +101,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return false;
       }
 
-      scrollLocked = !!lockingElement &&
-          lockingElement !== element &&
+      scrollLocked = !!lockingElement && lockingElement !== element &&
           !this._composedTreeContains(lockingElement, element);
 
       if (scrollLocked) {
@@ -240,8 +239,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     _lockScrollInteractions: function() {
       try {
-        this._boundScrollHandler =
-            this._boundScrollHandler || this._scrollInteractionHandler.bind(scope);
+        this._boundScrollHandler = this._boundScrollHandler ||
+            this._scrollInteractionHandler.bind(scope);
       } catch (e) {
         this._boundScrollHandler =
             this._boundScrollHandler || this._scrollInteractionHandler;

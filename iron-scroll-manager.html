@@ -219,19 +219,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return false;
     },
 
-    getScrollHandler: function(shouldPreventScrolling) {
-      return function(event) {
-        // Avoid canceling an event with cancelable=false, e.g. scrolling is in
-        // progress and cannot be interrupted.
-        if (event.cancelable && shouldPreventScrolling(event)) {
-          event.preventDefault();
-        }
-        // If event has targetTouches (touch event), update last touch position.
-        if (event.targetTouches) {
-          var touch = event.targetTouches[0];
-          lastTouchPosition.pageX = touch.pageX;
-          lastTouchPosition.pageY = touch.pageY;
-        }
+    _scrollInteractionHandler: function(event) {
+      // Avoid canceling an event with cancelable=false, e.g. scrolling is in
+      // progress and cannot be interrupted.
+      if (event.cancelable && this._shouldPreventScrolling(event)) {
+        event.preventDefault();
+      }
+      // If event has targetTouches (touch event), update last touch position.
+      if (event.targetTouches) {
+        var touch = event.targetTouches[0];
+        lastTouchPosition.pageX = touch.pageX;
+        lastTouchPosition.pageY = touch.pageY;
       }
     },
 
@@ -241,8 +239,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _boundScrollHandler: undefined,
 
     _lockScrollInteractions: function() {
-      this._boundScrollHandler =
-          this._boundScrollHandler || this.getScrollHandler(this._shouldPreventScrolling);
+      try {
+        this._boundScrollHandler =
+            this._boundScrollHandler || this._scrollInteractionHandler.bind(scope);
+      } catch (e) {
+        this._boundScrollHandler =
+            this._boundScrollHandler || this._scrollInteractionHandler;
+      }
       for (var i = 0, l = scrollEvents.length; i < l; i++) {
         // NOTE: browsers that don't support objects as third arg will
         // interpret it as boolean, hence useCapture = true in this case.

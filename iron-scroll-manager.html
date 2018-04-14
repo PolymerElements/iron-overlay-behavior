@@ -121,7 +121,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       this._lockingElements.push(element);
-      this.currentLockingElement = this._lockingElements[this._lockingElements.length - 1];
+      this.currentLockingElement =
+          this._lockingElements[this._lockingElements.length - 1];
 
       this._lockedElementCache = [];
       this._unlockedElementCache = [];
@@ -145,7 +146,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       this._lockingElements.splice(index, 1);
-      this.currentLockingElement = this._lockingElements[this._lockingElements.length - 1];
+      this.currentLockingElement =
+          this._lockingElements[this._lockingElements.length - 1];
 
       this._lockedElementCache = [];
       this._unlockedElementCache = [];

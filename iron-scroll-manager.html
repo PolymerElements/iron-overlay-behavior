@@ -41,9 +41,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     'touchstart',
     'touchmove'
   ];
-  // must be defined for modulizer
-  var _boundScrollHandler;
-  var currentLockingElement;
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -208,7 +205,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return false;
     },
 
-    _scrollInteractionHandler: function(event) {
+    /**
+     * @private
+     */
+    handleEvent: function(event) {
       // Avoid canceling an event with cancelable=false, e.g. scrolling is in
       // progress and cannot be interrupted.
       if (event.cancelable && this._shouldPreventScrolling(event)) {
@@ -222,27 +222,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     },
 
-    /**
-     * @private
-     */
-    _boundScrollHandler: undefined,
-
     _lockScrollInteractions: function() {
-      // workaround for modulizer not handling bind properly
-      if (!this._boundScrollHandler) {
-        try {
-          this._boundScrollHandler = this._scrollInteractionHandler.bind(this);
-        } catch (e) {
-          this._boundScrollHandler = this._scrollInteractionHandler;
-        }
-      }
       for (var i = 0, l = scrollEvents.length; i < l; i++) {
         // NOTE: browsers that don't support objects as third arg will
         // interpret it as boolean, hence useCapture = true in this case.
         document.addEventListener(
-            scrollEvents[i],
-            this._boundScrollHandler,
-            {capture: true, passive: false});
+            scrollEvents[i], this, {capture: true, passive: false});
       }
     },
 
@@ -251,9 +236,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // NOTE: browsers that don't support objects as third arg will
         // interpret it as boolean, hence useCapture = true in this case.
         document.removeEventListener(
-            scrollEvents[i],
-            this._boundScrollHandler,
-            {capture: true, passive: false});
+            scrollEvents[i], this, {capture: true, passive: false});
       }
     },
 

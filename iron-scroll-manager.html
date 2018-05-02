@@ -41,6 +41,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     'touchstart',
     'touchmove'
   ];
+  // must be defined for modulizer
+  var _boundScrollHandler;
+  var currentLockingElement;
 
   /**
    * The IronScrollManager is intended to provide a central source
@@ -51,16 +54,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    * @memberof Polymer
    */
   Polymer.IronScrollManager = {
-
     /**
      * The current element that defines the DOM boundaries of the
      * scroll lock. This is always the most recently locking element.
      *
      * @return {!Node|undefined}
      */
-    get currentLockingElement() {
-      return this._lockingElements[this._lockingElements.length - 1];
-    },
+    currentLockingElement: undefined,
 
     /**
      * Returns true if the provided element is "scroll locked", which is to
@@ -71,10 +71,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      * not be scroll locked.
      */
     elementIsScrollLocked: function(element) {
-      var currentLockingElement = this.currentLockingElement;
+      var lockingElement = this.currentLockingElement;
 
-      if (currentLockingElement === undefined)
+      if (lockingElement === undefined) {
         return false;
+      }
 
       var scrollLocked;
 
@@ -86,9 +87,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return false;
       }
 
-      scrollLocked = !!currentLockingElement &&
-          currentLockingElement !== element &&
-          !this._composedTreeContains(currentLockingElement, element);
+      scrollLocked = !!lockingElement && lockingElement !== element &&
+          !this._composedTreeContains(lockingElement, element);
 
       if (scrollLocked) {
         this._lockedElementCache.push(element);
@@ -121,6 +121,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       this._lockingElements.push(element);
+      this.currentLockingElement =
+          this._lockingElements[this._lockingElements.length - 1];
 
       this._lockedElementCache = [];
       this._unlockedElementCache = [];
@@ -144,6 +146,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       this._lockingElements.splice(index, 1);
+      this.currentLockingElement =
+          this._lockingElements[this._lockingElements.length - 1];
 
       this._lockedElementCache = [];
       this._unlockedElementCache = [];

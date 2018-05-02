@@ -44,23 +44,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * Set to true to display a backdrop behind the overlay. It traps the focus
        * within the light DOM of the overlay.
        */
-      withBackdrop: {observer: '_withBackdropChanged', type: Boolean},
+      withBackdrop: {
+        observer: '_withBackdropChanged',
+        type: Boolean,
+      },
 
       /**
        * Set to true to disable auto-focusing the overlay or child nodes with
        * the `autofocus` attribute` when the overlay is opened.
        */
-      noAutoFocus: {type: Boolean, value: false},
+      noAutoFocus: {
+        type: Boolean,
+        value: false,
+      },
 
       /**
        * Set to true to disable canceling the overlay with the ESC key.
        */
-      noCancelOnEscKey: {type: Boolean, value: false},
+      noCancelOnEscKey: {
+        type: Boolean,
+        value: false,
+      },
 
       /**
        * Set to true to disable canceling the overlay by clicking outside it.
        */
-      noCancelOnOutsideClick: {type: Boolean, value: false},
+      noCancelOnOutsideClick: {
+        type: Boolean,
+        value: false,
+      },
 
       /**
        * Contains the reason(s) this overlay was last closed (see
@@ -71,25 +83,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       closingReason: {
         // was a getter before, but needs to be a property so other
         // behaviors can override this.
-        type: Object
+        type: Object,
       },
 
       /**
        * Set to true to enable restoring of focus when overlay is closed.
        */
-      restoreFocusOnClose: {type: Boolean, value: false},
+      restoreFocusOnClose: {
+        type: Boolean,
+        value: false,
+      },
 
       /**
        * Set to true to allow clicks to go through overlays.
        * When the user clicks outside this overlay, the click may
        * close the overlay below.
        */
-      allowClickThrough: {type: Boolean},
+      allowClickThrough: {
+        type: Boolean,
+      },
 
       /**
        * Set to true to keep overlay always on top.
        */
-      alwaysOnTop: {type: Boolean},
+      alwaysOnTop: {
+        type: Boolean,
+      },
 
       /**
        * Determines which action to perform when scroll outside an opened overlay
@@ -97,20 +116,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        * computes the new position on the overlay cancel - causes the overlay to
        * close
        */
-      scrollAction: {type: String},
+      scrollAction: {
+        type: String,
+      },
 
       /**
        * Shortcut to access to the overlay manager.
        * @private
        * @type {!Polymer.IronOverlayManagerClass}
        */
-      _manager: {type: Object, value: Polymer.IronOverlayManager},
+      _manager: {
+        type: Object,
+        value: Polymer.IronOverlayManager,
+      },
 
       /**
        * The node being focused.
        * @type {?Node}
        */
-      _focusedChild: {type: Object}
+      _focusedChild: {
+        type: Object,
+      }
 
     },
 

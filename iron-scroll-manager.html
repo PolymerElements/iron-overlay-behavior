@@ -228,14 +228,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     _boundScrollHandler: undefined,
 
     _lockScrollInteractions: function() {
-      // workaround for modulizer not handling bind properly
-      if (!this._boundScrollHandler) {
-        try {
-          this._boundScrollHandler = this._scrollInteractionHandler.bind(this);
-        } catch (e) {
-          this._boundScrollHandler = this._scrollInteractionHandler;
-        }
-      }
+      this._boundScrollHandler =
+          this._boundScrollHandler || this._scrollInteractionHandler.bind(this);
       for (var i = 0, l = scrollEvents.length; i < l; i++) {
         // NOTE: browsers that don't support objects as third arg will
         // interpret it as boolean, hence useCapture = true in this case.

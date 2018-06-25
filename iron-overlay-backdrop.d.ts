@@ -37,7 +37,7 @@ interface IronOverlayBackdropElement extends Polymer.Element {
   /**
    * Appends the backdrop to document body if needed.
    */
-  prepare(): void;
+  prepare(parentNode?: Node|null): void;
 
   /**
    * Shows the backdrop.

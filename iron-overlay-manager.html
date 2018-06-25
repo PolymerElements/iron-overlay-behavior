@@ -231,10 +231,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // in order to support nested overlays.
       if (overlay) {
         var parentOverlay = null;
-        for(var i = this._overlays.length - 1; i >= 0; i--) {
+        for (var i = this._overlays.length - 1; i >= 0; i--) {
           var candidate = this._overlays[i];
           if (candidate !== overlay && candidate.withBackdrop &&
-                 Polymer.dom(candidate).deepContains(overlay)) {
+              Polymer.dom(candidate).deepContains(overlay)) {
             parentOverlay = candidate;
             break;
           }

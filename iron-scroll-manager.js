@@ -1,15 +1,16 @@
 /**
 @license
 Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+This code may only be used under the BSD style license found at
+http://polymer.github.io/LICENSE.txt The complete set of authors may be found at
+http://polymer.github.io/AUTHORS.txt The complete set of contributors may be
+found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
+part of the polymer project is also subject to an additional IP rights grant
+found at http://polymer.github.io/PATENTS.txt
 */
 import '@polymer/polymer/polymer-legacy.js';
 
-import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import {dom} from '@polymer/polymer/lib/legacy/polymer.dom.js';
 /**
  * Used to calculate the scroll direction during touch events.
  * @type {!Object}
@@ -58,7 +59,7 @@ and this string can then be deleted`;
  *
  * @return {!Node|undefined}
  */
-export { currentLockingElement };
+export {currentLockingElement};
 
 /**
  * Returns true if the provided element is "scroll locked", which is to
@@ -117,8 +118,7 @@ export function pushScrollLock(element) {
   }
 
   _lockingElements.push(element);
-  currentLockingElement =
-      _lockingElements[_lockingElements.length - 1];
+  currentLockingElement = _lockingElements[_lockingElements.length - 1];
 
   _lockedElementCache = [];
   _unlockedElementCache = [];
@@ -141,8 +141,7 @@ export function removeScrollLock(element) {
   }
 
   _lockingElements.splice(index, 1);
-  currentLockingElement =
-      _lockingElements[_lockingElements.length - 1];
+  currentLockingElement = _lockingElements[_lockingElements.length - 1];
 
   _lockedElementCache = [];
   _unlockedElementCache = [];
@@ -184,8 +183,7 @@ export function _composedTreeContains(element, child) {
 
   for (contentIndex = 0; contentIndex < contentElements.length;
        ++contentIndex) {
-    distributedNodes =
-        dom(contentElements[contentIndex]).getDistributedNodes();
+    distributedNodes = dom(contentElements[contentIndex]).getDistributedNodes();
 
     for (nodeIndex = 0; nodeIndex < distributedNodes.length; ++nodeIndex) {
       // Polymer 2.x returns slot.assignedNodes which can contain text nodes.
@@ -218,7 +216,7 @@ export function _scrollInteractionHandler(event) {
 /**
  * @private
  */
-export { _boundScrollHandler };
+export {_boundScrollHandler};
 
 export function _lockScrollInteractions() {
   _boundScrollHandler =
@@ -227,9 +225,7 @@ export function _lockScrollInteractions() {
     // NOTE: browsers that don't support objects as third arg will
     // interpret it as boolean, hence useCapture = true in this case.
     document.addEventListener(
-        scrollEvents[i],
-        _boundScrollHandler,
-        {capture: true, passive: false});
+        scrollEvents[i], _boundScrollHandler, {capture: true, passive: false});
   }
 }
 
@@ -238,9 +234,7 @@ export function _unlockScrollInteractions() {
     // NOTE: browsers that don't support objects as third arg will
     // interpret it as boolean, hence useCapture = true in this case.
     document.removeEventListener(
-        scrollEvents[i],
-        _boundScrollHandler,
-        {capture: true, passive: false});
+        scrollEvents[i], _boundScrollHandler, {capture: true, passive: false});
   }
 }
 
@@ -273,8 +267,7 @@ export function _shouldPreventScrolling(event) {
   // Get deltaX/Y.
   var info = _getScrollInfo(event);
   // Prevent if there is no child that can scroll.
-  return !_getScrollingNode(
-      lastScrollableNodes, info.deltaX, info.deltaY);
+  return !_getScrollingNode(lastScrollableNodes, info.deltaX, info.deltaY);
 }
 
 /**

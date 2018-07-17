@@ -72,7 +72,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     import {dom} from '@polymer/polymer/lib/legacy/polymer.dom.js';
     import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
     import {useShadow} from '@polymer/polymer/lib/utils/settings.js';
-    import {PolymerElement} from '@polymer/polymer/polymer-element.js';
 
     import {_lockingElements, elementIsScrollLocked} from '../iron-scroll-manager.js';
 
@@ -312,15 +311,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               overlay.addEventListener('iron-overlay-canceled', function(event) {
                 assert.equal(
                     event.detail.type, 'scroll', 'detail contains original event');
-                // In Polymer 1.x with dom=shadow, triggering a scroll event on a
-                // node inside a shadowRoot doesn't set the correct target, so we
-                // skip this check.
-                if (PolymerElement || !useShadow) {
-                  assert.equal(
-                      event.detail.target,
-                      scrollable,
-                      'original scroll event target ok');
-                }
+                assert.equal(
+                    event.detail.target,
+                    scrollable,
+                    'original scroll event target ok');
                 overlay.addEventListener('iron-overlay-closed', function() {
                   done();
                 });
@@ -393,15 +387,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               overlay.addEventListener('iron-overlay-canceled', function(event) {
                 assert.equal(
                     event.detail.type, 'scroll', 'detail contains original event');
-                // In Polymer 1.x with dom=shadow, triggering a scroll event on a
-                // node inside a shadowRoot doesn't set the correct target, so we
-                // skip this check.
-                if (PolymerElement || !useShadow) {
-                  assert.equal(
-                      event.detail.target,
-                      scrollable,
-                      'original scroll event target ok');
-                }
+                assert.equal(
+                    event.detail.target,
+                    scrollable,
+                    'original scroll event target ok');
                 overlay.addEventListener('iron-overlay-closed', function() {
                   done();
                 });

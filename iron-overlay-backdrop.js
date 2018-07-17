@@ -26,10 +26,8 @@ Custom property | Description | Default
 -------------------------------------------|------------------------|---------
 `--iron-overlay-backdrop-background-color` | Backdrop background color | #000
 `--iron-overlay-backdrop-opacity`          | Backdrop opacity | 0.6
-`--iron-overlay-backdrop`                  | Mixin applied to
-`iron-overlay-backdrop`.                      | {}
-`--iron-overlay-backdrop-opened`           | Mixin applied to
-`iron-overlay-backdrop` when it is displayed | {}
+`--iron-overlay-backdrop`                  | Mixin applied to `iron-overlay-backdrop`.                      | {}
+`--iron-overlay-backdrop-opened`           | Mixin applied to `iron-overlay-backdrop` when it is displayed | {}
 */
 Polymer({
   _template: html`

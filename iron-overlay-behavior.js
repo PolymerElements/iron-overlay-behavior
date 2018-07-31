@@ -1,21 +1,23 @@
 /**
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+This code may only be used under the BSD style license found at
+http://polymer.github.io/LICENSE.txt The complete set of authors may be found at
+http://polymer.github.io/AUTHORS.txt The complete set of contributors may be
+found at http://polymer.github.io/CONTRIBUTORS.txt Code distributed by Google as
+part of the polymer project is also subject to an additional IP rights grant
+found at http://polymer.github.io/PATENTS.txt
 */
 import '@polymer/polymer/polymer-legacy.js';
 
-import { IronFitBehavior } from '@polymer/iron-fit-behavior/iron-fit-behavior.js';
-import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import { IronOverlayManager } from './iron-overlay-manager.js';
-import { removeScrollLock, pushScrollLock } from './iron-scroll-manager.js';
-import { IronFocusablesHelper } from './iron-focusables-helper.js';
-import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
-import { useShadow } from '@polymer/polymer/lib/utils/settings.js';
+import {IronFitBehavior} from '@polymer/iron-fit-behavior/iron-fit-behavior.js';
+import {IronResizableBehavior} from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import {dom} from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import {useShadow} from '@polymer/polymer/lib/utils/settings.js';
+
+import {IronFocusablesHelper} from './iron-focusables-helper.js';
+import {IronOverlayManager} from './iron-overlay-manager.js';
+import {pushScrollLock, removeScrollLock} from './iron-scroll-manager.js';
 
 /** @polymerBehavior */
 export const IronOverlayBehaviorImpl = {
@@ -155,8 +157,7 @@ export const IronOverlayBehaviorImpl = {
    * @return {!Node}
    */
   get _focusNode() {
-    return this._focusedChild ||
-        dom(this).querySelector('[autofocus]') || this;
+    return this._focusedChild || dom(this).querySelector('[autofocus]') || this;
   },
 
   /**
@@ -752,10 +753,10 @@ export const IronOverlayBehaviorImpl = {
 };
 
 /**
-  Use `Polymer.IronOverlayBehavior` to implement an element that can be hidden or
-  shown, and displays on top of other content. It includes an optional backdrop,
-  and can be used to implement a variety of UI controls including dialogs and drop
-  downs. Multiple overlays may be displayed at once.
+  Use `Polymer.IronOverlayBehavior` to implement an element that can be hidden
+  or shown, and displays on top of other content. It includes an optional
+  backdrop, and can be used to implement a variety of UI controls including
+  dialogs and drop downs. Multiple overlays may be displayed at once.
 
   See the [demo source
   code](https://github.com/PolymerElements/iron-overlay-behavior/blob/master/demo/simple-overlay.html)
@@ -764,14 +765,15 @@ export const IronOverlayBehaviorImpl = {
   ### Closing and canceling
 
   An overlay may be hidden by closing or canceling. The difference between close
-  and cancel is user intent. Closing generally implies that the user acknowledged
-  the content on the overlay. By default, it will cancel whenever the user taps
-  outside it or presses the escape key. This behavior is configurable with the
-  `no-cancel-on-esc-key` and the `no-cancel-on-outside-click` properties.
-  `close()` should be called explicitly by the implementer when the user interacts
-  with a control in the overlay element. When the dialog is canceled, the overlay
-  fires an 'iron-overlay-canceled' event. Call `preventDefault` on this event to
-  prevent the overlay from closing.
+  and cancel is user intent. Closing generally implies that the user
+  acknowledged the content on the overlay. By default, it will cancel whenever
+  the user taps outside it or presses the escape key. This behavior is
+  configurable with the `no-cancel-on-esc-key` and the
+  `no-cancel-on-outside-click` properties. `close()` should be called explicitly
+  by the implementer when the user interacts with a control in the overlay
+  element. When the dialog is canceled, the overlay fires an
+  'iron-overlay-canceled' event. Call `preventDefault` on this event to prevent
+  the overlay from closing.
 
   ### Positioning
 
@@ -781,30 +783,27 @@ export const IronOverlayBehaviorImpl = {
 
   ### Backdrop
 
-  Set the `with-backdrop` attribute to display a backdrop behind the overlay. The
-  backdrop is appended to `<body>` and is of type `<iron-overlay-backdrop>`. See
-  its doc page for styling options.
+  Set the `with-backdrop` attribute to display a backdrop behind the overlay.
+  The backdrop is appended to `<body>` and is of type `<iron-overlay-backdrop>`.
+  See its doc page for styling options.
 
-  In addition, `with-backdrop` will wrap the focus within the content in the light
-  DOM. Override the [`_focusableNodes`
+  In addition, `with-backdrop` will wrap the focus within the content in the
+  light DOM. Override the [`_focusableNodes`
   getter](#Polymer.IronOverlayBehavior:property-_focusableNodes) to achieve a
   different behavior.
 
   ### Limitations
 
-  The element is styled to appear on top of other content by setting its `z-index`
-  property. You must ensure no element has a stacking context with a higher
-  `z-index` than its parent stacking context. You should place this element as a
-  child of `<body>` whenever possible.
+  The element is styled to appear on top of other content by setting its
+  `z-index` property. You must ensure no element has a stacking context with a
+  higher `z-index` than its parent stacking context. You should place this
+  element as a child of `<body>` whenever possible.
 
   @demo demo/index.html
   @polymerBehavior
  */
-export const IronOverlayBehavior = [
-  IronFitBehavior,
-  IronResizableBehavior,
-  IronOverlayBehaviorImpl
-];
+export const IronOverlayBehavior =
+    [IronFitBehavior, IronResizableBehavior, IronOverlayBehaviorImpl];
 
 /**
  * Fired after the overlay opens.

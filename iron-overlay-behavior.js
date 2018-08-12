@@ -123,7 +123,7 @@ export const IronOverlayBehaviorImpl = {
     /**
      * Shortcut to access to the overlay manager.
      * @private
-     * @type {!Polymer.IronOverlayManagerClass}
+     * @type {!IronOverlayManagerClass}
      */
     _manager: {
       type: Object,

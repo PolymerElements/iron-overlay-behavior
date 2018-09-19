@@ -99,6 +99,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <test-overlay with-backdrop>
         Overlay with backdrop
+        <input disabled>
+        <input>
+        <input disabled>
       </test-overlay>
     </template>
   </test-fixture>
@@ -873,6 +876,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             document.removeEventListener('keydown', tabSpy);
             done();
           }, 1);
+        });
+      });
+
+      const testName =
+          'with-backdrop: __firstFocusableNode and __lastFocusableNode are ' +
+          'updated after pressing tab.';
+      test(testName, function(done) {
+        const TAB = 9;
+        const overlay = fixture('backdrop');
+        const inputs = overlay.querySelectorAll('input');
+
+        runAfterOpen(overlay, function() {
+          MockInteractions.pressAndReleaseKeyOn(document, TAB);
+
+          assert.equal(overlay.__firstFocusableNode, inputs[1]);
+          assert.equal(overlay.__lastFocusableNode, inputs[1]);
+
+          inputs[0].removeAttribute('disabled');
+          inputs[2].removeAttribute('disabled');
+          MockInteractions.pressAndReleaseKeyOn(document, TAB);
+
+          assert.equal(overlay.__firstFocusableNode, inputs[0]);
+          assert.equal(overlay.__lastFocusableNode, inputs[2]);
+
+          done();
         });
       });
     });

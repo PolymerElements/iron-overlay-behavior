@@ -565,15 +565,13 @@ export const IronOverlayBehaviorImpl = {
   },
 
   /**
-   * Will set first and last focusable nodes if any of them is not set.
+   * Updates the references to the first and last focusable nodes.
    * @private
    */
   __ensureFirstLastFocusables: function() {
-    if (!this.__firstFocusableNode || !this.__lastFocusableNode) {
-      var focusableNodes = this._focusableNodes;
-      this.__firstFocusableNode = focusableNodes[0];
-      this.__lastFocusableNode = focusableNodes[focusableNodes.length - 1];
-    }
+    var focusableNodes = this._focusableNodes;
+    this.__firstFocusableNode = focusableNodes[0];
+    this.__lastFocusableNode = focusableNodes[focusableNodes.length - 1];
   },
 
   /**

@@ -17,7 +17,6 @@ var matches = p.matches || p.matchesSelector || p.mozMatchesSelector ||
     p.msMatchesSelector || p.oMatchesSelector || p.webkitMatchesSelector;
 
 class IronFocusablesHelperClass {
-
   /**
    * Returns a sorted array of tabbable nodes, including the root node.
    * It searches the tabbable nodes in the light and shadow dom of the chidren,

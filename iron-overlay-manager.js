@@ -18,7 +18,7 @@ import * as gestures from '@polymer/polymer/lib/utils/gestures.js';
 /**
  * @struct
  * @constructor
- * @private
+ * @package
  */
 export const IronOverlayManagerClass = function() {
   /**

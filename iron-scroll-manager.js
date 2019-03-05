@@ -214,7 +214,7 @@ export function _scrollInteractionHandler(event) {
 }
 
 /**
- * @private
+ * @package
  */
 export {_boundScrollHandler};
 
@@ -244,7 +244,7 @@ export function _unlockScrollInteractions() {
  * outside the locking element when it is already at its scroll boundaries.
  * @param {!Event} event
  * @return {boolean}
- * @private
+ * @package
  */
 export function _shouldPreventScrolling(event) {
   // Update if root target changed. For touch events, ensure we don't
@@ -275,7 +275,7 @@ export function _shouldPreventScrolling(event) {
  * which is included too if scrollable.
  * @param {!Array<!Node>} nodes
  * @return {!Array<!Node>} scrollables
- * @private
+ * @package
  */
 export function _getScrollableNodes(nodes) {
   var scrollables = [];
@@ -306,7 +306,7 @@ export function _getScrollableNodes(nodes) {
  * @param {number} deltaX Scroll delta on the x-axis
  * @param {number} deltaY Scroll delta on the y-axis
  * @return {!Node|undefined}
- * @private
+ * @package
  */
 export function _getScrollingNode(nodes, deltaX, deltaY) {
   // No scroll.
@@ -343,7 +343,7 @@ export function _getScrollingNode(nodes, deltaX, deltaY) {
  * x-axis scroll delta (positive: scroll right, negative: scroll left,
  * 0: no scroll), and the y-axis scroll delta (positive: scroll down,
  * negative: scroll up, 0: no scroll).
- * @private
+ * @package
  */
 export function _getScrollInfo(event) {
   var info = {deltaX: event.deltaX, deltaY: event.deltaY};

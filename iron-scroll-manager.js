@@ -289,10 +289,10 @@ export function _getScrollableNodes(nodes) {
     var node = /** @type {!Element} */ (nodes[i]);
     // Check inline style before checking computed style.
     var style = node.style;
-    if (style.overflow !== 'scroll' && style.overflow !== 'auto') {
+    if (style.overflow.includes('scroll') && style.overflow.includes('auto')) {
       style = window.getComputedStyle(node);
     }
-    if (style.overflow === 'scroll' || style.overflow === 'auto') {
+    if (style.overflow.includes('scroll') || style.overflow.includes('auto')) {
       scrollables.push(node);
     }
   }

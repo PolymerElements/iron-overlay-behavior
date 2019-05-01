@@ -100,10 +100,13 @@ class IronFocusablesHelperClass {
    */
   _collectTabbableNodes(node, result) {
     // If not an element or not visible, no need to explore children.
-    if (node.nodeType !== Node.ELEMENT_NODE || !this._isVisible(node)) {
+    if (node.nodeType !== Node.ELEMENT_NODE) {
       return false;
     }
     var element = /** @type {!HTMLElement} */ (node);
+    if (!this._isVisible(element)) {
+      return false;
+    }
     var tabIndex = this._normalizedTabIndex(element);
     var needsSort = tabIndex > 0;
     if (tabIndex >= 0) {

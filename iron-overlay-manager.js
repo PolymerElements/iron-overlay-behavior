@@ -350,6 +350,7 @@ IronOverlayManagerClass.prototype = {
    * @private
    */
   _onCaptureFocus: function(event) {
+	event.stopPropagation();
     var overlay = /** @type {?} */ (this.currentOverlay());
     if (overlay) {
       overlay._onCaptureFocus(event);

@@ -16,7 +16,7 @@ import {dom} from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import {useShadow} from '@polymer/polymer/lib/utils/settings.js';
 
 import {IronFocusablesHelper} from './iron-focusables-helper.js';
-import {IronOverlayManager} from './iron-overlay-manager.js';
+import {IronOverlayManager, IronOverlayManagerClass} from './iron-overlay-manager.js';
 import {pushScrollLock, removeScrollLock} from './iron-scroll-manager.js';
 
 /** @polymerBehavior */
@@ -474,7 +474,7 @@ export const IronOverlayBehaviorImpl = {
       event.stopPropagation();
       this._applyFocus();
     } else {
-      this._focusedChild = path[0];
+      this._focusedChild = /** @type {Node} */ (path[0]);
     }
   },
 

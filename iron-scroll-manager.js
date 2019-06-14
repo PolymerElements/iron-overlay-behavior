@@ -41,24 +41,15 @@ var scrollEvents = [
 ];
 // must be defined for modulizer
 var _boundScrollHandler;
-var currentLockingElement;
-
-/**
- * The IronScrollManager is intended to provide a central source
- * of authority and control over which elements in a document are currently
- * allowed to scroll.
- *
- */
-`TODO(modulizer): A namespace named Polymer.IronScrollManager was
-declared here. The surrounding comments should be reviewed,
-and this string can then be deleted`;
 
 /**
  * The current element that defines the DOM boundaries of the
  * scroll lock. This is always the most recently locking element.
  *
- * @return {!Node|undefined}
+ * @type {!Node|undefined}
  */
+var currentLockingElement;
+
 export {currentLockingElement};
 
 /**

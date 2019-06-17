@@ -200,6 +200,7 @@ export const IronOverlayBehaviorImpl = {
     this._ensureSetup();
   },
 
+  /** @override */
   attached: function() {
     // Call _openedChanged here so that position can be computed correctly.
     if (this.opened) {
@@ -208,6 +209,7 @@ export const IronOverlayBehaviorImpl = {
     this._observer = dom(this).observeNodes(this._onNodesChange);
   },
 
+  /** @override */
   detached: function() {
     dom(this).unobserveNodes(this._observer);
     this._observer = null;

@@ -44,7 +44,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // of an overlay via event.stopPropagation(). The only way to prevent
     // closing of an overlay should be through its APIs.
     // NOTE: enable tap on <html> to workaround Polymer/polymer#4459
-    Polymer.Gestures.add(document.documentElement, 'tap', null);
+    Polymer.Gestures.addListener(document.documentElement, 'tap', null);
     document.addEventListener('tap', this._onCaptureClick.bind(this), true);
     document.addEventListener('focus', this._onCaptureFocus.bind(this), true);
     document.addEventListener('keydown', this._onCaptureKeyDown.bind(this), true);

@@ -270,7 +270,8 @@ export function _shouldPreventScrolling(event) {
  */
 export function _getScrollableNodes(nodes) {
   var scrollables = [];
-  var lockingIndex = nodes.indexOf(/** @type {!Node} */(currentLockingElement));
+  var lockingIndex =
+      nodes.indexOf(/** @type {!Node} */ (currentLockingElement));
   // Loop from root target to locking element (included).
   for (var i = 0; i <= lockingIndex; i++) {
     // Skip non-Element nodes.

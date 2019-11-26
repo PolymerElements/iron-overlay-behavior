@@ -211,7 +211,18 @@ export const IronOverlayBehaviorImpl = {
 
   /** @override */
   detached: function() {
-    dom(this).unobserveNodes(this._observer);
+    // TODO(bicknellr): Per spec, checking `this._observer` should never be
+    // necessary because `connectedCallback` and `disconnectedCallback` should
+    // always be called in alternating order. However, the custom elements
+    // polyfill doesn't implement the reactions stack, so this can sometimes
+    // happen, particularly if ShadyDOM is in noPatch mode where the custom
+    // elements polyfill is installed before ShadyDOM. We should investigate
+    // whether or not we can either implement the reactions stack without major
+    // performance implications or patch ShadyDOM's functions to restore the
+    // typical ShadyDOM-then-custom-elements order and remove this workaround.
+    if (this._observer) {
+      dom(this).unobserveNodes(this._observer);
+    }
     this._observer = null;
     for (var cb in this.__rafs) {
       if (this.__rafs[cb] !== null) {

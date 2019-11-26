@@ -154,7 +154,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.scrollAction = 'refit';
             runAfterOpen(overlay, function() {
               // Wait a tick, otherwise this fails in FF/Safari.
-              setTimeout(function() {
+              requestAnimationFrame(function() {
                 var refitSpy = sinon.spy(overlay, 'refit');
                 dispatchScroll(overlay, 0, 10);
                 afterNextRender(overlay, function() {
@@ -267,12 +267,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           function(done) {
             overlay.scrollAction = 'refit';
             runAfterOpen(overlay, function() {
-              var refitSpy = sinon.spy(overlay, 'refit');
-              dispatchScroll(overlay, 0, 10);
-              afterNextRender(overlay, function() {
-                assert.equal(
-                    refitSpy.callCount, 0, 'did not refit on scroll inside');
-                done();
+              // Wait a tick, otherwise this fails in FF/Safari.
+              requestAnimationFrame(function() {
+                var refitSpy = sinon.spy(overlay, 'refit');
+                dispatchScroll(overlay, 0, 10);
+                afterNextRender(overlay, function() {
+                  assert.equal(
+                      refitSpy.callCount, 0, 'did not refit on scroll inside');
+                  done();
+                });
               });
             });
           });
@@ -343,12 +346,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           function(done) {
             overlay.scrollAction = 'refit';
             runAfterOpen(overlay, function() {
-              var refitSpy = sinon.spy(overlay, 'refit');
-              dispatchScroll(overlay, 0, 10);
-              afterNextRender(overlay, function() {
-                assert.equal(
-                    refitSpy.callCount, 0, 'did not refit on scroll inside');
-                done();
+              // Wait a tick, otherwise this fails in FF/Safari.
+              requestAnimationFrame(function() {
+                var refitSpy = sinon.spy(overlay, 'refit');
+                dispatchScroll(overlay, 0, 10);
+                afterNextRender(overlay, function() {
+                  assert.equal(
+                      refitSpy.callCount, 0, 'did not refit on scroll inside');
+                  done();
+                });
               });
             });
           });

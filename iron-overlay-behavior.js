@@ -763,7 +763,8 @@ export const IronOverlayBehaviorImpl = {
 
 };
 
-const composedParent = node => node.assignedSlot || node.parentNode || node.host;
+const composedParent = node =>
+    node.assignedSlot || node.parentNode || node.host;
 
 const composedContains = (ancestor, descendant) => {
   for (let element = descendant; element; element = composedParent(element)) {

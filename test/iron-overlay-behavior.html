@@ -59,7 +59,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <test-overlay>
         Autofocus
-        <button autofocus>button</button>
+        <input autofocus>
       </test-overlay>
     </template>
   </test-fixture>
@@ -71,10 +71,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div>
           <input class="focusable1" placeholder="1 (nested)">
         </div>
-        <button class="focusable2">1</button>
-        <button disabled> disabled button</button>
+        <input class="focusable2" placeholder="1">
+        <input disabled placeholder="disabled input">
         <div tabindex="-1">not focusable</div>
-        <button class="focusable3">2</button>
+        <input class="focusable3" placeholder="2">
       </test-overlay>
       <test-overlay tabindex="-1">
         <h2>Focusables (with tabindex)</h2>
@@ -90,7 +90,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </test-overlay>
       <test-overlay2>
         Overlay with optimized focusableNodes getter
-        <button class="focusable1">1</button>
+        <input class="focusable1" placeholder="1">
       </test-overlay2>
     </template>
   </test-fixture>
@@ -127,14 +127,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
 
-  <test-buttons id="buttons"></test-buttons>
+  <test-inputs id="inputs"></test-inputs>
   <input id="focusInput" placeholder="focus input">
 
   <script type="module">
     import '@polymer/iron-test-helpers/iron-test-helpers.js';
     import './test-overlay.js';
     import './test-overlay2.js';
-    import './test-buttons.js';
+    import './test-inputs.js';
     import './test-menu-button.js';
 
     import {dom, flush} from '@polymer/polymer/lib/legacy/polymer.dom.js';
@@ -549,7 +549,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(
               dom(overlay).querySelector('[autofocus]'),
               document.activeElement,
-              '<button autofocus> is focused');
+              '<input autofocus> is focused');
           done();
         });
       });
@@ -560,7 +560,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.notEqual(
               dom(overlay).querySelector('[autofocus]'),
               document.activeElement,
-              '<button autofocus> not focused after opened');
+              '<input autofocus> not focused after opened');
           done();
         });
         // In Safari the element with autofocus will immediately receive focus when
@@ -569,7 +569,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.notEqual(
             dom(overlay).querySelector('[autofocus]'),
             document.activeElement,
-            '<button autofocus> not immediately focused');
+            '<input autofocus> not immediately focused');
       });
 
       test(
@@ -582,7 +582,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 assert.equal(
                     dom(overlay).querySelector('[autofocus]'),
                     document.activeElement,
-                    '<button autofocus> is focused');
+                    '<input autofocus> is focused');
                 done();
               }, 10);
             });
@@ -590,21 +590,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('with-backdrop traps the focus within the overlay', function(done) {
         var focusSpy = sinon.stub();
-        var button = document.createElement('button');
-        document.body.appendChild(button);
-        button.addEventListener('focus', focusSpy, true);
+        var input = document.createElement('input');
+        document.body.appendChild(input);
+        input.addEventListener('focus', focusSpy, true);
 
         overlay.withBackdrop = true;
         runAfterOpen(overlay, function() {
           // Try to steal the focus
-          MockInteractions.focus(button);
+          MockInteractions.focus(input);
           assert.equal(
               dom(overlay).querySelector('[autofocus]'),
               document.activeElement,
-              '<button autofocus> is focused');
+              '<input autofocus> is focused');
           assert.equal(
-              focusSpy.callCount, 0, 'button in body did not get the focus');
-          document.body.removeChild(button);
+              focusSpy.callCount, 0, 'input in body did not get the focus');
+          document.body.removeChild(input);
           done();
         });
       });
@@ -624,7 +624,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 assert.equal(
                     dom(overlay).querySelector('[autofocus]'),
                     document.activeElement,
-                    'focus stays on button');
+                    'focus stays on input');
                 assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
                 assert.isTrue(
                     tabSpy.getCall(0).args[0].defaultPrevented,
@@ -788,17 +788,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 focusableNodes[focusableNodes.length - 1].focus();
                 // Simulate TAB.
                 MockInteractions.pressAndReleaseKeyOn(document, 9);
-                assert.equal(
-                    focusableNodes[0],
-                    document.activeElement,
-                    'focus wrapped to first focusable');
-                // Simulate Shift+TAB.
-                MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-                assert.equal(
-                    focusableNodes[focusableNodes.length - 1],
-                    document.activeElement,
-                    'focus wrapped to last focusable');
-                done();
+                Base.async(function() {
+                  assert.equal(
+                      focusableNodes[0],
+                      document.activeElement,
+                      'focus wrapped to first focusable');
+                  // Simulate Shift+TAB.
+                  MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+                  Base.async(function() {
+                    assert.equal(
+                        focusableNodes[focusableNodes.length - 1],
+                        document.activeElement,
+                        'focus wrapped to last focusable');
+                    done();
+                  }, 1);
+                }, 1);
               }, 1);
             });
           });
@@ -864,17 +868,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             document.addEventListener('keydown', tabSpy);
             // Simulate Shift+TAB.
             MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-            assert.equal(
-                overlayFocusableNodes.$.last,
-                IronOverlayManager.deepActiveElement,
-                'focus wrapped to last focusable in the shadowDOM');
-            assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
-            assert.isTrue(
-                tabSpy.getCall(0).args[0].defaultPrevented,
-                'keydown default prevented');
-            // Cleanup.
-            document.removeEventListener('keydown', tabSpy);
-            done();
+            Base.async(function() {
+              assert.equal(
+                  overlayFocusableNodes.$.last,
+                  IronOverlayManager.deepActiveElement,
+                  'focus wrapped to last focusable in the shadowDOM');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(
+                  tabSpy.getCall(0).args[0].defaultPrevented,
+                  'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
+              done();
+            }, 1);
           }, 1);
         });
       });
@@ -920,7 +926,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('handles shadow dom', function() {
-        var focusable = document.getElementById('buttons').$.button0;
+        var focusable = document.getElementById('inputs').$.input0;
         focusable.focus();
         assert.equal(IronOverlayManager.deepActiveElement, focusable);
         focusable.blur();
@@ -971,7 +977,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('overlay returns focus on close (ShadowDOM)', function(done) {
-        var focusable = document.getElementById('buttons').$.button0;
+        var focusable = document.getElementById('inputs').$.input0;
         focusable.focus();
         runAfterOpen(overlay, function() {
           runAfterClose(overlay, function() {
@@ -985,8 +991,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('avoids restoring focus if focus changed', function(done) {
-        var button0 = document.getElementById('buttons').$.button0;
-        var button1 = document.getElementById('buttons').$.button1;
+        var button0 = document.getElementById('inputs').$.input0;
+        var button1 = document.getElementById('inputs').$.input1;
         button0.focus();
         runAfterOpen(overlay, function() {
           button1.focus();

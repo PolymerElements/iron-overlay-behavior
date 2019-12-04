@@ -76,25 +76,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <test-fixture id="shadow">
     <template>
-      <test-buttons>
+      <test-inputs>
         <h2>focusables in ShadowDOM</h2>
         <input placeholder="type something..">
-      </test-buttons>
+      </test-inputs>
     </template>
   </test-fixture>
 
   <test-fixture id="composed">
     <template>
-      <test-buttons-wrapper>
+      <test-inputs-wrapper>
         <input placeholder="type something..">
-      </test-buttons-wrapper>
+      </test-inputs-wrapper>
     </template>
   </test-fixture>
 
   <script type="module">
     import '@polymer/iron-test-helpers/iron-test-helpers.js';
-    import './test-buttons.js';
-    import './test-buttons-wrapper.js';
+    import './test-inputs.js';
+    import './test-inputs-wrapper.js';
 
     import {dom} from '@polymer/polymer/lib/legacy/polymer.dom.js';
 
@@ -156,10 +156,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var node = fixture('shadow');
         var focusableNodes = IronFocusablesHelper.getTabbableNodes(node);
         assert.equal(focusableNodes.length, 4, '4 nodes are focusable');
-        assert.equal(focusableNodes[0], node.$.button0);
-        assert.equal(focusableNodes[1], node.$.button1);
+        assert.equal(focusableNodes[0], node.$.input0);
+        assert.equal(focusableNodes[1], node.$.input1);
         assert.equal(focusableNodes[2], dom(node).querySelector('input'));
-        assert.equal(focusableNodes[3], node.$.button2);
+        assert.equal(focusableNodes[3], node.$.input2);
       });
 
       test('handles composition', function() {
@@ -167,10 +167,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var focusableNodes = IronFocusablesHelper.getTabbableNodes(node);
         assert.equal(focusableNodes.length, 6, '6 nodes are focusable');
         assert.equal(focusableNodes[0], node.$.select);
-        assert.equal(focusableNodes[1], node.$.wrapped.$.button0);
-        assert.equal(focusableNodes[2], node.$.wrapped.$.button1);
+        assert.equal(focusableNodes[1], node.$.wrapped.$.input0);
+        assert.equal(focusableNodes[2], node.$.wrapped.$.input1);
         assert.equal(focusableNodes[3], dom(node).querySelector('input'));
-        assert.equal(focusableNodes[4], node.$.wrapped.$.button2);
+        assert.equal(focusableNodes[4], node.$.wrapped.$.input2);
         assert.equal(focusableNodes[5], node.$.focusableDiv);
       });
 
@@ -179,10 +179,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var wrapped = node.$.wrapped;
         var focusableNodes = IronFocusablesHelper.getTabbableNodes(wrapped);
         assert.equal(focusableNodes.length, 4, '4 nodes are focusable');
-        assert.equal(focusableNodes[0], wrapped.$.button0);
-        assert.equal(focusableNodes[1], wrapped.$.button1);
+        assert.equal(focusableNodes[0], wrapped.$.input0);
+        assert.equal(focusableNodes[1], wrapped.$.input1);
         assert.equal(focusableNodes[2], dom(node).querySelector('input'));
-        assert.equal(focusableNodes[3], wrapped.$.button2);
+        assert.equal(focusableNodes[3], wrapped.$.input2);
       });
     });
   </script>

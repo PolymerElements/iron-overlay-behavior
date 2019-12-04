@@ -10,7 +10,7 @@ found at http://polymer.github.io/PATENTS.txt
 */
 import '@polymer/polymer/polymer-legacy.js';
 
-import './test-buttons.js';
+import './test-inputs.js';
 import {Polymer} from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import {html} from '@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
@@ -26,11 +26,11 @@ Polymer({
     <select id="select">
       <option>1</option>
     </select>
-    <test-buttons id="wrapped">
+    <test-inputs id="wrapped">
       <slot></slot>
-    </test-buttons>
+    </test-inputs>
     <div tabindex="0" id="focusableDiv">Focusable div</div>
 `,
 
-  is: 'test-buttons-wrapper'
+  is: 'test-inputs-wrapper'
 });

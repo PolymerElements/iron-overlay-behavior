@@ -22,11 +22,11 @@ Polymer({
       }
     </style>
 
-    <button id="button0">button0</button>
-    <button id="button1">button1</button>
+    <input id="input0" placeholder="input0">
+    <input id="input1" placeholder="input1">
     <slot></slot>
-    <button id="button2">button2</button>
+    <input id="input2" placeholder="input2">
 `,
 
-  is: 'test-buttons'
+  is: 'test-inputs'
 });

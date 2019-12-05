@@ -127,6 +127,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
 
+  <test-fixture id="has-shadow-overlay">
+    <template>
+      <has-shadow-overlay>
+        <button>button</button>
+      </has-shadow-overlay>
+    </template>
+  </test-fixture>
+
   <test-buttons id="buttons"></test-buttons>
   <input id="focusInput" placeholder="focus input">
 
@@ -136,6 +144,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     import './test-overlay2.js';
     import './test-buttons.js';
     import './test-menu-button.js';
+    import './has-shadow-overlay.js';
 
     import {dom, flush} from '@polymer/polymer/lib/legacy/polymer.dom.js';
     import {afterNextRender} from '@polymer/polymer/lib/utils/render-status.js';
@@ -983,6 +992,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
       });
+
+      test(
+          'overlay returns focus on close (distributed focusable content)',
+          function(done) {
+            var hasShadowOverlay = fixture('has-shadow-overlay');
+            hasShadowOverlay.overlay.restoreFocusOnClose = true;
+
+            var button = dom(hasShadowOverlay).querySelector('button');
+
+            var focusable = document.getElementById('focusInput');
+            focusable.focus();
+
+            runAfterOpen(hasShadowOverlay.overlay, async function() {
+              button.focus();
+              assert.equal(
+                  IronOverlayManager.deepActiveElement,
+                  button,
+                  'the distributed content is focused');
+
+              runAfterClose(hasShadowOverlay.overlay, async function() {
+                // Focus should be restored to the input even though the
+                // focused button inside the overlay was not a shadow-including
+                // descendant of the overlay.
+                assert.equal(
+                    IronOverlayManager.deepActiveElement,
+                    focusable,
+                    'focus restored to focusable');
+
+                done();
+              });
+            });
+          });
 
       test('avoids restoring focus if focus changed', function(done) {
         var button0 = document.getElementById('buttons').$.button0;

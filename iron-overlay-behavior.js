@@ -451,7 +451,7 @@ export const IronOverlayBehaviorImpl = {
         // button outside the overlay).
         var activeElement = this._manager.deepActiveElement;
         if (activeElement === document.body ||
-            dom(this).deepContains(activeElement)) {
+            composedContains(this, activeElement)) {
           this.__restoreFocusNode.focus();
         }
       }
@@ -761,6 +761,18 @@ export const IronOverlayBehaviorImpl = {
     }
   },
 
+};
+
+const composedParent = node =>
+    node.assignedSlot || node.parentNode || node.host;
+
+const composedContains = (ancestor, descendant) => {
+  for (let element = descendant; element; element = composedParent(element)) {
+    if (element === ancestor) {
+      return true;
+    }
+  }
+  return false;
 };
 
 /**

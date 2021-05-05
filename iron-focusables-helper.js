@@ -132,7 +132,7 @@ class IronFocusablesHelperClass {
       children = dom(element).getDistributedNodes();
     } else {
       // Use shadow root if possible, will check for distributed nodes.
-      children = dom(element.root || element).children;
+      children = dom(element.shadowRoot || element.root || element).children;
     }
     for (var i = 0; i < children.length; i++) {
       // Ensure method is always invoked to collect tabbable children.

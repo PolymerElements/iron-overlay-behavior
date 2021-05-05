@@ -57,7 +57,9 @@ class IronFocusablesHelperClass {
     }
     // Elements that can be focused even if they have [disabled] attribute.
     return matches.call(
-        element, 'a[href], area[href], iframe, [tabindex], [contentEditable]');
+      element,
+      'a[href], area[href], iframe, [tabindex], [contentEditable], [iron-focusable]'
+    );
   }
 
   /**

@@ -34,7 +34,8 @@ options.
 
 In addition, `with-backdrop` will wrap the focus within the content in the light DOM.
 Override the [`_focusableNodes` getter](#Polymer.IronOverlayBehavior:property-_focusableNodes)
-to achieve a different behavior.
+to achieve a different behavior. Additionally, you can add the `iron-focusable` attribute to
+any element in the light DOM to mark it as focusable.
 
 ### Limitations
 
